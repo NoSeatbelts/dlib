@@ -29,6 +29,23 @@ enum htseq {
 	HTS_N = 15
 };
 
+#ifndef INC_TAG
+#define INC_TAG(p, b, key) *(int *)(bam_aux_get(p, key) + 1) += *(int *)(bam_aux_get(b, key) + 1);
+#endif
+
+#define set_base(pSeq, bSeq, i) (pSeq)[(i)>>1] = ((bam_seqi(bSeq, i) << (((~i) & 1) << 2)) | (((pSeq)[(i)>>1]) & (0xf0U >> (((~i) & 1) << 2))))
+#define n_base(pSeq, i) pSeq[(i)>>1] |= (0xf << ((~(i) & 1) << 2));
+
+#define check_fa(arr, fm, len) \
+		do {\
+		for(int i##arr = 0; i##arr < len; ++i##arr) {\
+			if(arr[i##arr] > fm){\
+				fprintf(stderr, "FAIL. %" PRIu32 " arr value greater than FM %" PRIu32 ".\n", arr[i##arr], fm);\
+				exit(EXIT_FAILURE);\
+			}\
+		}\
+		} while(0)
+
 
 inline void process_mei_tag(bam1_t *b) {
 	const uint8_t *tag_ptr = bam_aux_get(b, "ME");
@@ -87,6 +104,11 @@ static inline void add_unclipped_mate_starts(bam1_t *b1, bam1_t *b2) {
 		exit(EXIT_FAILURE);\
 		}\
 	} while(0)
+
+CONST static inline void *array_tag(bam1_t *b, const char *tag) {
+	const uint8_t *data = bam_aux_get(b, tag);
+	return data ? (void *)(data + sizeof(int) + 2): NULL;
+}
 
 extern void bam_plp_set_maxcnt(bam_plp_t, int);
 
