@@ -42,7 +42,7 @@ static void fill_csv_buffer(int readlen, uint32_t *arr, char *buffer, char *pref
 {
 	char tmpbuf[12];
 	strcpy(buffer, prefix_typecode);
-	for(uint32_t i = 0; i < readlen; i++) {
+	for(int i = 0; i < readlen; i++) {
 		sprintf(tmpbuf, ",%i", arr[i]);
 		strcat(buffer, tmpbuf);
 	}
@@ -115,7 +115,7 @@ static inline void fill_rv(char *str, char *buffer, int len) {
 static inline char *trim_ext(char *fname)
 {
 	fprintf(stderr, "Now trimming char * %s.\n", fname);
-	char *buf = malloc((strlen(fname) + 1) * sizeof(char ));
+	char *buf = (char *)malloc((strlen(fname) + 1) * sizeof(char ));
 	char *found_pos = strrchr(fname, '.');
 	if(!found_pos) {
 		fprintf(stderr, "Could not trim file name's extension. Looks like it's missing a '.' (name: '%s').\n", fname);
@@ -158,7 +158,7 @@ static inline char *opt_itoa(unsigned val, char *s)
 {
 	if(!val)
 	{
-		s="0";
+		s=(char *)"0";
 		return s;
 	}
 
