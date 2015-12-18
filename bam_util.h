@@ -29,10 +29,15 @@ enum htseq {
 	HTS_N = 15
 };
 
-#ifndef INC_TAG
-#define INC_TAG(p, b, key) *(int *)(bam_aux_get(p, key) + 1) += *(int *)(bam_aux_get(b, key) + 1);
-#endif
-
+// bam utility macros.
+/* @func INC_TAG increments an int teag
+ * :param: p [bam1_t *] One bam record
+ * :param: b [bam1_t *] Second bam record
+ * :param: key [const char *] Bam aux key
+ */
+#define inc_tag(p, b, key, type) *(type *)(bam_aux_get(p, key) + 1) += *(type *)(bam_aux_get(b, key) + 1);
+#define inc_tag_int(p, b, key) inc_tag(p, b, key, int)
+#define inc_tag_float(p, b, key) inc_tag(p, b, key, float)
 #define set_base(pSeq, bSeq, i) (pSeq)[(i)>>1] = ((bam_seqi(bSeq, i) << (((~i) & 1) << 2)) | (((pSeq)[(i)>>1]) & (0xf0U >> (((~i) & 1) << 2))))
 #define n_base(pSeq, i) pSeq[(i)>>1] |= (0xf << ((~(i) & 1) << 2));
 
