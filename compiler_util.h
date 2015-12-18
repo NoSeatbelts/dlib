@@ -23,4 +23,8 @@
 #	define UNUSED_FUNC(x) x
 #endif
 
+#ifndef FOREVER
+#define FOREVER for(;;)
+#endif
+
 #endif
