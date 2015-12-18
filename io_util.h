@@ -2,7 +2,6 @@
 #define O_IO_UTIL_H
 #include <stdio.h>
 #include <string.h>
-#include <unistd.h>
 #include <zlib.h>
 
 #define CHECK_POPEN(cmd) \

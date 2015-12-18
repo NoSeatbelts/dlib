@@ -18,7 +18,7 @@ static const uint32_t nucpos_arr[128] = {4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 
 
 static inline int nuc_cmp(char forward, char reverse)
 {
-	return forward - reverse;
+	return (int)(forward - reverse);
 }
 
 #endif
