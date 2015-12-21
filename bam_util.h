@@ -84,14 +84,13 @@ inline void process_mei_tag(bam1_t *b) {
 	if(UNLIKELY(!tag_ptr)) {
 		fprintf(stderr, "[E:%s] Expected ME tag not present. Abort mission! Qname: %s.", __func__,
 				(char *)bam_get_qname(b));
-		exit(EXIT_FAILURE);
+        exit(EXIT_FAILURE);
 	}
 	if(bam_aux2i(tag_ptr)) {
 		b->core.pos = b->core.mpos;
 		b->core.tid = b->core.mtid;
 		b->core.flag |= BAM_FUNMAP;
-	}
-	else {
+	} else {
 		b->core.mpos = b->core.pos;
 		b->core.mtid = b->core.tid;
 		b->core.flag |= BAM_FMUNMAP;
