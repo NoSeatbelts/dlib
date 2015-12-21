@@ -45,7 +45,8 @@ enum htseq {
 		do {\
 		for(int i##arr = 0; i##arr < len; ++i##arr) {\
 			if(arr[i##arr] > fm){\
-				fprintf(stderr, "FAIL. %" PRIu32 " arr value greater than FM %" PRIu32 ".\n", arr[i##arr], fm);\
+				fprintf(stderr, "[E:%s] %" PRIu32 " arr value greater than FM %" PRIu32 ".\n",\
+                        __func__, arr[i##arr], fm);\
 				exit(EXIT_FAILURE);\
 			}\
 		}\
@@ -57,6 +58,7 @@ inline void process_mei_tag(bam1_t *b) {
 	if(UNLIKELY(!tag_ptr)) {
 		fprintf(stderr, "[E:%s] Expected ME tag not present. Abort mission! Qname: %s.", __func__,
 				(char *)bam_get_qname(b));
+        exit(EXIT_FAILURE);
 	}
 	if(bam_aux2i(tag_ptr)) {
 		b->core.pos = b->core.mpos;
