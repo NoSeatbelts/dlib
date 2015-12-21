@@ -108,18 +108,6 @@ static inline void fill_pv(int readlen, uint32_t *arr, char *buffer)
 	return fill_csv_buffer(readlen, arr, buffer, (char *)"PV:B:I");
 }
 
-/*
- * @func fill_fa
- * Calls append_csv_buffer for 32-bit FA array tags.
- * :param: readlen [int] Length of read
- * :param: arr [uint32_t *] Array of values to put into the buffer.
- * :param: buffer [char *] Buffer for the values.
- */
-static inline void fill_fa(int readlen, uint32_t *arr, char *buffer)
-{
-	return fill_csv_buffer(readlen, arr, buffer, (char *)"FA:B:I");
-}
-
 
 /*
  * @func kfill_rc
