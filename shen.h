@@ -10,7 +10,11 @@
 KHASH_MAP_INIT_INT(shen, uint32_t)
 #endif
 
-
+/*
+ * @func shannon_entroy
+ * :param: str [char *] Input string
+ * :returns: [double] Calculated shannon entropy.
+ */
 static inline double UNUSED_FUNC(shannon_entropy) (char *str)
 {
 	khash_t(shen) *h = kh_init(shen);
@@ -38,6 +42,13 @@ static inline double UNUSED_FUNC(shannon_entropy) (char *str)
 	return shen;
 }
 
+/*
+ * @func shannon_entropy_acgtn
+ * Caculates shannon entropy assuming only A, C, G, T, and N as possible characters.
+ * Ignores all ^[acgtACGT]
+ * :param: str [char *] Input string
+ * :returns: [double] Calculated shannon entropy.
+ */
 static inline double UNUSED_FUNC(shannon_entropy_acgtn) (char *str)
 {
 	uint64_t counts[4] = {0uL, 0uL, 0uL, 0uL};

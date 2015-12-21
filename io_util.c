@@ -3,5 +3,4 @@
 int isfile(char *fname)
 {
 	return access(fname, F_OK) != -1;
-
 }
