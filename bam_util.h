@@ -54,7 +54,7 @@ enum htseq {
 
 
 inline void process_mei_tag(bam1_t *b) {
-	const uint8_t *tag_ptr = bam_aux_get(b, "ME");
+	uint8_t *const tag_ptr = bam_aux_get(b, "ME");
 	if(UNLIKELY(!tag_ptr)) {
 		fprintf(stderr, "[E:%s] Expected ME tag not present. Abort mission! Qname: %s.", __func__,
 				(char *)bam_get_qname(b));
@@ -74,7 +74,8 @@ inline void process_mei_tag(bam1_t *b) {
 }
 
 static inline void add_unclipped_mate_starts(bam1_t *b1, bam1_t *b2) {
-	uint32_t i, offset1 = 0, offset2 = 0, ucs1 = b1->core.pos, ucs2 = b2->core.pos;
+    uint32_t i, offset1 = 0u, offset2 = 0u;
+	int32_t ucs1 = b1->core.pos, ucs2 = b2->core.pos;
 	const uint32_t *cigar1 = bam_get_cigar(b1);
 	const uint32_t *cigar2 = bam_get_cigar(b2);
 	for(i = 0; i < b1->core.n_cigar; ++i) {
