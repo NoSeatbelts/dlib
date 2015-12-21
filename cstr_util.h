@@ -24,6 +24,13 @@ KSEQ_INIT(gzFile, gzread)
 #define SEQBUF_SIZE 300
 #endif
 
+
+/*
+ * @func rand_string
+ * Stolen from stackoverflow.
+ * Fills the str with size random characters from the charset string
+ * and appends a terminal null character.
+ */
 static inline char *rand_string(char *str, size_t size)
 {
 	srand(time(NULL)); // Pick a seed!
@@ -38,74 +45,127 @@ static inline char *rand_string(char *str, size_t size)
     return str;
 }
 
-static void fill_csv_buffer(int readlen, uint32_t *arr, char *buffer, char *prefix_typecode)
+
+/*
+ * @func fill_csv_buffer
+ * Used to write out uint32_t arrays as textual bam tags.
+ * :param: readlen [int] Length of read
+ * :param: arr [uint32_t *] Array of values to put into the buffer.
+ * :param: buffer [char *] Buffer for the values.
+ * :param: prefix_typecode [const char *] typecode and prefix to append for a bam tag.
+ */
+static void fill_csv_buffer(int readlen, uint32_t *arr, char *buffer, const char *prefix_typecode)
 {
 	char tmpbuf[12];
 	strcpy(buffer, prefix_typecode);
 	for(int i = 0; i < readlen; i++) {
-		sprintf(tmpbuf, ",%i", arr[i]);
+		sprintf(tmpbuf, ",%u", arr[i]);
 		strcat(buffer, tmpbuf);
 	}
 }
 
-
+/*
+ * @func append_csv_buffer
+ * Like fill_csv_buffer, but it only appends. It doesn't reformat the input string at the start.
+ * :param: readlen [int] Length of read
+ * :param: arr [uint32_t *] Array of values to put into the buffer.
+ * :param: buffer [char *] Buffer for the values.
+ * :param: prefix_typecode [const char *] typecode and prefix to append for a bam tag.
+ */
 static inline void append_csv_buffer(int readlen, uint32_t *arr, char *buffer, char *prefix_typecode)
 {
 	char tmpbuf[12];
 	strcat(buffer, prefix_typecode);
 	for(int i = 0; i < readlen; i++) {
-		sprintf(tmpbuf, ",%" PRIu32 "", arr[i]);
+		sprintf(tmpbuf, ",%u", arr[i]);
 		strcat(buffer, tmpbuf);
 	}
 }
 
-static inline void append_int_tag(char *buffer, char *tag, int i)
+/*
+ * @func append_int_tag
+ * @abstract Adds an text integer bam tag to a buffer.
+ * :param: buffer [char *] Buffer for integer tag.
+ * :param: tag [char *] String for tag key.
+ * :param: i [int] value to use
+ */
+static inline void append_int_tag(char *buffer, const char *tag, int i)
 {
     char tmpbuf[15];
 	sprintf(tmpbuf, "\t%s:i:%i", tag, i);
     strcat(buffer, tmpbuf);
 }
 
-
+/*
+ * @func fill_pv
+ * Calls append_csv_buffer for 32-bit PV array tags.
+ * :param: readlen [int] Length of read
+ * :param: arr [uint32_t *] Array of values to put into the buffer.
+ * :param: buffer [char *] Buffer for the values.
+ */
 static inline void fill_pv(int readlen, uint32_t *arr, char *buffer)
 {
 	return fill_csv_buffer(readlen, arr, buffer, (char *)"PV:B:I");
 }
 
+/*
+ * @func fill_fa
+ * Calls append_csv_buffer for 32-bit FA array tags.
+ * :param: readlen [int] Length of read
+ * :param: arr [uint32_t *] Array of values to put into the buffer.
+ * :param: buffer [char *] Buffer for the values.
+ */
 static inline void fill_fa(int readlen, uint32_t *arr, char *buffer)
 {
 	return fill_csv_buffer(readlen, arr, buffer, (char *)"FA:B:I");
 }
 
 
+/*
+ * @func kfill_rc
+ * :param: seq [kseq_t *] Input kseq object
+ * :param: buffer [char *] String to copy into.
+ * Fills a buffer with reverse-complemented fastq lines
+ * (seq line through the end of the quality line,
+ *  with a terminal newline and a null character)
+ */
 static inline void kfill_rc(kseq_t *seq, char *buffer) {
 	uint32_t i;
-	for(i = 0; i < seq->seq.l; ++i){
-		buffer[i] = nuc_cmpl(seq->seq.s[seq->seq.l - i - 1]);
-	}
-	memcpy(buffer + seq->seq.l, (char *)"\n+\n", 3 * sizeof(char));
-	for(i = 0; i < seq->qual.l; ++i) {
-		buffer[i + seq->qual.l + 3] = seq->qual.s[seq->qual.l - i - 1];
-	}
-	buffer[(seq->seq.l << 1) + 3] = '\0';
+	for(i = 0; i < seq->seq.l; ++i)
+		*buffer++ = nuc_cmpl(seq->seq.s[seq->seq.l - i - 1]);
+	*buffer++ = '\n'; *buffer++ = '+'; *buffer++ = '\n';
+	for(i = 0; i < seq->qual.l; ++i)
+		*buffer++ = seq->qual.s[seq->qual.l - i - 1];
+	*buffer++ = '\n';
+	*buffer++ = '\0';
 }
 
-
-static inline void fill_rc(char *str, char *buffer, int len) {
-#if !NDEBUG
-	fprintf(stderr, "Now filling buffer at %p with string's revcmp %s.\n", &buffer[0], str);
-#endif
-	for(uint32_t i = 0; str[i]; ++i){
-		buffer[i] = nuc_cmpl(str[len - i - 1]);
-	}
-	buffer[len] = '\0';
+/*
+ * @func fill_rc
+ * :param: str [char *] Input string
+ * :param: buffer [char *] String to copy into.
+ * :param: len [size_t] Length of input string.
+ * Fills a buffer with reverse-complemented characters.
+ */
+static inline void fill_rc(char *str, char *buffer, size_t len) {
+	uint32_t i;
+	for(i = 0; i < len; ++i)
+		*buffer++ = nuc_cmpl(str[len - i - 1]);
+	*buffer++ = '\0';
 }
 
-static inline void fill_rv(char *str, char *buffer, int len) {
-	for(uint32_t i = 0; str[i]; ++i){
-		buffer[i] = str[len - i - 1];
-	}
-	buffer[len] = '\0';
+/*
+ * @func fill_rv
+ * :param: str [char *] Input string
+ * :param: buffer [char *] String to copy into.
+ * :param: len [size_t] Length of input string.
+ * Fills a buffer with reversed characters.
+ */
+static inline void fill_rv(char *str, char *buffer, size_t len) {
+	uint32_t i;
+	for(i = 0; i < len; ++i)
+		*buffer++ = str[len - i - 1];
+	*buffer++ = '\0';
 }
 
 /*
@@ -114,24 +174,24 @@ static inline void fill_rv(char *str, char *buffer, int len) {
  */
 static inline char *trim_ext(char *fname)
 {
-	fprintf(stderr, "Now trimming char * %s.\n", fname);
-	char *buf = (char *)malloc((strlen(fname) + 1) * sizeof(char ));
+#if !NDEBUG
+	fprintf(stderr, "[D:%s] Now trimming char * %s.\n", __func__, fname);
+#endif
+	char *ret = (char *)malloc((strlen(fname) + 1) * sizeof(char ));
 	char *found_pos = strrchr(fname, '.');
 	if(!found_pos) {
 		fprintf(stderr, "Could not trim file name's extension. Looks like it's missing a '.' (name: '%s').\n", fname);
 		exit(EXIT_FAILURE);
 	}
-	ptrdiff_t pos = found_pos - fname; // Find the position in the read where the last '.' is.
-	memcpy(buf, fname, pos * sizeof(char));
-	buf[pos] = '\0';
-	//fprintf(stderr, "tmp buffer: %s.\n", buf);
-	return buf;
+	memcpy(ret, fname, (found_pos - fname) * sizeof(char));
+	ret[found_pos - fname] = '\0';
+	return ret;
 }
 
 /*
  * Fast positive atoi
  */
-static inline int fp_atoi(char *str)
+CONST static inline int fp_atoi(char *str)
 {
 	int ret = *str++ - '0';
 	while(*str) {
@@ -140,87 +200,10 @@ static inline int fp_atoi(char *str)
 	return ret;
 }
 
-static const char digit_pairs[201] = {
-  "00010203040506070809"
-  "10111213141516171819"
-  "20212223242526272829"
-  "30313233343536373839"
-  "40414243444546474849"
-  "50515253545556575859"
-  "60616263646566676869"
-  "70717273747576777879"
-  "80818283848586878889"
-  "90919293949596979899"
-};
-
-
-static inline char *opt_itoa(unsigned val, char *s)
-{
-	if(!val)
-	{
-		s=(char *)"0";
-		return s;
-	}
-
-	int size;
-	if(val>=10000)
-	{
-		if(val>=10000000)
-		{
-			if(val>=1000000000)
-				size=10;
-			else if(val>=100000000)
-				size=9;
-			else
-				size=8;
-		}
-		else
-		{
-			if(val>=1000000)
-				size=7;
-			else if(val>=100000)
-				size=6;
-			else
-				size=5;
-		}
-	}
-	else
-	{
-		if(val>=100)
-		{
-			if(val>=1000)
-				size=4;
-			else
-				size=3;
-		}
-		else
-		{
-			if(val>=10)
-				size=2;
-			else
-				size=1;
-		}
-	}
-
-	s[size] = '\0';
-	char* c = &s[size-1];
-	while(val>=100)
-	{
-	   int pos = val % 100;
-	   val /= 100;
-	   *(short*)(c-1)=*(short*)(digit_pairs+2*pos);
-	   c-=2;
-	}
-	while(val>0)
-	{
-		*c--='0' + (val % 10);
-		val /= 10;
-	}
-	return s;
-}
-
-
-inline int fast_atoi(char *str)
+/*
+ * Fast, signed atoi.
+ */
+CONST static inline int fast_atoi(char *str)
 {
 	int ret = 0;
 	int sign = 1;
@@ -238,11 +221,10 @@ inline int fast_atoi(char *str)
 
 static inline char *revcmp(char *dest, char *src, uint64_t l)
 {
-	//char *ret = malloc((l + 1)* sizeof(char));
-	dest[l] = '\0';
-	for(uint64_t i = 0; i < l; ++i) {
+	uint64_t i;
+	for(i = 0; i < l; ++i)
 		dest[i] = nuc_cmpl(src[l - i - 1]);
-	}
+	dest[l] = '\0';
 	return dest;
 }
 
@@ -250,44 +232,29 @@ static inline char *revcmp(char *dest, char *src, uint64_t l)
 CONST static inline int lex_memcmp(char *s1, char *s2, size_t l)
 {
 	for(uint64_t i = 0; i < l; ++i) {
-		if(s1[i] < s2[i]) {
+		if(s1[i] < s2[i])
 			return 1;
-		}
-		else if(s2[i] < s1[i]) {
+		else if(s2[i] < s1[i])
 			return 0;
-		}
 	}
 	return -1;
 }
 
 CONST static inline int lex_strlt(char *s1, char *s2)
 {
-	for(uint64_t i = 0; s1[i]; ++i) {
-		if(s1[i] < s2[i]) {
-			//fprintf(stderr,"String '%s' is < String '%s'. Is that right? How many fucks do I give?\n", s1, s2);
-			return 0;
-		}
-		else if(s2[i] < s1[i]) {
-			//fprintf(stderr,"String '%s' is > String '%s'. Is that right? How many fucks do I give?\n", s1, s2);
-			return 1;
-		}
+	while(*s1) {
+		if(*s1 != *s2)
+			return *s2 < *s1;
+		++s1, ++s2;
 	}
 	return -1;
 }
 
 CONST static inline int lex_lt(char *s, size_t l)
 {
-	//fprintf(stderr, "Char *: %s.\n", s);
 	for(uint64_t i = 0; i < l; ++i) {
-		//fprintf(stderr, "Comparing string indices %"PRIu64" and %"PRIu64".\n", i, l - i - 1);
-		if(s[l - i - 1] > s[i]) {
-			//fprintf(stderr, "Character %c (%i) at index %i is less than %c. String: %s.\n", s[i], s[i], i, s[l -i - 1], s);
-			return 1;
-		}
-		else if(s[l - i - 1] < s[i]) {
-			//fprintf(stderr, "Character %c (%i) is less than %c. String: %s.\n", s[l - i - 1], s[l - i - 1], s[i], s);
-			return 0;
-		}
+		if(s[l - i - 1] != s[i])
+			return s[i] < s[l - i - 1];
 	}
 	//fprintf(stderr, "This barcode is palindromic!\n");
 	return -1; // Palindromic

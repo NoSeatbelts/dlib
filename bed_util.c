@@ -50,8 +50,7 @@ size_t get_nregions(khash_t(bed) *h)
 {
 	size_t ret = 0uL;
 	for(khiter_t ki = kh_begin(h); ki != kh_end(h); ++ki){
-		if(!kh_exist(h, ki))
-			continue;
+		if(!kh_exist(h, ki)) continue;
 		ret += kh_val(h, ki).n;
 	}
 	return ret;
@@ -83,8 +82,7 @@ void bed_destroy_hash(void *arg)
 void sort_bed(khash_t(bed) *bed)
 {
 	for(khint_t k = kh_begin(bed); k != kh_end(bed); ++k) {
-		if(!kh_exist(bed, k))
-			continue;
+		if(!kh_exist(bed, k)) continue;
 		qsort(kh_val(bed, k).intervals, kh_val(bed, k).n, sizeof(uint64_t), &intcmp);
 	}
 	return;

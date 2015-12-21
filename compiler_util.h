@@ -2,12 +2,12 @@
 #define COMPILER_UTIL_H
 
 #ifdef __GNUC__
-#define LIKELY(x) __builtin_expect((x),1)
-#define UNLIKELY(x) __builtin_expect((x),0)
+#	define LIKELY(x) __builtin_expect((x),1)
+#	define UNLIKELY(x) __builtin_expect((x),0)
 #else
-#define LIKELY(x) (x)
-#define UNLIKELY(x) (x)
-#endif
+#	define LIKELY(x) (x)
+#	define UNLIKELY(x) (x)
+#endif /* #ifdef __GNUC__ */
 
 #ifdef __GNUC__
 #	ifndef UNUSED
@@ -21,10 +21,10 @@
 #	define CONST
 #	define UNUSED(x) x
 #	define UNUSED_FUNC(x) x
-#endif
+#endif /* #ifdef __GNUC__ */
 
 #ifndef FOREVER
-#define FOREVER for(;;)
+#	define FOREVER for(;;)
 #endif
 
-#endif
+#endif /* COMPILER_UTIL_H */
