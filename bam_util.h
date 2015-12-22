@@ -95,7 +95,6 @@ inline void process_mei_tag(bam1_t *b) {
 		b->core.mtid = b->core.tid;
 		b->core.flag |= BAM_FMUNMAP;
 	}
-	return;
 }
 
 static inline int get_unclipped_start(bam1_t *b)
@@ -117,13 +116,11 @@ static inline int get_unclipped_start(bam1_t *b)
  *  @abstract Adds the unclipped start positions for each read and its mate
  */
 static inline void add_unclipped_mate_starts(bam1_t *b1, bam1_t *b2) {
-	const int32_t ucs1 = get_unclipped_start(b1);
-	const int32_t ucs2 = get_unclipped_start(b2);
+	const int32_t ucs1 = get_unclipped_start(b1); const int32_t ucs2 = get_unclipped_start(b2);
 	bam_aux_append(b2, "MU", 'i', sizeof(int32_t), (uint8_t *)&ucs1);
 	bam_aux_append(b1, "MU", 'i', sizeof(int32_t), (uint8_t *)&ucs2);
 	bam_aux_append(b2, "SU", 'i', sizeof(int32_t), (uint8_t *)&ucs2);
 	bam_aux_append(b1, "SU", 'i', sizeof(int32_t), (uint8_t *)&ucs1);
-	return;
 }
 
 #define check_bam_tag(bamrec, tag) \
@@ -139,5 +136,5 @@ CONST static inline void *array_tag(bam1_t *b, const char *tag) {
 	return data ? (void *)(data + sizeof(int) + 2): NULL;
 }
 
-extern void bam_plp_set_maxcnt(bam_plp_t, int);
+void bam_plp_set_maxcnt(bam_plp_t, int);
 #endif // BAM_UTIL_H
