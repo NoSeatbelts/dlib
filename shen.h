@@ -19,23 +19,21 @@ static inline double UNUSED_FUNC(shannon_entropy) (char *str)
 {
 	khash_t(shen) *h = kh_init(shen);
 	double shen = 0.0;
-	khiter_t k = 0;
-	int ret = 0;
-	uint64_t i;
-	for(i = 0; *(str + i); ++i) {
-		k = kh_get(shen, h, str[i]);
+	khiter_t k;
+	char *const start = str;
+	for(;*str;) {
+		k = kh_get(shen, h, *str);
 		if(k == kh_end(h)) {
-			k = kh_put(shen, h, str[i], &ret);
+			k = kh_put(shen, h, *str, &ret);
 			kh_val(h, k) = 1uL;
-			continue;
-		}
-		else
-			++kh_val(h, k);
+		} else ++kh_val(h, k);
+		++str;
 	}
+	double f;
+	const double n_elem = (double)(str - start);
 	for(k = 0; k != kh_end(h); ++k) {
-		if(!kh_exist(h, k))
-			continue;
-		const double f = (double)kh_val(h, k) / i;
+		if(!kh_exist(h, k)) continue;
+		f = kh_val(h, k) / n_elem;
 		shen -= f * log(f);
 	}
 	kh_destroy(shen, h);
