@@ -66,9 +66,9 @@ static inline double UNUSED_FUNC(shannon_entropy_acgtn) (char *str)
 			case 'T': ++counts[3]; break;
 		}
 	}
-	const uint64_t sum = i + 1; // sum is now the total number of read bases
+	double f;
 	for(int j = 0; j < 4; ++j) {
-		const double f = (double)counts[i] / sum;
+		f = (double)counts[j] / i;
 		shen -= f * log(f);
 	}
 	return shen;
