@@ -13,6 +13,17 @@
 		}\
 	} while(0)
 
+#ifndef CHECK_CALL
+#if !NDEBUG
+#define CHECK_CALL(buff) \
+	fprintf(stderr, "[D:%s] Now check calling command '%s'.\n", __func__, buff); \
+	if(system(buff) < 0) fprintf(stderr, "[D:%s] System call failed. Command: '%s'.\n", __func__, buff)
+#else
+#define CHECK_CALL(buff) \
+	if(system(buff) < 0) fprintf(stderr, "[D:%s] System call failed. Command: '%s'.\n", __func__, buff)
+#endif
+#endif
+
 int isfile(char *fname);
 
 inline gzFile open_gzfile(char *infname) {

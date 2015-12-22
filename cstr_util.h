@@ -248,4 +248,20 @@ CONST static inline int lex_lt(char *s, size_t l)
 	return -1; // Palindromic
 }
 
+
+/*
+ * Returns a null-terminated string with the default outfname.
+ * Warning: Must be freed!
+ */
+static inline char *make_default_outfname(char *fname, const char *suffix)
+{
+	char buf[200];
+	char *prefix = trim_ext(fname);
+	strcpy(buf, prefix);
+	strcat(buf, suffix);
+	char *ret = strdup(buf);
+	free(prefix);
+	return ret;
+}
+
 #endif
