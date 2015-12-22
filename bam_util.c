@@ -40,11 +40,10 @@ void abstract_pair_iter(samFile *in, bam_hdr_t *hdr, samFile *ofp, pair_fn funct
 	bam1_t *b = bam_init1(), *b1 = bam_init1();
 	while (LIKELY(sam_read1(in, hdr, b) >= 0)) {
 		bam1_core_t *c = &b->core;
-		if(c->flag & (BAM_FSECONDARY | BAM_FSUPPLEMENTARY))
+		if(b->core.flag & (BAM_FSECONDARY | BAM_FSUPPLEMENTARY))
 			continue;
-		if(c->flag & BAM_FREAD1) {
-			b1 = bam_copy1(b1, b);
-			continue; // b w
+		if(b->core.flag & BAM_FREAD1) {
+			bam_copy1(b1, b); continue;
 		}
 		function(b1, b);
 		sam_write1(ofp, hdr, b), sam_write1(ofp, hdr, b1);
