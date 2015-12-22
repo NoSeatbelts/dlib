@@ -39,7 +39,6 @@ void abstract_pair_iter(samFile *in, bam_hdr_t *hdr, samFile *ofp, pair_fn funct
 {
 	bam1_t *b = bam_init1(), *b1 = bam_init1();
 	while (LIKELY(sam_read1(in, hdr, b) >= 0)) {
-		bam1_core_t *c = &b->core;
 		if(b->core.flag & (BAM_FSECONDARY | BAM_FSUPPLEMENTARY))
 			continue;
 		if(b->core.flag & BAM_FREAD1) {
