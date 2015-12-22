@@ -7,7 +7,7 @@
 
 #ifndef SHEN_KHASH_INIT
 #define SHEN_KHASH_INIT
-KHASH_MAP_INIT_INT(shen, uint32_t)
+KHASH_MAP_INIT_INT(shen, uint64_t)
 #endif
 
 /*
