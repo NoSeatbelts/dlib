@@ -34,15 +34,15 @@ KSEQ_INIT(gzFile, gzread)
 static inline char *rand_string(char *str, size_t size)
 {
 	srand(time(NULL)); // Pick a seed!
-    const char charset[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKSTFUOMGZWTF";
-    if (size) {
-        --size;
-        for (size_t n = 0; n < size; n++) {
-            str[n] = charset[(int)(rand() % (int) (sizeof charset - 1))];
-        }
-        str[size] = '\0';
-    }
-    return str;
+	const char charset[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKSTFUOMGZWTF";
+	if (size) {
+		--size;
+		for (size_t n = 0; n < size; n++) {
+			str[n] = charset[(int)(rand() % (int) (sizeof charset - 1))];
+		}
+		str[size] = '\0';
+	}
+	return str;
 }
 
 
@@ -91,9 +91,9 @@ static inline void append_csv_buffer(int readlen, uint32_t *arr, char *buffer, c
  */
 static inline void append_int_tag(char *buffer, const char *tag, int i)
 {
-    char tmpbuf[15];
+	char tmpbuf[15];
 	sprintf(tmpbuf, "\t%s:i:%i", tag, i);
-    strcat(buffer, tmpbuf);
+	strcat(buffer, tmpbuf);
 }
 
 /*
@@ -118,14 +118,18 @@ static inline void fill_pv(int readlen, uint32_t *arr, char *buffer)
  *  with a terminal newline and a null character)
  */
 static inline void kfill_rc(kseq_t *seq, char *buffer) {
-	uint32_t i;
-	for(i = 0; i < seq->seq.l; ++i)
-		*buffer++ = nuc_cmpl(seq->seq.s[seq->seq.l - i - 1]);
+	uint64_t i = seq->seq.l;
+	char *seqp = seq->seq.s + i;
+	// Add seq field.
+	for(; i ; --i) *buffer++ = nuc_cmpl(*--seqp);
+	// Add "\n+\n"
 	*buffer++ = '\n'; *buffer++ = '+'; *buffer++ = '\n';
-	for(i = 0; i < seq->qual.l; ++i)
-		*buffer++ = seq->qual.s[seq->qual.l - i - 1];
-	*buffer++ = '\n';
-	*buffer++ = '\0';
+	// Add reversed quality
+	i = seq->qual.l;
+	seqp = seq->qual.s + len;
+	for(; i ; --i) *buffer++ = *--seqp;
+	// Terminate with newline and null character.
+	*buffer++ = '\n'; *buffer++ = '\0';
 }
 
 /*
@@ -136,9 +140,9 @@ static inline void kfill_rc(kseq_t *seq, char *buffer) {
  * Fills a buffer with reverse-complemented characters.
  */
 static inline void fill_rc(char *str, char *buffer, size_t len) {
-	uint32_t i;
-	for(i = 0; i < len; ++i)
-		*buffer++ = nuc_cmpl(str[len - i - 1]);
+	str += len; // Skip to the end of the string.
+	for(; len; --len)
+		*buffer++ = nuc_cmpl(*--str);
 	*buffer++ = '\0';
 }
 
@@ -150,9 +154,9 @@ static inline void fill_rc(char *str, char *buffer, size_t len) {
  * Fills a buffer with reversed characters.
  */
 static inline void fill_rv(char *str, char *buffer, size_t len) {
-	uint32_t i;
-	for(i = 0; i < len; ++i)
-		*buffer++ = str[len - i - 1];
+	str += len; // Skip to the end of the string.
+	for(; len; --len)
+		*buffer++ = *--str;
 	*buffer++ = '\0';
 }
 
@@ -182,9 +186,8 @@ static inline char *trim_ext(char *fname)
 CONST static inline int fp_atoi(char *str)
 {
 	int ret = *str++ - '0';
-	while(*str) {
+	while(*str)
 		ret = ret*10 + (*str++ - '0');
-	}
 	return ret;
 }
 
@@ -201,29 +204,26 @@ CONST static inline int fast_atoi(char *str)
 		default: ret = *str - '0';
 	}
 	++str;
-	while(*str) {
+	while(*str)
 		ret = ret*10 + (*str++ - '0');
-	}
 	return ret * sign;
 }
 
 static inline char *revcmp(char *dest, char *src, uint64_t l)
 {
-	uint64_t i;
-	for(i = 0; i < l; ++i)
-		dest[i] = nuc_cmpl(src[l - i - 1]);
-	dest[l] = '\0';
+	src += l;
+	for(; l; --l)
+		*dest++ = nuc_cmpl(*--src);
+	*dest++ = '\0';
 	return dest;
 }
 
 
 CONST static inline int lex_memcmp(char *s1, char *s2, size_t l)
 {
-	for(uint64_t i = 0; i < l; ++i) {
-		if(s1[i] < s2[i])
-			return 1;
-		else if(s2[i] < s1[i])
-			return 0;
+	for(; l; --l) {
+		if(*s1 != *s2) return *s1 < *s2;
+		++s1, ++s2;
 	}
 	return -1;
 }
@@ -231,8 +231,7 @@ CONST static inline int lex_memcmp(char *s1, char *s2, size_t l)
 CONST static inline int lex_strlt(char *s1, char *s2)
 {
 	while(*s1) {
-		if(*s1 != *s2)
-			return *s2 < *s1;
+		if(*s1 != *s2) return *s2 < *s1;
 		++s1, ++s2;
 	}
 	return -1;
@@ -240,9 +239,10 @@ CONST static inline int lex_strlt(char *s1, char *s2)
 
 CONST static inline int lex_lt(char *s, size_t l)
 {
-	for(uint64_t i = 0; i < l; ++i) {
-		if(s[l - i - 1] != s[i])
-			return s[i] < s[l - i - 1];
+	char *s2 = s + l - 1;
+	while(*s) {
+		if(*s != *s2) return *s < *s2;
+		++s; --s2;
 	}
 	//fprintf(stderr, "This barcode is palindromic!\n");
 	return -1; // Palindromic
