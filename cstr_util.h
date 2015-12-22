@@ -126,7 +126,7 @@ static inline void kfill_rc(kseq_t *seq, char *buffer) {
 	*buffer++ = '\n'; *buffer++ = '+'; *buffer++ = '\n';
 	// Add reversed quality
 	i = seq->qual.l;
-	seqp = seq->qual.s + len;
+	seqp = seq->qual.s + i;
 	for(; i ; --i) *buffer++ = *--seqp;
 	// Terminate with newline and null character.
 	*buffer++ = '\n'; *buffer++ = '\0';
