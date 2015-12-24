@@ -6,7 +6,7 @@
 #include <zlib.h>
 #include <unistd.h>
 #include "sam_opts.h"
-#include "sam.h"
+#include "htslib/sam.h"
 #include "bam.h"
 #include "char_util.h"
 #include "compiler_util.h"

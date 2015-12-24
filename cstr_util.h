@@ -3,11 +3,11 @@
 #include <inttypes.h>
 #include <time.h>
 #include <zlib.h>
-#include "kseq.h"
-#include "stdio.h"
-#include "stddef.h"
-#include "stdint.h"
-#include "math.h"
+#include <stdio.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <math.h>
+#include "htslib/kseq.h"
 #include "char_util.h"
 #include "compiler_util.h"
 

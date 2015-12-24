@@ -1,13 +1,13 @@
 #ifndef BED_UTIL_H
 #define BED_UTIL_H
 
-#include "khash.h"
-#include "htslib/sam.h"
-#include "htslib/vcf.h"
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <inttypes.h>
+#include "htslib/khash.h"
+#include "htslib/sam.h"
+#include "htslib/vcf.h"
 
 
 // Bed interval query utility macros.
