@@ -16,6 +16,7 @@
 #	ifndef UNUSED_FUNC
 #		define UNUSED_FUNC(x) __attribute__((__unused__)) x
 #	endif
+#	define ALWAYS_INLINE __attribute__((always_inline)) inline
 #	define CONST __attribute__((const))
 #else
 #	define CONST
