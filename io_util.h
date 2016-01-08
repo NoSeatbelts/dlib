@@ -1,7 +1,12 @@
 #ifndef O_IO_UTIL_H
 #define O_IO_UTIL_H
+#include <stddef.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <unistd.h>
 #include <zlib.h>
 
 #define CHECK_POPEN(cmd) \
@@ -47,5 +52,7 @@ inline FILE *open_ofp(char *infname) {
 		return fopen(infname, "r");
 	}
 }
+
+int bash_system (const char *command);
 
 #endif
