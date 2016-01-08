@@ -33,11 +33,15 @@ int isfile(char *fname);
 
 inline gzFile open_gzfile(char *infname) {
 	if(strcmp(infname, "-") == 0 || strcmp(infname, "stdin") == 0) {
-		fprintf(stderr, "Reading from standard in because infname is %s.\n", infname);
+#if !NDEBUG
+		fprintf(stderr, "[D:%s] Reading from standard in because infname is %s.\n", __func__, infname);
+#endif
 		return gzdopen(STDIN_FILENO, "r"); // Opens stdin.
 	}
 	else {
-		fprintf(stderr, "Reading from %s.\n", infname);
+#if !NDEBUG
+		fprintf(stderr, "[D:%s] Reading from %s.\n", __func__, infname);
+#endif
 		return gzopen(infname, "r");
 	}
 }
@@ -52,6 +56,12 @@ inline FILE *open_ofp(char *infname) {
 		return fopen(infname, "r");
 	}
 }
+
+#ifdef __cplusplus
+int my_system (const char *command, const char *executable="/bin/bash");
+#else
+int my_system (const char *command, const char *executable);
+#endif
 
 int bash_system (const char *command);
 

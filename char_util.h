@@ -24,6 +24,8 @@ static const uint32_t nucpos_arr_acgt[128] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 #define nuc2num_acgt(character) nucpos_arr_acgt[(int8_t)character]
 #define nuc_cmpl(character) rc_string[(int8_t)character]
 
+#define UPPER_LOWER_OFFSET 32
+
 
 static inline int nuc_cmp(char forward, char reverse)
 {
