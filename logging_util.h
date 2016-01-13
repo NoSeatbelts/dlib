@@ -11,9 +11,19 @@
 #endif
 
 
-#define LOG_DEBUG(str, ...) \
+#if !NDEBUG
+#define LOG_DEBUG(str, ...)\
     do {\
-        fprintf(stderr, "[%s:%d] " str , __func__, __LINE__, ##__VA_ARGS__);\
-        } while(0)\
+        fprintf(stderr, "[D:%s:%d] " str, __func__, __LINE__, ##__VA_ARGS__);\
+    } while(0)
+#else
+#define LOG_DEBUG(str, ...)
+#endif
+
+#define LOG_ERROR(str, ...) \
+    do {\
+        fprintf(stderr, "[E:%s:%d] " str, __func__, __LINE__, ##__VA_ARGS__);\
+        exit(EXIT_FAILURE);\
+    } while(0)
 
 #endif /* LOGGING_UTIL_H */
