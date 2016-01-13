@@ -66,7 +66,7 @@ static inline FILE *open_ofp(char *infname) {
 	do {\
 		LOG_DEBUG("Now check calling command '%s'.\n", buff); \
 		if(system(buff) < 0) {\
-			LOG_ERROR("System call failed. Command: '%s'.\n", buff)\
+			LOG_ERROR("System call failed. Command: '%s'.\n", buff);\
 		}\
 	} while(0)
 
