@@ -21,7 +21,6 @@ int my_system (const char *command, const char *executable);
 #endif
 
 inline gzFile open_gzfile(char *infname); // Opens gzFile from file or stdin ('-', 'stdin')
-inline FILE *open_ofp(char *infname); // Opens output file or stdout
 
 // Inline Function Definitions
 inline gzFile open_gzfile(char *infname) {
@@ -38,7 +37,7 @@ inline gzFile open_gzfile(char *infname) {
 	}
 }
 
-inline FILE *open_ofp(char *infname) {
+static inline FILE *open_ofp(char *infname) {
 	if(strcmp(infname, "-") == 0 || strcmp(infname, "stdout") == 0) {
 		fprintf(stderr, "Reading from standard in because infname is %s.\n", infname);
 		return stdout; // Opens stdin.
