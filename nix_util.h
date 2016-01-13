@@ -3,6 +3,8 @@
 #include <sys/resource.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include "logging_util.h"
+
 typedef struct rlimit rlimit_t;
 
 void increase_nofile_limit(int soft_limit);

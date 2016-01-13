@@ -8,6 +8,7 @@
 #include "sam_opts.h"
 #include "htslib/sam.h"
 #include "bam.h"
+#include "logging_util.h"
 #include "char_util.h"
 #include "compiler_util.h"
 
@@ -70,8 +71,7 @@ enum htseq {
 		do {\
 		for(int i##arr = 0; i##arr < len; ++i##arr) {\
 			if(arr[i##arr] > fm){\
-				fprintf(stderr, "[E:%s] %u arr value greater than FM %u.\n", arr[i##arr], fm);\
-				exit(EXIT_FAILURE);\
+                LOG_ERROR("%u arr value greater than FM %u.\n", arr[i##arr], fm);\
 			}\
 		}\
 		} while(0)
@@ -82,9 +82,7 @@ enum htseq {
 inline void process_mei_tag(bam1_t *b) {
 	uint8_t *const tag_ptr = bam_aux_get(b, "ME");
 	if(UNLIKELY(!tag_ptr)) {
-		fprintf(stderr, "[E:%s] Expected ME tag not present. Abort mission! Qname: %s.", __func__,
-				(char *)bam_get_qname(b));
-		exit(EXIT_FAILURE);
+        LOG_ERROR("Expected ME tag not present. Abort mission! Qname: %s.", (char *)bam_get_qname(b));
 	}
 	if(bam_aux2i(tag_ptr)) {
 		b->core.pos = b->core.mpos;
@@ -126,8 +124,7 @@ static inline void add_unclipped_mate_starts(bam1_t *b1, bam1_t *b2) {
 #define check_bam_tag(bamrec, tag) \
 	do {\
 		if(!bam_aux_get(bamrec, tag)) {\
-		fprintf(stderr, "[E:%s] Required bam tag '%s' not found. Abort mission!\n", __func__, tag),\
-		exit(EXIT_FAILURE);\
+            LOG_ERROR("Required bam tag '%s' not found. Abort mission!\n",tag);\
 		}\
 	} while(0)
 

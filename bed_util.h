@@ -8,6 +8,7 @@
 #include "htslib/khash.h"
 #include "htslib/sam.h"
 #include "htslib/vcf.h"
+#include "logging_util.h"
 
 
 // Bed interval query utility macros.

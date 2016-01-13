@@ -8,8 +8,9 @@
 #include <stdint.h>
 #include <math.h>
 #include "htslib/kseq.h"
-#include "char_util.h"
 #include "compiler_util.h"
+#include "logging_util.h"
+#include "char_util.h"
 
 #ifndef KSEQ_DEC_GZ
 #define KSEQ_DEC_GZ
@@ -166,14 +167,11 @@ static inline void fill_rv(char *str, char *buffer, size_t len) {
  */
 static inline char *trim_ext(char *fname)
 {
-#if !NDEBUG
-	fprintf(stderr, "[D:%s] Now trimming char * %s.\n", __func__, fname);
-#endif
+    LOG_DEBUG("Now trimming char * %s.\n", fname);
 	char *ret = (char *)malloc((strlen(fname) + 1) * sizeof(char ));
 	char *found_pos = strrchr(fname, '.');
 	if(!found_pos) {
-		fprintf(stderr, "Could not trim file name's extension. Looks like it's missing a '.' (name: '%s').\n", fname);
-		exit(EXIT_FAILURE);
+        LOG_ERROR("Could not trim file name's extension. Looks like it's missing a '.' (name: '%s').\n", fname);
 	}
 	memcpy(ret, fname, (found_pos - fname) * sizeof(char));
 	ret[found_pos - fname] = '\0';
@@ -244,7 +242,6 @@ CONST static inline int lex_lt(char *s, size_t l)
 		if(*s != *s2) return *s < *s2;
 		++s; --s2;
 	}
-	//fprintf(stderr, "This barcode is palindromic!\n");
 	return -1; // Palindromic
 }
 

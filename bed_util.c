@@ -32,14 +32,11 @@ khash_t(bed) *parse_bed_hash(char *path, bam_hdr_t *header, uint32_t padding)
 		else {
 			kh_val(ret, k).intervals = (uint64_t *)realloc(kh_val(ret, k).intervals, ++kh_val(ret, k).n * sizeof(uint64_t));
 			if(!kh_val(ret, k).intervals) {
-				fprintf(stderr, "[E:%s] Could not allocate memory. Abort mission!\n", __func__);
-				exit(EXIT_FAILURE);
+                LOG_ERROR("Could not allocate memory. Abort mission!\n");
 			}
 			kh_val(ret, k).intervals[kh_val(ret, k).n - 1] = to_ivl(start - padding, stop + padding);
-#if !NDEBUG
-			fprintf(stderr, "[D:%s] Number of intervals in bed file "
-					"for contig %u, ('%s'): %lu\n", __func__, tid, header->target_name[tid], kh_val(ret, k).n);
-#endif
+            LOG_DEBUG("Number of intervals in bed file for contig "
+                    "%u, ('%s'): %lu\n", tid, header->target_name[tid], kh_val(ret, k).n);
 		}
 	}
 	sort_bed(ret);

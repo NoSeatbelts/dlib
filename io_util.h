@@ -26,14 +26,10 @@ inline gzFile open_gzfile(char *infname); // Opens gzFile from file or stdin ('-
 // Inline Function Definitions
 inline gzFile open_gzfile(char *infname) {
 	if(strcmp(infname, "-") == 0 || strcmp(infname, "stdin") == 0) {
-#if !NDEBUG
-		fprintf(stderr, "[D:%s] Reading from standard in because infname is %s.\n", __func__, infname);
-#endif
+		LOG_DEBUG("Reading from standard in because infname is %s.\n", infname);
 		return gzdopen(STDIN_FILENO, "r"); // Opens stdin.
 	} else {
-#if !NDEBUG
-		fprintf(stderr, "[D:%s] Reading from %s.\n", __func__, infname);
-#endif
+		LOG_DEBUG("Reading from %s.\n", infname);
 		return gzopen(infname, "r");
 	}
 }
@@ -56,8 +52,7 @@ static inline FILE *open_ofp(char *infname) {
 #define CHECK_POPEN(cmd) \
 	do {\
 		if(pclose(popen(cmd, "w"))) {\
-			fprintf(stderr, "[E:%s] Command '%s' failed. Abort!\n", __func__, cmd);\
-			exit(EXIT_FAILURE);\
+			LOG_ERROR("Command '%s' failed. Abort!\n", __func__, cmd);\
 		}\
 	} while(0)
 
@@ -67,12 +62,20 @@ static inline FILE *open_ofp(char *infname) {
  */
 #ifndef CHECK_CALL
 #	if !NDEBUG
-#		define CHECK_CALL(buff) \
-	fprintf(stderr, "[D:%s] Now check calling command '%s'.\n", __func__, buff); \
-	if(system(buff) < 0) fprintf(stderr, "[D:%s] System call failed. Command: '%s'.\n", __func__, buff)
+#		define CHECK_CALL(buff)\
+	do {\
+		LOG_DEBUG("Now check calling command '%s'.\n", buff); \
+		if(system(buff) < 0) {\
+			LOG_ERROR("System call failed. Command: '%s'.\n", buff)\
+		}\
+	} while(0)
+
 #	else
 #		define CHECK_CALL(buff) \
-	if(system(buff) < 0) fprintf(stderr, "[D:%s] System call failed. Command: '%s'.\n", __func__, buff)
+	if(system(buff) < 0) {\
+		LOG_ERROR("System call failed. Command: '%s'.\n", buff);\
+	}
+
 #	endif
 #endif
 

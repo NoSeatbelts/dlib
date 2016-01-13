@@ -18,7 +18,7 @@ int my_system (const char *command, const char *executable)
 	else if (waitpid (pid, &status, 0) != pid) {
 	/* This is the parent process.  Wait for the child to complete.  */
 		status = -1;
-		fprintf(stderr, "[W:%s] called process '%s' failed. Check return status.\n", __func__, command);
+		LOG_WARNING("Called process '%s' failed. Check return status (%i).\n", command, status);
 	}
 	return status;
 }

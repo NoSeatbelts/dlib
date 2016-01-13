@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stddef.h>
+#include "logging_util.h"
 #include "compiler_util.h"
 
 // Leave semicolon out so that it looks like a normal function.
@@ -11,7 +12,7 @@
 #   define cond_free(var)\
     do {\
         if(var) {\
-            fprintf(stderr, "[D:%s:%d] About to free variable at %p (%s).\n", __func__, __LINE__, var, #var);\
+            LOG_DEBUG("About to free variable at %p (%s).\n", var, #var);\
             free(var);\
             var = NULL;\
         }\
@@ -24,8 +25,7 @@
 	do {\
 		var = (type_t)realloc(var, newsize);\
 		if(!var){\
-			fprintf(stderr, "Could not allocate new memory for size %" PRIu64 ". Abort mission!\n", newsize);\
-			exit(EXIT_FAILURE);\
+			LOG_ERROR("Could not allocate new memory for size %" PRIu64 ". Abort mission!\n", newsize);\
 		}\
 	} while(0)
 
@@ -33,8 +33,7 @@
 	do {\
 		var = realloc(var, newsize);\
 		if(!var){\
-			fprintf(stderr, "Could not allocate new memory for size %lu. Abort mission!\n", (size_t)newsize);\
-			exit(EXIT_FAILURE);\
+            LOG_ERROR("Could not allocate new memory for size %lu. Abort mission!\n", (size_t)newsize);\
 		}\
 	} while(0)
 
@@ -48,8 +47,7 @@
 #define ifn_abort(var) \
 	do {\
         if(!var) {\
-        fprintf(stderr, "[E:%s] Could not allocate memory or get pointer ('%s'). Abort!\n", __func__, #var);\
-		exit(EXIT_FAILURE);\
+            LOG_ERROR("Could not allocate memory or get pointer ('%s'). Abort!\n", #var);\
         }\
     } while(0)
 
