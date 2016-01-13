@@ -8,6 +8,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include <zlib.h>
+#include "logging_util.h"
 
 
 // FUNCTIONS
@@ -39,11 +40,11 @@ inline gzFile open_gzfile(char *infname) {
 
 static inline FILE *open_ofp(char *infname) {
 	if(strcmp(infname, "-") == 0 || strcmp(infname, "stdout") == 0) {
-		fprintf(stderr, "Reading from standard in because infname is %s.\n", infname);
+        LOG_DEBUG("Writing to standard out because infname is %s.\n", infname);
 		return stdout; // Opens stdin.
 	} else {
-		fprintf(stderr, "Reading from %s.\n", infname);
-		return fopen(infname, "r");
+        LOG_DEBUG("Writing to %s.\n", infname);
+		return fopen(infname, "w");
 	}
 }
 

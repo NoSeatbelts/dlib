@@ -20,6 +20,11 @@
 #define LOG_DEBUG(str, ...)
 #endif
 
+#define LOG_INFO(str, ...) \
+    do {\
+        fprintf(stderr, "[%s] " str, __func__, ##__VA_ARGS__);\
+    } while(0)
+
 #define LOG_ERROR(str, ...) \
     do {\
         fprintf(stderr, "[E:%s:%d] " str, __func__, __LINE__, ##__VA_ARGS__);\
