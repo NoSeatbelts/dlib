@@ -52,7 +52,7 @@ static inline FILE *open_ofp(char *infname) {
 #define CHECK_POPEN(cmd) \
 	do {\
 		if(pclose(popen(cmd, "w"))) {\
-			LOG_ERROR("Command '%s' failed. Abort!\n", __func__, cmd);\
+			LOG_ERROR("Command '%s' failed. Abort!\n", cmd);\
 		}\
 	} while(0)
 
