@@ -53,12 +53,19 @@ enum htseq {
  */
 #define inc_tag_float(p, b, key) inc_tag(p, b, key, float)
 
-/* @func set_base sets the nucleotide at index i in read p to be set to base at index i in read b.
+/* @func bam_set_base sets the nucleotide at index i in read p to be set to base at index i in read b.
+ * :param: p [bam1_t *] One bam record
+ * :param: b [char] Nucleotide to set
+ * :param: i [index] Base position in read
+ */
+#define set_base(pSeq, base, i) (pSeq)[(i)>>1] = ((seq_nt16_table[(int8_t)base] << (((~i) & 1) << 2)) | (((pSeq)[(i)>>1]) & (0xf0U >> (((~i) & 1) << 2))))
+
+/* @func bam_set_base sets the nucleotide at index i in read p to be set to base at index i in read b.
  * :param: p [bam1_t *] One bam record
  * :param: b [bam1_t *] Second bam record
  * :param: i [index] Base position in read
  */
-#define set_base(pSeq, bSeq, i) (pSeq)[(i)>>1] = ((bam_seqi(bSeq, i) << (((~i) & 1) << 2)) | (((pSeq)[(i)>>1]) & (0xf0U >> (((~i) & 1) << 2))))
+#define bam_set_base(pSeq, bSeq, i) (pSeq)[(i)>>1] = ((bam_seqi(bSeq, i) << (((~i) & 1) << 2)) | (((pSeq)[(i)>>1]) & (0xf0U >> (((~i) & 1) << 2))))
 
 /* @func n_base sets the nucleotide at index i in read p to N.
  * :param: p [bam1_t *] One bam record
