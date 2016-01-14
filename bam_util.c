@@ -49,3 +49,21 @@ void abstract_pair_iter(samFile *in, bam_hdr_t *hdr, samFile *ofp, pair_fn funct
 	}
 	bam_destroy1(b), bam_destroy1(b1);
 }
+
+int bampath_has_tag(char *bampath, const char *tag)
+{
+	samFile *fp = sam_open(bampath, "r");
+	bam_hdr_t *header = sam_hdr_read(fp);
+	if(!header || !fp) {
+		LOG_ERROR("Could not open bam file at '%s' for reading. Abort!\n", bampath);
+	}
+	bam1_t *b = bam_init1();
+	if(sam_read1(fp, header, b) < 0) {
+		LOG_ERROR("Empty bam file at '%s'. Abort!\n", bampath);
+	}
+	int ret = !!bam_aux_get(b, tag);
+	bam_destroy1(b);
+	bam_hdr_destroy(header);
+	sam_close(fp);
+	return ret;
+}

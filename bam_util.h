@@ -128,12 +128,14 @@ static inline void add_unclipped_mate_starts(bam1_t *b1, bam1_t *b2) {
 	bam_aux_append(b1, "SU", 'i', sizeof(int32_t), (uint8_t *)&ucs1);
 }
 
-#define check_bam_tag(bamrec, tag) \
-	do {\
-		if(!bam_aux_get(bamrec, tag)) {\
-            LOG_ERROR("Required bam tag '%s' not found. Abort mission!\n",tag);\
-		}\
-	} while(0)
+int bampath_has_tag(char *bampath, const char *tag);
+
+static inline void check_bam_tag(bam1_t *b, const char *tag)
+{
+    if(!bam_aux_get(b, tag)) {
+        LOG_ERROR("Required bam tag '%s' not found. Abort mission!\n",tag);
+    }
+}
 
 CONST static inline void *array_tag(bam1_t *b, const char *tag) {
 	const uint8_t *const data = bam_aux_get(b, tag);
