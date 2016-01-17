@@ -1,4 +1,5 @@
 #ifndef KMER_UTIL_H
+#define KMER_UTIL_H
 #include "logging_util.h"
 // Largest odd kmer that can be held in a uint64_t
 #define MAX_KMER 31
