@@ -16,11 +16,17 @@ typedef void (*pair_fn)(bam1_t *b,bam1_t *b1);
 typedef void (*single_fn)(bam1_t *b);
 typedef void (*single_aux)(bam1_t *b, void *data);
 typedef int (*single_aux_check)(bam1_t *b, void *data);
+#ifdef __cplusplus
+extern "C" {
+#endif
 static inline void add_unclipped_mate_starts(bam1_t *b1, bam1_t *b2);
 void abstract_pair_iter(samFile *in, bam_hdr_t *hdr, samFile *ofp, pair_fn function);
 void abstract_single_filter(samFile *in, bam_hdr_t *hdr, samFile *out, single_aux_check function, void *data);
 void abstract_single_data(samFile *in, bam_hdr_t *hdr, samFile *out, single_aux function, void *data);
 void abstract_single_iter(samFile *in, bam_hdr_t *hdr, samFile *out, single_fn function);
+#ifdef __cplusplus
+}
+#endif
 
 enum htseq {
 	HTS_A = 1,

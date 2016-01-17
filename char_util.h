@@ -1,6 +1,7 @@
 #ifndef CHAR_UTIL_H
 #define CHAR_UTIL_H
 #include <stdint.h>
+#include <stddef.h>
 
 static const uint32_t nucpos_arr[128] = {4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
 		4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4,
