@@ -110,14 +110,12 @@ inline void process_mei_tag(bam1_t *b) {
 
 static inline int get_unclipped_start(bam1_t *b)
 {
-	if(b->core.flag & BAM_FUNMAP)
-		return -1;
-	int offset = 0;
-	uint32_t i;
-	const uint32_t *const cigar = bam_get_cigar(b);
-	for(i = 0; i < b->core.n_cigar; ++i) {
-		if(bam_cigar_op(cigar[i]) == 0) break; // 'M' in cigar
-		else offset += bam_cigar_oplen(cigar[i]);
+	if(b->core.flag & BAM_FUNMAP) return -1;
+	int offset = 0, i = b->core.n_cigar;
+	uint32_t *cigar = bam_get_cigar(b);
+	while(i--) {
+		if(!bam_cigar_op(*cigar)) break; // 'M' in cigar
+		else offset += bam_cigar_oplen(*cigar++);
 	}
 	return b->core.pos + ((b->core.flag & BAM_FREVERSE) ? offset: -offset);
 }
