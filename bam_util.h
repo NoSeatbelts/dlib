@@ -36,7 +36,7 @@ enum htseq {
 	HTS_N = 15
 };
 
-static const uint8_t[] seq_nt16_rc = {15, 8, 4, 15, 2, 15, 15, 15, 1, 15, 15, 15, 15, 15, 15, 15};
+static const uint8_t seq_nt16_rc[] = {15, 8, 4, 15, 2, 15, 15, 15, 1, 15, 15, 15, 15, 15, 15, 15};
 
 // bam utility macros.
 
