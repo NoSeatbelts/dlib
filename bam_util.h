@@ -38,6 +38,8 @@ enum htseq {
 
 static const uint8_t seq_nt16_rc[] = {15, 8, 4, 15, 2, 15, 15, 15, 1, 15, 15, 15, 15, 15, 15, 15};
 
+#define bam_seqi_cmpl(seq, index) seq_nt16_rc[bam_seqi(seq, index)]
+
 // bam utility macros.
 
 /* @func inc_tag increments a numeric tag with a given type
