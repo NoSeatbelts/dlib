@@ -36,6 +36,8 @@ enum htseq {
 	HTS_N = 15
 };
 
+static const uint8_t[] seq_nt16_rc = {15, 8, 4, 15, 2, 15, 15, 15, 1, 15, 15, 15, 15, 15, 15, 15};
+
 // bam utility macros.
 
 /* @func inc_tag increments a numeric tag with a given type
@@ -67,14 +69,14 @@ enum htseq {
 #define set_base(pSeq, base, i) (pSeq)[(i)>>1] = ((seq_nt16_table[(int8_t)base] << (((~i) & 1) << 2)) | (((pSeq)[(i)>>1]) & (0xf0U >> (((~i) & 1) << 2))))
 
 /* @func bam_set_base sets the nucleotide at index i in read p to be set to base at index i in read b.
- * :param: p [bam1_t *] One bam record
- * :param: b [bam1_t *] Second bam record
+ * :param: p [uint8_t *] One bam record
+ * :param: b [uint8_t *] Second bam record
  * :param: i [index] Base position in read
  */
 #define bam_set_base(pSeq, bSeq, i) (pSeq)[(i)>>1] = ((bam_seqi(bSeq, i) << (((~i) & 1) << 2)) | (((pSeq)[(i)>>1]) & (0xf0U >> (((~i) & 1) << 2))))
 
 /* @func n_base sets the nucleotide at index i in read p to N.
- * :param: p [bam1_t *] One bam record
+ * :param: p [uint8_t *] One bam record
  * :param: i [index] Base position in read
  */
 #define n_base(pSeq, i) pSeq[(i)>>1] |= (0xf << ((~(i) & 1) << 2));
