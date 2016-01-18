@@ -5,6 +5,13 @@
 #define MAX_KMER 31
 #define DEFAULT_KMER 21
 
+#ifndef num2nuc
+# ifndef NUM2NUC_STR
+#  define NUM2NUC_STR "ACGTN"
+# endif
+# define num2nuc(x) NUM2NUC_STR[(uint8_t)x]
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
