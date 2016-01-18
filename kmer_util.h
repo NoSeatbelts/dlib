@@ -12,7 +12,7 @@ extern "C" {
 	inline void kmer2cstr(uint64_t kmer, int k, char *buf)
 	{
 		buf += k;
-		while(k) *--buf = ((kmer >> (2 * --k)) & 0x3);
+		while(k) *--buf = num2nuc((kmer >> (2 * --k)) & 0x3);
 		LOG_DEBUG("kmer %lu has now become string '%s'.\n", kmer, buf);
 	}
 
