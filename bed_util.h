@@ -10,6 +10,8 @@
 #include "htslib/vcf.h"
 #include "logging_util.h"
 
+#define DEFAULT_PADDING 0u
+
 
 // Bed interval query utility macros.
 
@@ -18,7 +20,7 @@
  * :param: ivl [uint64_t] Interval to extract start from.
  * :returns: [uint32_t] (start)
  */
-#define get_start(ivl) ((ivl) >> 32)
+#define get_start(ivl) (int32_t)((ivl) >> 32)
 
 /* @func get_stop
  * @abstract Returns the stop of a bed interval in a uint64_t
@@ -59,15 +61,16 @@ khash_t(bed) *parse_bed_hash(char *path, bam_hdr_t *header, uint32_t padding);
 void *bed_read(const char *fn);
 void bed_destroy_hash(void *);
 size_t get_nregions(khash_t(bed) *h);
+
 static inline int bed_test(bam1_t *b, khash_t(bed) *h)
 {
 	khint_t k;
-	if((b->core.flag & BAM_FUNMAP) || (k = kh_get(bed, h, b->core.tid)) == kh_end(h))
-		return 0;
+	if((k = kh_get(bed, h, b->core.tid)) == kh_end(h)) return 0;
 	for(uint64_t i = 0; i < kh_val(h, k).n; ++i) {
-		if(get_start(kh_val(h, k).intervals[i]) <= b->core.pos &&
-				b->core.pos <= get_stop(kh_val(h, k).intervals[i]))
+		if(get_start(kh_val(h, k).intervals[i]) <= bam_endpos(b) &&
+				b->core.pos <= get_stop(kh_val(h, k).intervals[i])) {
 			return 1;
+		}
 	}
 	return 0;
 }
