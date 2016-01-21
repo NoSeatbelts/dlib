@@ -62,12 +62,15 @@ void *bed_read(const char *fn);
 void bed_destroy_hash(void *);
 size_t get_nregions(khash_t(bed) *h);
 
+// Like bam_endpos, but doesn't check that the read is mapped, as that's already been checked.
+#define bam_getend(b) ((b)->core.pos + bam_cigar2rlen((b)->core.n_cigar, bam_get_cigar(b)))
+
 static inline int bed_test(bam1_t *b, khash_t(bed) *h)
 {
 	khint_t k;
 	if((k = kh_get(bed, h, b->core.tid)) == kh_end(h)) return 0;
 	for(uint64_t i = 0; i < kh_val(h, k).n; ++i) {
-		if(get_start(kh_val(h, k).intervals[i]) <= bam_endpos(b) &&
+		if(get_start(kh_val(h, k).intervals[i]) <= bam_getend(b) &&
 				b->core.pos <= get_stop(kh_val(h, k).intervals[i])) {
 			return 1;
 		}

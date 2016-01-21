@@ -27,3 +27,16 @@ int bash_system (const char *command)
 {
   return my_system(command, "/bin/bash");
 }
+
+FILE *open_ifp(char *path) {
+	return (!path || !*path || path[0] == '-') ? stdin: fopen(path, "r");
+}
+
+FILE *open_ofp(char *path) {
+	if(!path || !*path || strcmp(path, "-") == 0 || strcmp(path, "stdout") == 0) {
+		LOG_DEBUG("Writing to standard out because path is %s.\n", path);
+		return stdout; // Opens stdin.
+	}
+	LOG_DEBUG("Writing to %s.\n", path);
+	return fopen(path, "w");
+}

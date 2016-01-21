@@ -21,6 +21,9 @@ int my_system (const char *command, const char *executable="/bin/bash");
 int my_system (const char *command, const char *executable);
 #endif
 
+FILE *open_ofp(char *infname);
+FILE *open_ifp(char *infname);
+
 inline gzFile open_gzfile(char *infname); // Opens gzFile from file or stdin ('-', 'stdin')
 
 // Inline Function Definitions
@@ -31,16 +34,6 @@ inline gzFile open_gzfile(char *infname) {
 	} else {
 		LOG_DEBUG("Reading from %s.\n", infname);
 		return gzopen(infname, "r");
-	}
-}
-
-static inline FILE *open_ofp(char *infname) {
-	if(strcmp(infname, "-") == 0 || strcmp(infname, "stdout") == 0) {
-        LOG_DEBUG("Writing to standard out because infname is %s.\n", infname);
-		return stdout; // Opens stdin.
-	} else {
-        LOG_DEBUG("Writing to %s.\n", infname);
-		return fopen(infname, "w");
 	}
 }
 
