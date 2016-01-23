@@ -4,9 +4,11 @@
 #ifdef __GNUC__
 #	define LIKELY(x) __builtin_expect((x),1)
 #	define UNLIKELY(x) __builtin_expect((x),0)
+#	define PURE __attribute__((pure))
 #else
 #	define LIKELY(x) (x)
 #	define UNLIKELY(x) (x)
+#	define PURE
 #endif /* #ifdef __GNUC__ */
 
 #ifdef __GNUC__
