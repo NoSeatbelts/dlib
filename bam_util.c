@@ -35,6 +35,25 @@ void abstract_single_filter(samFile *in, bam_hdr_t *hdr, samFile *out, single_au
 	bam_destroy1(b);
 }
 
+#ifdef __cplusplus
+
+void abstract_pair_set(samFile *in, bam_hdr_t *hdr, samFile *ofp, std::set<pair_fn> functions)
+{
+	bam1_t *b = bam_init1(), *b1 = bam_init1();
+	while (LIKELY(sam_read1(in, hdr, b) >= 0)) {
+		if(b->core.flag & (BAM_FSECONDARY | BAM_FSUPPLEMENTARY)) continue;
+		if(b->core.flag & BAM_FREAD1) {
+			bam_copy1(b1, b); continue;
+		}
+		for(auto f: functions) f(b1, b);
+		sam_write1(ofp, hdr, b), sam_write1(ofp, hdr, b1);
+	}
+	bam_destroy1(b), bam_destroy1(b1);
+}
+
+#endif
+
+
 void abstract_pair_iter(samFile *in, bam_hdr_t *hdr, samFile *ofp, pair_fn function)
 {
 	bam1_t *b = bam_init1(), *b1 = bam_init1();

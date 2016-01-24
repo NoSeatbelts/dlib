@@ -8,9 +8,10 @@
 #include "sam_opts.h"
 #include "htslib/sam.h"
 #include "bam.h"
-#include "logging_util.h"
 #include "char_util.h"
 #include "compiler_util.h"
+#include "logging_util.h"
+#include "misc_util.h"
 
 typedef void (*pair_fn)(bam1_t *b,bam1_t *b1);
 typedef void (*single_fn)(bam1_t *b);
@@ -26,6 +27,11 @@ void abstract_single_data(samFile *in, bam_hdr_t *hdr, samFile *out, single_aux 
 void abstract_single_iter(samFile *in, bam_hdr_t *hdr, samFile *out, single_fn function);
 #ifdef __cplusplus
 }
+#endif
+
+#ifdef __cplusplus
+#include <set>
+void abstract_pair_set(samFile *in, bam_hdr_t *hdr, samFile *ofp, std::set<pair_fn> functions);
 #endif
 
 enum htseq {
@@ -149,6 +155,34 @@ CONST static inline void *array_tag(bam1_t *b, const char *tag) {
 	const uint8_t *const data = bam_aux_get(b, tag);
 	return data ? (void *)(data + sizeof(int) + 2): NULL;
 }
+
+#define cigarop_sc_len(cigar) ((((cigar) & 0xfU) == BAM_CSOFT_CLIP) ? bam_cigar_oplen(cigar): 0)
+
+CONST inline int bam_sc_len_cigar(bam1_t *b, uint32_t *cigar, int n_cigar)
+{
+	return MAX2(cigarop_sc_len(cigar[0]), cigarop_sc_len(cigar[n_cigar - 1]));
+}
+
+
+CONST inline int bam_sc_len(bam1_t *b)
+{
+
+	return (b->core.flag & BAM_FUNMAP) ? 0: bam_sc_len_cigar(b, bam_get_cigar(b), b->core.n_cigar);
+}
+
+
+/*  @func add_unclipped_mate_starts
+ *  @abstract Adds the unclipped start positions for each read and its mate
+ */
+static inline void add_sc_lens(bam1_t *b1, bam1_t *b2) {
+	const int sc1 = bam_sc_len(b1); const int sc2 = bam_sc_len(b2);
+	bam_aux_append(b2, "SC", 'i', sizeof(int), (uint8_t *)&sc2);
+	bam_aux_append(b2, "MC", 'i', sizeof(int), (uint8_t *)&sc1);
+	bam_aux_append(b1, "SC", 'i', sizeof(int), (uint8_t *)&sc1);
+	bam_aux_append(b1, "MC", 'i', sizeof(int), (uint8_t *)&sc2);
+}
+
+int bampath_has_tag(char *bampath, const char *tag);
 
 void bam_plp_set_maxcnt(bam_plp_t, int);
 #endif // BAM_UTIL_H
