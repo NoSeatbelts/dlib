@@ -91,13 +91,13 @@ static const uint8_t seq_nt16_rc[] = {15, 8, 4, 15, 2, 15, 15, 15, 1, 15, 15, 15
 
 /* Just an array-checking utility for debugging. I don't see much use for this. */
 #define check_fa(arr, fm, len) \
-		do {\
+	do {\
 		for(int i##arr = 0; i##arr < len; ++i##arr) {\
 			if(arr[i##arr] > fm){\
                 LOG_ERROR("%u arr value greater than FM %u.\n", arr[i##arr], fm);\
 			}\
 		}\
-		} while(0)
+	} while(0)
 
 /* @func process_mei_tag
  * This is deprecated. Keeping it around for no real reason.
@@ -127,7 +127,7 @@ static inline int get_unclipped_start(bam1_t *b)
 		if(!bam_cigar_op(*cigar)) break; // 'M' in cigar
 		else offset += bam_cigar_oplen(*cigar++);
 	}
-	return b->core.pos + ((b->core.flag & BAM_FREVERSE) ? offset: -offset);
+	return b->core.pos + offset;
 }
 
 
