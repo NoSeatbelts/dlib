@@ -86,3 +86,4 @@ int bampath_has_tag(char *bampath, const char *tag)
 	sam_close(fp);
 	return ret;
 }
+
