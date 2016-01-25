@@ -5,7 +5,6 @@
 #include <stdio.h>
 #include <zlib.h>
 #include <unistd.h>
-#include "sam_opts.h"
 #include "htslib/sam.h"
 #include "bam.h"
 #include "char_util.h"
@@ -118,16 +117,29 @@ inline void process_mei_tag(bam1_t *b) {
 	}
 }
 
-static inline int get_unclipped_start(bam1_t *b)
+CONST static inline int32_t get_unclipped_start(bam1_t *b)
 {
 	if(b->core.flag & BAM_FUNMAP) return -1;
-	int offset = 0, i = b->core.n_cigar;
 	uint32_t *cigar = bam_get_cigar(b);
+	int32_t ret = b->core.pos, i = b->core.n_cigar;
 	while(i--) {
-		if(!bam_cigar_op(*cigar)) break; // 'M' in cigar
-		else offset += bam_cigar_oplen(*cigar++);
+		switch(bam_cigar_op(*cigar)) {
+			case BAM_CSOFT_CLIP:
+			case BAM_CDEL:
+			case BAM_CREF_SKIP:
+			case BAM_CPAD:
+				ret -= bam_cigar_oplen(*cigar++); break;
+			case BAM_CMATCH:
+			case BAM_CEQUAL:
+			case BAM_CDIFF:
+				return ret;
+			case BAM_CINS:
+			case BAM_CHARD_CLIP:
+				// Do nothing but increment
+				++cigar;
+		}
 	}
-	return b->core.pos + offset;
+	return ret;
 }
 
 
