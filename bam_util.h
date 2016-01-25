@@ -17,7 +17,11 @@ typedef void (*single_fn)(bam1_t *b);
 typedef void (*single_aux)(bam1_t *b, void *data);
 typedef int (*single_aux_check)(bam1_t *b, void *data);
 
-const int8_t seq_comp_table[16] = {0, 8, 4, 12, 2, 10, 6, 14, 1, 9, 5, 13, 3, 11, 7, 15};
+#ifndef SEQ_TABLE_DEFS
+#define SEQ_TABLE_DEFS
+static const int8_t seq_comp_table[16] = {0, 8, 4, 12, 2, 10, 6, 14, 1, 9, 5, 13, 3, 11, 7, 15};
+static const uint8_t seq_nt16_rc[] = {15, 8, 4, 15, 2, 15, 15, 15, 1, 15, 15, 15, 15, 15, 15, 15};
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -28,7 +32,7 @@ void abstract_single_filter(samFile *in, bam_hdr_t *hdr, samFile *out, single_au
 void abstract_single_data(samFile *in, bam_hdr_t *hdr, samFile *out, single_aux function, void *data);
 void abstract_single_iter(samFile *in, bam_hdr_t *hdr, samFile *out, single_fn function);
 
-inline void bam_seq_cpy(char *read_str, bam1_t *b) {
+static inline void bam_seq_cpy(char *read_str, bam1_t *b) {
 	uint8_t *seq = (uint8_t *)bam_get_seq(b);
 	int32_t qlen = b->core.l_qseq - 1;
 	if(b->core.flag & BAM_FREVERSE) {
@@ -57,7 +61,6 @@ enum htseq {
 	HTS_N = 15
 };
 
-const uint8_t seq_nt16_rc[] = {15, 8, 4, 15, 2, 15, 15, 15, 1, 15, 15, 15, 15, 15, 15, 15};
 
 #define bam_seqi_cmpl(seq, index) seq_nt16_rc[bam_seqi(seq, index)]
 
