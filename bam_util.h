@@ -147,7 +147,7 @@ CONST static inline int32_t get_unclipped_start(bam1_t *b)
 			case BAM_CDEL:
 			case BAM_CREF_SKIP:
 			case BAM_CPAD:
-				ret -= bam_cigar_oplen(*cigar++); break;
+				ret -= bam_cigar_oplen(*cigar); cigar += sizeof(uint32_t); break;
 			case BAM_CMATCH:
 			case BAM_CEQUAL:
 			case BAM_CDIFF:
@@ -155,7 +155,7 @@ CONST static inline int32_t get_unclipped_start(bam1_t *b)
 			case BAM_CINS:
 			case BAM_CHARD_CLIP:
 				// Do nothing but increment
-				++cigar;
+				cigar += sizeof(uint32_t);
 		}
 	}
 	return ret;

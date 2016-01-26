@@ -50,5 +50,9 @@
             LOG_ERROR("Could not allocate memory or get pointer ('%s'). Abort!\n", #var);\
         }\
     } while(0)
+static void crealloc(void *ptr, size_t new_size) {
+	ptr = realloc(ptr, new_size);
+	memset(ptr, 0, new_size);
+}
 
 #endif
