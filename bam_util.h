@@ -117,25 +117,6 @@ enum htseq {
 		}\
 	} while(0)
 
-/* @func process_mei_tag
- * This is deprecated. Keeping it around for no real reason.
- */
-inline void process_mei_tag(bam1_t *b) {
-	uint8_t *const tag_ptr = bam_aux_get(b, "ME");
-	if(UNLIKELY(!tag_ptr)) {
-        LOG_ERROR("Expected ME tag not present. Abort mission! Qname: %s.", (char *)bam_get_qname(b));
-	}
-	if(bam_aux2i(tag_ptr)) {
-		b->core.pos = b->core.mpos;
-		b->core.tid = b->core.mtid;
-		b->core.flag |= BAM_FUNMAP;
-	} else {
-		b->core.mpos = b->core.pos;
-		b->core.mtid = b->core.tid;
-		b->core.flag |= BAM_FMUNMAP;
-	}
-}
-
 CONST static inline int32_t get_unclipped_start(bam1_t *b)
 {
 	if(b->core.flag & BAM_FUNMAP) return -1;
