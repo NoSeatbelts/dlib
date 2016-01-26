@@ -167,11 +167,11 @@ static inline void fill_rv(char *str, char *buffer, size_t len) {
  */
 static inline char *trim_ext(char *fname)
 {
-    LOG_DEBUG("Now trimming char * %s.\n", fname);
+	LOG_DEBUG("Now trimming char * %s.\n", fname);
 	char *ret = (char *)malloc((strlen(fname) + 1) * sizeof(char ));
 	char *found_pos = strrchr(fname, '.');
 	if(!found_pos) {
-        LOG_ERROR("Could not trim file name's extension. Looks like it's missing a '.' (name: '%s').\n", fname);
+		LOG_ERROR("Could not trim file name's extension. Looks like it's missing a '.' (name: '%s').\n", fname);
 	}
 	memcpy(ret, fname, (found_pos - fname) * sizeof(char));
 	ret[found_pos - fname] = '\0';
@@ -259,6 +259,12 @@ static inline char *make_default_outfname(char *fname, const char *suffix)
 	char *ret = strdup(buf);
 	free(prefix);
 	return ret;
+}
+
+static void restrdup(char *dest, char *src)
+{
+	dest = realloc(dest, sizeof(char) * (strlen(src) + 1));
+	strcpy(dest, src);
 }
 
 #endif
