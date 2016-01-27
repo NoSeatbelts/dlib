@@ -139,6 +139,7 @@ CONST static inline int32_t get_unclipped_start(bam1_t *b)
 				cigar += sizeof(uint32_t);
 		}
 	}
+	LOG_DEBUG("Read position: %i. ucs: %i.\n", b->core.pos, ret);
 	return ret;
 }
 
