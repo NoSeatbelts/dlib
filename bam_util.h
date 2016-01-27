@@ -120,26 +120,26 @@ enum htseq {
 CONST static inline int32_t get_unclipped_start(bam1_t *b)
 {
 	if(b->core.flag & BAM_FUNMAP) return -1;
-	uint32_t *cigar = bam_get_cigar(b);
-	int32_t ret = b->core.pos, i = b->core.n_cigar;
-	while(i--) {
-		switch(bam_cigar_op(*cigar)) {
+	const uint32_t *cigar = bam_get_cigar(b);
+	int32_t ret = b->core.pos;
+	for(int i = 0; i < b->core.n_cigar; ++i) {
+		switch(bam_cigar_op(cigar[i])) {
 			case BAM_CSOFT_CLIP:
 			case BAM_CDEL:
 			case BAM_CREF_SKIP:
 			case BAM_CPAD:
-				ret -= bam_cigar_oplen(*cigar); cigar += sizeof(uint32_t); break;
+				ret -= bam_cigar_oplen(cigar[i]); LOG_DEBUG("ret now: %i.", ret); break;
 			case BAM_CMATCH:
 			case BAM_CEQUAL:
 			case BAM_CDIFF:
 				return ret;
+			/*
 			case BAM_CINS:
 			case BAM_CHARD_CLIP:
-				// Do nothing but increment
-				cigar += sizeof(uint32_t);
+				// DO nothing
+			*/
 		}
 	}
-	LOG_DEBUG("Read position: %i. ucs: %i.\n", b->core.pos, ret);
 	return ret;
 }
 
