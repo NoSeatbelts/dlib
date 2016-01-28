@@ -263,7 +263,7 @@ static inline char *make_default_outfname(char *fname, const char *suffix)
 
 static void restrdup(char *dest, char *src)
 {
-	dest = realloc(dest, sizeof(char) * (strlen(src) + 1));
+	dest = (char *)realloc(dest, sizeof(char) * (strlen(src) + 1));
 	strcpy(dest, src);
 }
 
