@@ -9,6 +9,7 @@
 #include "htslib/sam.h"
 #include "htslib/vcf.h"
 #include "logging_util.h"
+#include "mem_util.h"
 
 #define DEFAULT_PADDING 0u
 
@@ -90,8 +91,5 @@ static inline int vcf_bed_test(bcf1_t *b, khash_t(bed) *h)
 	return 0;
 }
 
-#ifndef cond_free
-#define cond_free(var) do {if(var) {free(var); var = NULL;}} while(0)
-#endif
 
 #endif /* BED_UTIL_H */
