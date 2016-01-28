@@ -53,7 +53,11 @@ static inline void bam_seq_cpy(char *read_str, bam1_t *b) {
 void abstract_pair_set(samFile *in, bam_hdr_t *hdr, samFile *ofp, std::set<pair_fn> functions);
 #endif
 
+#ifdef __cplusplus
+enum class htseq {
+#else
 enum htseq {
+#endif
 	HTS_A = 1,
 	HTS_C = 2,
 	HTS_G = 4,
