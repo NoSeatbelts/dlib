@@ -181,7 +181,7 @@ CONST static inline int bam_sc_len(bam1_t *b)
 	return (b->core.flag & BAM_FUNMAP) ? 0: bam_sc_len_cigar(b, bam_get_cigar(b), b->core.n_cigar);
 }
 
-CONST static inline double bam_frac_align(bam1_t *b)
+CONST static inline float bam_frac_align(bam1_t *b)
 {
 	if(b->core.flag & BAM_FUNMAP) return 0.;
 	int sum = 0;
@@ -189,7 +189,7 @@ CONST static inline double bam_frac_align(bam1_t *b)
 	for(unsigned i = 0; i < b->core.n_cigar; ++i)
 		if(bam_cigar_op(cigar[i]) & (BAM_CMATCH | BAM_CEQUAL | BAM_CDIFF))
 			sum += bam_cigar_oplen(cigar[i]);
-	return (double)sum / b->core.l_qseq;
+	return (float)sum / b->core.l_qseq;
 }
 
 
@@ -197,7 +197,7 @@ CONST static inline double bam_frac_align(bam1_t *b)
  *  @abstract Adds the unclipped start positions for each read and its mate
  */
 static inline void add_fraction_aligned(bam1_t *b1, bam1_t *b2) {
-	const float frac1 = (float)bam_frac_align(b1); const float frac2 = (float)bam_frac_align(b2);
+	const float frac1 = bam_frac_align(b1); const float frac2 = bam_frac_align(b2);
 	bam_aux_append(b2, "AF", 'f', sizeof(float), (uint8_t *)&frac2);
 	bam_aux_append(b2, "MF", 'f', sizeof(float), (uint8_t *)&frac1);
 	bam_aux_append(b1, "AF", 'f', sizeof(float), (uint8_t *)&frac1);
