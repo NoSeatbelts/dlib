@@ -23,6 +23,8 @@ int my_system (const char *command, const char *executable);
 
 FILE *open_ofp(char *infname);
 FILE *open_ifp(char *infname);
+int file_has_ext(char *fn, const char *ext);
+int is_bgzipped_vcf(char *fn);
 
 inline gzFile open_gzfile(char *infname); // Opens gzFile from file or stdin ('-', 'stdin')
 
