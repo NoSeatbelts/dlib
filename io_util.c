@@ -41,3 +41,13 @@ FILE *open_ofp(char *path) {
 	LOG_DEBUG("Writing to %s.\n", path);
 	return fopen(path, "w");
 }
+
+int is_bgzipped_vcf(char *fn)
+{
+	return strcmp(strrchr(fn, '.') - 4, ".vcf.gz") == 0;
+}
+
+int file_has_ext(char *fn, const char *ext)
+{
+	return strcmp(strrchr(fn, '.') + 1, ext) == 0;
+}

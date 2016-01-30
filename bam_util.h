@@ -53,18 +53,13 @@ static inline void bam_seq_cpy(char *read_str, bam1_t *b) {
 void abstract_pair_set(samFile *in, bam_hdr_t *hdr, samFile *ofp, std::set<pair_fn> functions);
 #endif
 
-#ifdef __cplusplus
-enum class htseq {
-#else
 enum htseq {
-#endif
 	HTS_A = 1,
 	HTS_C = 2,
 	HTS_G = 4,
 	HTS_T = 8,
 	HTS_N = 15
 };
-
 
 #define bam_seqi_cmpl(seq, index) seq_nt16_rc[bam_seqi(seq, index)]
 
@@ -175,18 +170,39 @@ CONST static inline void *array_tag(bam1_t *b, const char *tag) {
 
 #define cigarop_sc_len(cigar) ((((cigar) & 0xfU) == BAM_CSOFT_CLIP) ? bam_cigar_oplen(cigar): 0)
 
-CONST inline int bam_sc_len_cigar(bam1_t *b, uint32_t *cigar, int n_cigar)
+CONST static inline int bam_sc_len_cigar(bam1_t *b, uint32_t *cigar, int n_cigar)
 {
 	return MAX2(cigarop_sc_len(cigar[0]), cigarop_sc_len(cigar[n_cigar - 1]));
 }
 
 
-CONST inline int bam_sc_len(bam1_t *b)
+CONST static inline int bam_sc_len(bam1_t *b)
 {
-
 	return (b->core.flag & BAM_FUNMAP) ? 0: bam_sc_len_cigar(b, bam_get_cigar(b), b->core.n_cigar);
 }
 
+CONST static inline float bam_frac_align(bam1_t *b)
+{
+	if(b->core.flag & BAM_FUNMAP) return 0.;
+	int sum = 0;
+	uint32_t *cigar = bam_get_cigar(b);
+	for(unsigned i = 0; i < b->core.n_cigar; ++i)
+		if(bam_cigar_op(cigar[i]) & (BAM_CMATCH | BAM_CEQUAL | BAM_CDIFF))
+			sum += bam_cigar_oplen(cigar[i]);
+	return (float)sum / b->core.l_qseq;
+}
+
+
+/*  @func add_unclipped_mate_starts
+ *  @abstract Adds the unclipped start positions for each read and its mate
+ */
+static inline void add_fraction_aligned(bam1_t *b1, bam1_t *b2) {
+	const float frac1 = bam_frac_align(b1); const float frac2 = bam_frac_align(b2);
+	bam_aux_append(b2, "AF", 'f', sizeof(float), (uint8_t *)&frac2);
+	bam_aux_append(b2, "MF", 'f', sizeof(float), (uint8_t *)&frac1);
+	bam_aux_append(b1, "AF", 'f', sizeof(float), (uint8_t *)&frac1);
+	bam_aux_append(b1, "MF", 'f', sizeof(float), (uint8_t *)&frac2);
+}
 
 /*  @func add_unclipped_mate_starts
  *  @abstract Adds the unclipped start positions for each read and its mate
