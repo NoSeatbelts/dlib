@@ -106,7 +106,7 @@ static inline void append_int_tag(char *buffer, const char *tag, int i)
  */
 static inline void fill_pv(int readlen, uint32_t *arr, char *buffer)
 {
-	return fill_csv_buffer(readlen, arr, buffer, (char *)"PV:B:I");
+	fill_csv_buffer(readlen, arr, buffer, (char *)"PV:B:I");
 }
 
 
