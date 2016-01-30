@@ -172,7 +172,9 @@ CONST static inline void *array_tag(bam1_t *b, const char *tag) {
 
 CONST static inline int bam_sc_len_cigar(bam1_t *b, uint32_t *cigar, int n_cigar)
 {
-	return MAX2(cigarop_sc_len(cigar[0]), cigarop_sc_len(cigar[n_cigar - 1]));
+	const int clen1 = cigarop_sc_len(cigar[0]);
+	const int clen2 = cigarop_sc_len(cigar[n_cigar - 1]);
+	return MAX2(clen1, clen2);
 }
 
 
