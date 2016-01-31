@@ -30,6 +30,14 @@
         fprintf(stderr, "[W:%s] " str, __func__, ##__VA_ARGS__);\
     } while(0)
 
+#define LOG_ASSERT(condition, ...) \
+    do {\
+		if(!(condition)) {\
+			fprintf(stderr, "[E:%s:%d] LOG_ASSERT failed: '%s'\n" , __func__, __LINE__, #condition);\
+			exit(EXIT_FAILURE);\
+		}\
+    } while(0)
+
 #define LOG_ERROR(str, ...) \
     do {\
         fprintf(stderr, "[E:%s:%d] " str, __func__, __LINE__, ##__VA_ARGS__);\
