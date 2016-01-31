@@ -155,6 +155,7 @@ static inline void add_unclipped_mate_starts(bam1_t *b1, bam1_t *b2) {
 }
 
 int bampath_has_tag(char *bampath, const char *tag);
+void check_bam_tag_exit(char *bampath, const char *tag);
 
 static inline void check_bam_tag(bam1_t *b, const char *tag)
 {
@@ -217,7 +218,6 @@ static inline void add_sc_lens(bam1_t *b1, bam1_t *b2) {
 	bam_aux_append(b1, "MC", 'i', sizeof(int), (uint8_t *)&sc2);
 }
 
-int bampath_has_tag(char *bampath, const char *tag);
 
 void bam_plp_set_maxcnt(bam_plp_t, int);
 #endif // BAM_UTIL_H

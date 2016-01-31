@@ -87,3 +87,15 @@ int bampath_has_tag(char *bampath, const char *tag)
 	return ret;
 }
 
+void check_bam_tag_exit(char *bampath, const char *tag)
+{
+	if(!(strcmp(bampath, "-") && strcmp(bampath, "stdin"))) {
+			LOG_WARNING("Could not check for bam tag without exhausting a pipe. "
+						"Tag '%s' has not been verified.\n", tag);
+			return;
+	}
+	if(!bampath_has_tag(bampath, tag)) {
+		LOG_ERROR("Required bam tag '%s' missing from bam file at path '%s'. Abort!\n", tag, bampath);
+	}
+}
+
