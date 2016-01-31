@@ -2,7 +2,7 @@
 #define MATH_UTIL_H
 /* source/explanation: https://gist.github/com/orlp/ipow/ */
 
-inline int64_t ipow(int32_t base, int32_t exp) {
+static inline int64_t ipow(int32_t base, int32_t exp) {
     static const uint8_t highest_bit_set[] = {
         0, 1, 2, 2, 3, 3, 3, 3,
         4, 4, 4, 4, 4, 4, 4, 4,
