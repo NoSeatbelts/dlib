@@ -93,11 +93,12 @@ void bed_destroy_hash(void *arg)
 			for(int i = 0; i < kh_val(b, ki).n; ++i) {
 				cond_free(kh_val(b, ki).contig_names[i]);
 			}
+			free(kh_val(b, ki).contig_names);
 		}
 		kh_val(b, ki).contig_names = NULL;
 		kh_val(b, ki).n = 0;
 	}
-	cond_free(b);
+	kh_destroy(bed, b);
 }
 
 void sort_bed(khash_t(bed) *bed)
