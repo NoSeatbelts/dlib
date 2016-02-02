@@ -47,7 +47,7 @@
  */
 typedef struct region_set {
 	uint64_t *intervals;
-	char **contig_names;
+	char *contig_name;
 	uint64_t n;
 } region_set_t;
 
