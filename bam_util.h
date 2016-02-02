@@ -61,9 +61,16 @@ enum htseq {
 	HTS_N = 15
 };
 
+// bam utility macros.
+
+/*
+ *bam_seqi_cmpl: returns the complement of bam_seqi.
+ **/
 #define bam_seqi_cmpl(seq, index) seq_nt16_rc[bam_seqi(seq, index)]
 
-// bam utility macros.
+/* true if both in pair are unmapped, false if only one.
+ */
+#define bam_pair_unmapped(b2) (((b2)->core.flag & BAM_FPAIR_UNMAPPED) == BAM_FPAIR_UNMAPPED)
 
 /* @func inc_tag increments a numeric tag with a given type
  * :param: p [bam1_t *] One bam record
