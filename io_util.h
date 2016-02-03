@@ -11,6 +11,9 @@
 #include "logging_util.h"
 
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 // FUNCTIONS
 // Function Declarations
 int isfile(char *fname); // True if file exists.
@@ -88,8 +91,9 @@ static int count_lines(char *fname) {
 	}
 	goto start;
 }
-
-
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 
 #endif

@@ -2,6 +2,17 @@
 #define MATH_UTIL_H
 /* source/explanation: https://gist.github/com/orlp/ipow/ */
 
+static inline int64_t ipow(int base, int exp)
+{
+	int64_t ret = 1;
+	while(exp) {
+		if(exp & 1) ret *= base;
+		exp >>= 1;
+		base *= base;
+	}
+	return ret;
+}
+/*
 static inline int64_t ipow(int32_t base, int32_t exp) {
     static const uint8_t highest_bit_set[] = {
         0, 1, 2, 2, 3, 3, 3, 3,
@@ -72,6 +83,6 @@ static inline int64_t ipow(int32_t base, int32_t exp) {
     default:
         return result;
     }
-} /* ipow */
+} * ipow */
 
 #endif /* MATH_UTIL_H */
