@@ -46,7 +46,7 @@ void abstract_pair_set(samFile *in, bam_hdr_t *hdr, samFile *ofp, std::set<pair_
 			bam_copy1(b1, b); continue;
 		}
 		for(auto f: functions) f(b1, b);
-		sam_write1(ofp, hdr, b), sam_write1(ofp, hdr, b1);
+		sam_write1(ofp, hdr, b1), sam_write1(ofp, hdr, b);
 	}
 	bam_destroy1(b), bam_destroy1(b1);
 }
