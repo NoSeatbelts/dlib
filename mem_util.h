@@ -12,7 +12,7 @@
 #   define cond_free(var)\
     do {\
         if(var) {\
-            LOG_DEBUG("About to free variable at %p (%s).\n", (void *)var, #var);\
+            /*LOG_DEBUG("About to free variable at %p (%s).\n", (void *)var, #var); */\
             free(var);\
             var = NULL;\
         }\

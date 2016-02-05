@@ -1,17 +1,41 @@
 #include "bed_util.h"
 
+#define N_IVL_BINS 5
+
+void print_bed_hash(FILE *fp, khash_t(bed) *bed)
+{
+	for(khiter_t k = kh_begin(bed); k != kh_end(bed); ++k) {
+		if(!kh_exist(bed, k)) continue;
+		for(int j = 0; j < kh_val(bed, k).n; ++j)
+			fprintf(fp, "Contig: %s. Start: %i. Stop: %i\n",
+					kh_val(bed, k).contig_name, get_start(kh_val(bed, k).intervals[j]),
+					get_stop(kh_val(bed, k).intervals[j]));
+	}
+}
+
 khash_t(bed) *build_ref_hash(bam_hdr_t *header) {
 	khiter_t k;
 	int khr;
 	khash_t(bed) *ret = kh_init(bed);
+	uint64_t binsize;
 	for(int i = 0; i < header->n_targets; ++i) {
 		k = kh_put(bed, ret, i, &khr);
-		kh_val(ret, k).n = 1;
-		kh_val(ret, k).intervals = (uint64_t *)calloc(1, sizeof(uint64_t));
-		kh_val(ret, k).intervals[0] = to_ivl(0, header->target_len[i]);
-		kh_val(ret, k).contig_names = (char **)calloc(1, sizeof(char *));
-		kh_val(ret, k).contig_names[0] = strdup(header->target_name[i]);
+		kh_val(ret, k).n = N_IVL_BINS;
+		kh_val(ret, k).intervals = (uint64_t *)calloc(N_IVL_BINS, sizeof(uint64_t));
+		binsize = (header->target_len[i] - 1) / N_IVL_BINS;
+		for(int j = 0; j < N_IVL_BINS - 1; ++j) {
+			LOG_INFO("ivl sizes: %lu, %lu.\n", (uint64_t)(j * binsize), (uint64_t)((j + 1) * binsize) - 1);
+			if((j + 1) * binsize >= header->target_len[i] - 1)
+				kh_val(ret, k).intervals[j] = to_ivl((uint64_t)(j * binsize), header->target_len[i] - 1);
+			else
+				kh_val(ret, k).intervals[j] = to_ivl((uint64_t)(j * binsize), (uint64_t)((j + 1) * binsize) - 1);
+			kh_val(ret, k).intervals[j] = to_ivl((uint64_t)(j * binsize), ((j + 1) * binsize >= header->target_len[i] - 1) ? (uint64_t)header->target_len[i] - 1:(uint64_t)((j + 1) * binsize) - 1);
+		}
+		kh_val(ret, k).contig_name = strdup(header->target_name[i]);
 	}
+#if !NDEBUG
+	print_bed_hash(stderr, ret);
+#endif
 	return ret;
 }
 
@@ -43,18 +67,14 @@ khash_t(bed) *parse_bed_hash(char *path, bam_hdr_t *header, uint32_t padding)
 			kh_val(ret, k).intervals = (uint64_t *)calloc(1, sizeof(uint64_t));
 			kh_val(ret, k).intervals[0] = to_ivl(start - padding, stop + padding);
 			kh_val(ret, k).n = 1;
-			kh_val(ret, k).contig_names = (char **)calloc(1, sizeof(char *));
-			if((tok = strtok(NULL, "\t")) != NULL) kh_val(ret, k).contig_names[0] = strdup(tok);
+			kh_val(ret, k).contig_name = (char *)calloc(1, sizeof(char *));
+			if((tok = strtok(NULL, "\t")) != NULL) kh_val(ret, k).contig_name = strdup(tok);
 		} else {
 			kh_val(ret, k).intervals = (uint64_t *)realloc(kh_val(ret, k).intervals, ++kh_val(ret, k).n * sizeof(uint64_t));
 			if(!kh_val(ret, k).intervals) {
                 LOG_ERROR("Could not allocate memory. Abort mission!\n");
 			}
 			kh_val(ret, k).intervals[kh_val(ret, k).n - 1] = to_ivl(start - padding, stop + padding);
-
-			kh_val(ret, k).contig_names = (char **)realloc(kh_val(ret, k).contig_names, sizeof(char *) * kh_val(ret, k).n);
-			kh_val(ret, k).contig_names[kh_val(ret, k).n - 1] = ((tok = strtok(NULL, "\t")) != NULL) ? strdup(tok): NULL;
-
             LOG_DEBUG("Number of intervals in bed file for contig "
                     "%u, ('%s'): %lu\n", tid, header->target_name[tid], kh_val(ret, k).n);
 		}
@@ -89,13 +109,7 @@ void bed_destroy_hash(void *arg)
 	for(ki = kh_begin(b); ki != kh_end(b); ++ki) {
 		if(!kh_exist(b, ki)) continue;
 		cond_free(kh_val(b, ki).intervals);
-		if(kh_val(b, ki).contig_names) {
-			for(int i = 0; i < kh_val(b, ki).n; ++i) {
-				cond_free(kh_val(b, ki).contig_names[i]);
-			}
-			free(kh_val(b, ki).contig_names);
-		}
-		kh_val(b, ki).contig_names = NULL;
+		cond_free(kh_val(b, ki).contig_name);
 		kh_val(b, ki).n = 0;
 	}
 	kh_destroy(bed, b);

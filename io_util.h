@@ -11,6 +11,9 @@
 #include "logging_util.h"
 
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 // FUNCTIONS
 // Function Declarations
 int isfile(char *fname); // True if file exists.
@@ -26,10 +29,8 @@ FILE *open_ifp(char *infname);
 int file_has_ext(char *fn, const char *ext);
 int is_bgzipped_vcf(char *fn);
 
-inline gzFile open_gzfile(char *infname); // Opens gzFile from file or stdin ('-', 'stdin')
-
 // Inline Function Definitions
-inline gzFile open_gzfile(char *infname) {
+static inline gzFile open_gzfile(char *infname) {
 	if(strcmp(infname, "-") == 0 || strcmp(infname, "stdin") == 0) {
 		LOG_DEBUG("Reading from standard in because infname is %s.\n", infname);
 		return gzdopen(STDIN_FILENO, "r"); // Opens stdin.
@@ -46,6 +47,7 @@ inline gzFile open_gzfile(char *infname) {
  */
 #define CHECK_POPEN(cmd) \
 	do {\
+		LOG_DEBUG("About to call '%s' via popen.\n", cmd);\
 		if(pclose(popen(cmd, "w"))) {\
 			LOG_ERROR("Command '%s' failed. Abort!\n", cmd);\
 		}\
@@ -88,8 +90,9 @@ static int count_lines(char *fname) {
 	}
 	goto start;
 }
-
-
+#ifdef __cplusplus
+} /* extern "C" */
+#endif
 
 
 #endif

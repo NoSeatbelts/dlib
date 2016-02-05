@@ -7,7 +7,8 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <math.h>
-#include "htslib/kseq.h"
+#include "kseq.h"
+#include "kstring.h"
 #include "compiler_util.h"
 #include "logging_util.h"
 #include "char_util.h"
@@ -57,12 +58,12 @@ static inline char *rand_string(char *str, size_t size)
  */
 static void fill_csv_buffer(int readlen, uint32_t *arr, char *buffer, const char *prefix_typecode)
 {
-	char tmpbuf[12];
-	strcpy(buffer, prefix_typecode);
-	for(int i = 0; i < readlen; i++) {
-		sprintf(tmpbuf, ",%u", arr[i]);
-		strcat(buffer, tmpbuf);
-	}
+	kstring_t ks = {0, 0, NULL};
+	kputs(prefix_typecode, &ks);
+	for(int i = 0; i < readlen; i++)
+		ksprintf(&ks, ",%u", arr[i]);
+	strcpy(buffer, ks.s);
+	free(ks.s);
 }
 
 /*
@@ -167,11 +168,11 @@ static inline void fill_rv(char *str, char *buffer, size_t len) {
  */
 static inline char *trim_ext(char *fname)
 {
-	LOG_DEBUG("Now trimming char * %s.\n", fname);
+	LOG_DEBUG((char *)"Now trimming char * %s.\n", fname);
 	char *ret = (char *)malloc((strlen(fname) + 1) * sizeof(char ));
 	char *found_pos = strrchr(fname, '.');
 	if(!found_pos) {
-		LOG_ERROR("Could not trim file name's extension. Looks like it's missing a '.' (name: '%s').\n", fname);
+		LOG_ERROR((char *)"Could not trim file name's extension. Looks like it's missing a '.' (name: '%s').\n", fname);
 	}
 	memcpy(ret, fname, (found_pos - fname) * sizeof(char));
 	ret[found_pos - fname] = '\0';
@@ -275,5 +276,12 @@ static std::string all_ns(size_t n)
 	return std::string(n, 'N');
 }
 #endif
+
+static inline char *kstrdup(kstring_t *ks)
+{
+	char *ret = (char *)malloc((ks->l + 1) * sizeof(char));
+	memcpy(ret, ks->s, ks->l + 1);
+	return ret;
+}
 
 #endif

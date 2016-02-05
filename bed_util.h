@@ -47,7 +47,7 @@
  */
 typedef struct region_set {
 	uint64_t *intervals;
-	char **contig_names;
+	char *contig_name;
 	uint64_t n;
 } region_set_t;
 
@@ -57,6 +57,9 @@ typedef struct region_set {
  */
 KHASH_MAP_INIT_INT(bed, region_set_t)
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 int intcmp(const void *a, const void *b); // Compare intervals for sorting by start
 void sort_bed(khash_t(bed) *bed);
 khash_t(bed) *parse_bed_hash(char *path, bam_hdr_t *header, uint32_t padding);
@@ -92,6 +95,9 @@ static inline int vcf_bed_test(bcf1_t *b, khash_t(bed) *h)
 	}
 	return 0;
 }
+#ifdef __cplusplus
+}
+#endif
 
 
 #endif /* BED_UTIL_H */
