@@ -58,7 +58,9 @@ static inline void log_info(const char *func, char *fmt, ...) {
 
 static inline void log_assert(const char *func, int line, int assertion, const char *assert_str, char *fmt, ...) {
 	if(assertion) return;
-	LOG_ERROR((char *)"Assertion '%s' failed.", assert_str);
+	fprintf(stderr, (char *)"[E:%s:%d] Assertion '%s' failed.",
+			func, line, assert_str);
+	exit(EXIT_FAILURE);
 }
 
 #endif /* LOGGING_UTIL_H */
