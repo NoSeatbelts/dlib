@@ -54,9 +54,9 @@ static inline void log_info(const char *func, char *fmt, ...) {
 	va_end(args);
 }
 
-#define LOG_ASSERT(condition) log_assert(__func__, __LINE__, condition, (const char *)##condition, char *fmt)
+#define LOG_ASSERT(condition) log_assert(__func__, __LINE__, condition, (const char *)(#condition))
 
-static inline void log_assert(const char *func, int line, int assertion, const char *assert_str, char *fmt, ...) {
+static inline void log_assert(const char *func, int line, int assertion, const char *assert_str) {
 	if(assertion) return;
 	fprintf(stderr, (char *)"[E:%s:%d] Assertion '%s' failed.",
 			func, line, assert_str);

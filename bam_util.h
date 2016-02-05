@@ -60,7 +60,7 @@ CONST static inline int32_t get_unclipped_start(bam1_t *b)
 			case BAM_CDEL:
 			case BAM_CREF_SKIP:
 			case BAM_CPAD:
-				ret -= bam_cigar_oplen(cigar[i]); LOG_DEBUG("ret now: %i.", ret); break;
+				ret -= bam_cigar_oplen(cigar[i]); LOG_DEBUG((char *)"ret now: %i.", ret); break;
 			case BAM_CMATCH:
 			case BAM_CEQUAL:
 			case BAM_CDIFF:
@@ -93,7 +93,7 @@ void check_bam_tag_exit(char *bampath, const char *tag);
 static inline void check_bam_tag(bam1_t *b, const char *tag)
 {
 	if(!bam_aux_get(b, tag)) {
-		LOG_ERROR("Required bam tag '%s' not found. Abort mission!\n",tag);
+		LOG_ERROR((char *)"Required bam tag '%s' not found. Abort mission!\n",tag);
 	}
 }
 
@@ -218,7 +218,7 @@ enum htseq {
 	do {\
 		for(int i##arr = 0; i##arr < len; ++i##arr) {\
 			if(arr[i##arr] > fm){\
-				LOG_ERROR("%u arr value greater than FM %u.\n", arr[i##arr], fm);\
+				LOG_ERROR((char *)"%u arr value greater than FM %u.\n", arr[i##arr], fm);\
 			}\
 		}\
 	} while(0)
