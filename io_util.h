@@ -29,10 +29,8 @@ FILE *open_ifp(char *infname);
 int file_has_ext(char *fn, const char *ext);
 int is_bgzipped_vcf(char *fn);
 
-inline gzFile open_gzfile(char *infname); // Opens gzFile from file or stdin ('-', 'stdin')
-
 // Inline Function Definitions
-inline gzFile open_gzfile(char *infname) {
+static inline gzFile open_gzfile(char *infname) {
 	if(strcmp(infname, "-") == 0 || strcmp(infname, "stdin") == 0) {
 		LOG_DEBUG("Reading from standard in because infname is %s.\n", infname);
 		return gzdopen(STDIN_FILENO, "r"); // Opens stdin.
