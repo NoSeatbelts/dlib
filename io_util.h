@@ -49,6 +49,7 @@ inline gzFile open_gzfile(char *infname) {
  */
 #define CHECK_POPEN(cmd) \
 	do {\
+		LOG_DEBUG("About to call '%s' via popen.\n", cmd);\
 		if(pclose(popen(cmd, "w"))) {\
 			LOG_ERROR("Command '%s' failed. Abort!\n", cmd);\
 		}\

@@ -7,7 +7,8 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <math.h>
-#include "htslib/kseq.h"
+#include "kseq.h"
+#include "kstring.h"
 #include "compiler_util.h"
 #include "logging_util.h"
 #include "char_util.h"
@@ -57,12 +58,12 @@ static inline char *rand_string(char *str, size_t size)
  */
 static void fill_csv_buffer(int readlen, uint32_t *arr, char *buffer, const char *prefix_typecode)
 {
-	char tmpbuf[12];
-	strcpy(buffer, prefix_typecode);
-	for(int i = 0; i < readlen; i++) {
-		sprintf(tmpbuf, ",%u", arr[i]);
-		strcat(buffer, tmpbuf);
-	}
+	kstring_t ks = {0, 0, NULL};
+	kputs(prefix_typecode, &ks);
+	for(int i = 0; i < readlen; i++)
+		ksprintf(&ks, ",%u", arr[i]);
+	strcpy(buffer, ks.s);
+	free(ks.s);
 }
 
 /*
@@ -266,6 +267,13 @@ static char *restrdup(char *dest, char *src)
 	dest = (char *)realloc(dest, sizeof(char) * (strlen(src) + 1));
 	strcpy(dest, src);
 	return dest;
+}
+
+static inline char *kstrdup(kstring_t *ks)
+{
+	char *ret = (char *)malloc((ks->l + 1) * sizeof(char));
+	memcpy(ret, ks->s, ks->l + 1);
+	return ret;
 }
 
 #endif
