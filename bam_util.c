@@ -64,7 +64,7 @@ void abstract_pair_iter(samFile *in, bam_hdr_t *hdr, samFile *ofp, pair_fn funct
 			bam_copy1(b1, b); continue;
 		}
 		function(b1, b);
-		sam_write1(ofp, hdr, b), sam_write1(ofp, hdr, b1);
+		sam_write1(ofp, hdr, b1), sam_write1(ofp, hdr, b);
 	}
 	bam_destroy1(b), bam_destroy1(b1);
 }
