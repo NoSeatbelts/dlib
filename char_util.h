@@ -20,7 +20,7 @@ static const uint32_t nucpos_arr_acgt[128] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
 #define ARGMAX_STR NUM2NUC_STR
 #define NUM2NUC_STR "ACGTN"
 #define num2nuc(index) ARGMAX_STR[index]
-#define rc_string  "\0NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNTNGNNNCNNNNNNNNNNNNANNNNNNNNNNNNTNGNNNCNNNNNNNNNNNNANNNNNNNNNNN"
+#define rc_string  "\0NNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNNTNGNNNCNNNNNNNNNNNNANNNNNNNNNNNNtNgNNNcNNNNNNNNNNNNaNNNNNNNNNNN"
 #define nuc2num(character) nucpos_arr[(uint8_t)character]
 #define nuc2num_acgt(character) nucpos_arr_acgt[(uint8_t)character]
 #define nuc_cmpl(character) rc_string[(uint8_t)character]
