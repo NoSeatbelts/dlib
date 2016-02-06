@@ -37,16 +37,24 @@ void abstract_single_data(samFile *in, bam_hdr_t *hdr, samFile *out, single_aux 
 void abstract_single_iter(samFile *in, bam_hdr_t *hdr, samFile *out, single_fn function);
 
 static inline void bam_seq_cpy(char *read_str, bam1_t *b) {
+#if !NDEBUG
+	char *tmp = read_str;
+#endif
 	uint8_t *seq = (uint8_t *)bam_get_seq(b);
 	int32_t qlen = b->core.l_qseq - 1;
+	LOG_DEBUG("qlen: %i.\n", qlen);
 	if(b->core.flag & BAM_FREVERSE) {
-		for(; qlen != -1; --qlen) *read_str++ = seq_nt16_str[seq_comp_table[bam_seqi(seq, qlen)]];
+		for(; qlen != -1; --qlen) {
+			*read_str++ = seq_nt16_str[seq_comp_table[bam_seqi(seq, qlen)]];
+			LOG_DEBUG("New character: %c.\n", seq_nt16_str[seq_comp_table[bam_seqi(seq, qlen)]]);
+		}
 		*read_str++ = '\0';
 	} else {
 		read_str += qlen;
 		*read_str-- = '\0';
 		for(;qlen != -1; --qlen) *read_str-- = seq_nt16_str[bam_seqi(seq, qlen)];
 	}
+	LOG_DEBUG("read_str: %s.\n", tmp);
 }
 
 CONST static inline int32_t get_unclipped_start(bam1_t *b)
