@@ -19,10 +19,9 @@ extern "C" {
 
 	inline void kmer2cstr(uint64_t kmer, int k, char *buf)
 	{
-		buf += k;
-		*buf = '\0';
-		while(k) *(--buf) = num2nuc((kmer >> (2 * --k)) & 0x3u);
-		//LOG_DEBUG("kmer %lu has now become string '%s'.\n", kmer, buf);
+		buf[k] = '\0';
+		while(k) *buf++ = num2nuc((kmer >> (2 * --k)) & 0x3u);
+		//LOG_DEBUG("kmer %lu has now become string '%s'.\n", kmer, start);
 	}
 
 #ifdef __cplusplus
