@@ -5,12 +5,19 @@
 #include <stdio.h>
 #include <zlib.h>
 #include <unistd.h>
+#include <assert.h>
 #include "htslib/sam.h"
 #include "bam.h"
 #include "char_util.h"
 #include "compiler_util.h"
 #include "logging_util.h"
 #include "misc_util.h"
+
+
+/*
+ *bam_seqi_cmpl: returns the complement of bam_seqi.
+ **/
+#define bam_seqi_cmpl(seq, index) seq_nt16_rc[bam_seqi(seq, index)]
 
 typedef void (*pair_fn)(bam1_t *b,bam1_t *b1);
 typedef void (*single_fn)(bam1_t *b);
@@ -37,24 +44,18 @@ void abstract_single_data(samFile *in, bam_hdr_t *hdr, samFile *out, single_aux 
 void abstract_single_iter(samFile *in, bam_hdr_t *hdr, samFile *out, single_fn function);
 
 static inline void bam_seq_cpy(char *read_str, bam1_t *b) {
-#if !NDEBUG
-	char *tmp = read_str;
-#endif
 	uint8_t *seq = (uint8_t *)bam_get_seq(b);
 	int32_t qlen = b->core.l_qseq - 1;
-	LOG_DEBUG("qlen: %i.\n", qlen);
 	if(b->core.flag & BAM_FREVERSE) {
-		for(; qlen != -1; --qlen) {
-			*read_str++ = seq_nt16_str[seq_comp_table[bam_seqi(seq, qlen)]];
-			LOG_DEBUG("New character: %c.\n", seq_nt16_str[seq_comp_table[bam_seqi(seq, qlen)]]);
-		}
+		for(; qlen != -1; --qlen) *read_str++ = seq_nt16_str[bam_seqi_cmpl(seq, qlen)];
 		*read_str++ = '\0';
+		assert(strlen(tmp) == b->core.l_qseq);
 	} else {
-		read_str += qlen;
+		read_str += b->core.l_qseq;
 		*read_str-- = '\0';
 		for(;qlen != -1; --qlen) *read_str-- = seq_nt16_str[bam_seqi(seq, qlen)];
+		assert(strlen(tmp) == b->core.l_qseq);
 	}
-	LOG_DEBUG("read_str: %s.\n", tmp);
 }
 
 CONST static inline int32_t get_unclipped_start(bam1_t *b)
@@ -170,11 +171,6 @@ enum htseq {
 };
 
 // bam utility macros.
-
-/*
- *bam_seqi_cmpl: returns the complement of bam_seqi.
- **/
-#define bam_seqi_cmpl(seq, index) seq_nt16_rc[bam_seqi(seq, index)]
 
 /* true if both in pair are unmapped, false if only one.
  */
