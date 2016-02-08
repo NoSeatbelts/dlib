@@ -269,14 +269,6 @@ static char *restrdup(char *dest, char *src)
 	return dest;
 }
 
-#ifdef __cplusplus
-#include <string>
-static std::string all_ns(size_t n)
-{
-	return std::string(n, 'N');
-}
-#endif
-
 static inline char *kstrdup(kstring_t *ks)
 {
 	char *ret = (char *)malloc((ks->l + 1) * sizeof(char));

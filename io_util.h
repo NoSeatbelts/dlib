@@ -76,20 +76,8 @@ static inline gzFile open_gzfile(char *infname) {
 #	endif
 #endif
 
-static int count_lines(char *fname) {
-	int ret = 0;
-	FILE *fp = fopen(fname, "r");
-	if(!fp) {
-		fprintf(stderr, "[E:%s] Could not open file %s. Abort mission!\n", __func__, fname);
-		exit(EXIT_FAILURE);
-	}
-	start:
-	switch(getc(fp)) {
-		case EOF: fclose(fp); return ret;
-		case '\n': ++ret;
-	}
-	goto start;
-}
+int count_lines(char *fname);
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif

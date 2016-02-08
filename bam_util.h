@@ -49,12 +49,10 @@ static inline void bam_seq_cpy(char *read_str, bam1_t *b) {
 	if(b->core.flag & BAM_FREVERSE) {
 		for(; qlen != -1; --qlen) *read_str++ = seq_nt16_str[bam_seqi_cmpl(seq, qlen)];
 		*read_str++ = '\0';
-		assert(strlen(tmp) == b->core.l_qseq);
 	} else {
 		read_str += b->core.l_qseq;
 		*read_str-- = '\0';
 		for(;qlen != -1; --qlen) *read_str-- = seq_nt16_str[bam_seqi(seq, qlen)];
-		assert(strlen(tmp) == b->core.l_qseq);
 	}
 }
 

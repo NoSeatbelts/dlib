@@ -6,6 +6,22 @@ int isfile(char *fname)
 }
 
 
+int count_lines(char *fname) {
+    int ret = 0;
+    FILE *fp = fopen(fname, "r");
+    if(!fp) {
+        fprintf(stderr, "[E:%s] Could not open file %s. Abort mission!\n", __func__, fname);
+        exit(EXIT_FAILURE);
+    }
+    start:
+    switch(getc(fp)) {
+        case EOF: fclose(fp); return ret;
+        case '\n': ++ret;
+    }
+    goto start;
+}
+
+
 int my_system (const char *command, const char *executable)
 {
 	int status;
