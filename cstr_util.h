@@ -262,13 +262,6 @@ static inline char *make_default_outfname(char *fname, const char *suffix)
 	return ret;
 }
 
-static char *restrdup(char *dest, char *src)
-{
-	dest = (char *)realloc(dest, sizeof(char) * (strlen(src) + 1));
-	strcpy(dest, src);
-	return dest;
-}
-
 static inline char *kstrdup(kstring_t *ks)
 {
 	char *ret = (char *)malloc((ks->l + 1) * sizeof(char));
