@@ -67,7 +67,7 @@ CONST static inline int32_t get_unclipped_start(bam1_t *b)
 			case BAM_CDEL:
 			case BAM_CREF_SKIP:
 			case BAM_CPAD:
-				ret -= bam_cigar_oplen(cigar[i]); LOG_DEBUG((char *)"ret now: %i.", ret); break;
+				ret -= bam_cigar_oplen(cigar[i]); break;
 			case BAM_CMATCH:
 			case BAM_CEQUAL:
 			case BAM_CDIFF:
