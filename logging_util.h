@@ -8,6 +8,7 @@
 #endif
 
 #include <stdarg.h>
+#include "compiler_util.h"
 
 #define LOG_INFO(...) log_info(__func__, ##__VA_ARGS__);
 #define LOG_WARNING(...) log_warning(_FUNCTION_MACRO_, ##__VA_ARGS__);
@@ -53,10 +54,11 @@ static inline void log_error(const char *func, int line, const char *fmt, ...) {
 }
 
 static inline void log_assert(const char *func, int line, int assertion, const char *assert_str) {
-	if(assertion) return;
-	fprintf(stderr, "[E:%s:%d] Assertion '%s' failed.",
-			func, line, assert_str);
-	exit(EXIT_FAILURE);
+	if(UNLIKELY(!assertion)) {
+		fprintf(stderr, "[E:%s:%d] Assertion '%s' failed.",
+				func, line, assert_str);
+		exit(EXIT_FAILURE);
+	}
 }
 
 #endif /* LOGGING_UTIL_H */
