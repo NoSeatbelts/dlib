@@ -105,8 +105,28 @@ static inline void check_bam_tag(bam1_t *b, const char *tag)
 }
 
 CONST static inline void *array_tag(bam1_t *b, const char *tag) {
-	const uint8_t *const data = bam_aux_get(b, tag);
-	return data ? (void *)(data + sizeof(int) + 2): NULL;
+	uint8_t *data = bam_aux_get(b, tag);
+	if(!data) {
+		LOG_ERROR("Missing tag %s. Abort!\n", tag);
+	}
+	const char tagtype = *data++;
+	assert(tagtype == 'B');
+	switch(*data++) {
+		case 'i': case 'I': case 's': case 'S': case 'f': case 'c': case 'C':
+			break;
+		default:
+			LOG_ERROR("Unrecognized tag type %c.\n", *(data - 1));
+	}
+	
+#if !NDEBUG
+	const int len = *(int *)data;
+	LOG_DEBUG("Len: %i.\n", len);
+	uint32_t *uint_data = (uint32_t *)(data + sizeof(int));
+	for(int i = 0; i < len; ++i) {
+		LOG_DEBUG("Array value at %i is %u.\n", i, (unsigned)uint_data[i]);
+	}
+#endif
+	return (void *)(data + sizeof(int));
 }
 
 #define cigarop_sc_len(cigar) ((((cigar) & 0xfU) == BAM_CSOFT_CLIP) ? bam_cigar_oplen(cigar): 0)
