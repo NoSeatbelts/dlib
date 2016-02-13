@@ -67,7 +67,7 @@ khash_t(bed) *parse_bed_hash(char *path, bam_hdr_t *header, uint32_t padding)
 	uint32_t tid;
 	uint64_t start, stop;
 	int khr;
-	size_t contig_num = 0;
+	size_t region_num = 0;
 	khint_t k;
 	while ((read = getline(&line, &len, ifp)) != -1) {
 		if(line[0] == '\0' || line[0] == '#') // Empty line or comment line
@@ -85,7 +85,7 @@ khash_t(bed) *parse_bed_hash(char *path, bam_hdr_t *header, uint32_t padding)
 			kh_val(ret, k).intervals[0] = to_ivl(start - padding, stop + padding);
 			kh_val(ret, k).n = 1;
 			kstring_t ks = {0, 0, NULL};
-			ksprintf(&ks, "%s|tid%u|%lu", ((tok = strtok(NULL, "\t")) != NULL) ? tok: NO_ID_STR, kh_key(ret, k), ++contig_num);
+			ksprintf(&ks, "|%s|tid:%u|region_num:%lu|", ((tok = strtok(NULL, "\t")) != NULL) ? tok: NO_ID_STR, kh_key(ret, k), ++region_num);
 			LOG_DEBUG("Does kstring work? %s.\n", ks.s);
 			kh_val(ret, k).contig_name = strdup(ks.s); free(ks.s);
 			LOG_DEBUG("Contig name: %s.\n", kh_val(ret, k).contig_name);
