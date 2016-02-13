@@ -43,17 +43,19 @@ void abstract_single_filter(samFile *in, bam_hdr_t *hdr, samFile *out, single_au
 void abstract_single_data(samFile *in, bam_hdr_t *hdr, samFile *out, single_aux function, void *data);
 void abstract_single_iter(samFile *in, bam_hdr_t *hdr, samFile *out, single_fn function);
 
-static inline void bam_seq_cpy(char *read_str, bam1_t *b) {
-	uint8_t *seq = (uint8_t *)bam_get_seq(b);
-	int32_t qlen = b->core.l_qseq - 1;
-	if(b->core.flag & BAM_FREVERSE) {
-		for(; qlen != -1; --qlen) *read_str++ = seq_nt16_str[bam_seqi_cmpl(seq, qlen)];
+static inline void seq_nt16_cpy(char *read_str, uint8_t *seq, int len, int is_rev) {
+	if(is_rev) {
+		for(; len != -1; --len) *read_str++ = seq_nt16_str[bam_seqi_cmpl(seq, len)];
 		*read_str++ = '\0';
 	} else {
-		read_str += b->core.l_qseq;
+		read_str += len + 1;
 		*read_str-- = '\0';
-		for(;qlen != -1; --qlen) *read_str-- = seq_nt16_str[bam_seqi(seq, qlen)];
+		for(;len != -1; --len) *read_str-- = seq_nt16_str[bam_seqi(seq, len)];
 	}
+}
+
+static inline void bam_seq_cpy(char *read_str, bam1_t *b) {
+	seq_nt16_cpy(read_str, (uint8_t *)bam_get_seq(b), b->core.l_qseq - 1, b->core.flag & BAM_FREVERSE);
 }
 
 CONST static inline int32_t get_unclipped_start(bam1_t *b)
