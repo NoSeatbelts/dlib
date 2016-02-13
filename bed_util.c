@@ -51,6 +51,7 @@ khash_t(bed) *parse_bed_hash(char *path, bam_hdr_t *header, uint32_t padding)
 	uint32_t tid;
 	uint64_t start, stop;
 	int khr;
+	size_t contig_num = 0;
 	khint_t k;
 	while ((read = getline(&line, &len, ifp)) != -1) {
 		if(line[0] == '\0' || line[0] == '#') // Empty line or comment line
@@ -67,8 +68,12 @@ khash_t(bed) *parse_bed_hash(char *path, bam_hdr_t *header, uint32_t padding)
 			kh_val(ret, k).intervals = (uint64_t *)calloc(1, sizeof(uint64_t));
 			kh_val(ret, k).intervals[0] = to_ivl(start - padding, stop + padding);
 			kh_val(ret, k).n = 1;
-			kh_val(ret, k).contig_name = (char *)calloc(1, sizeof(char *));
-			if((tok = strtok(NULL, "\t")) != NULL) kh_val(ret, k).contig_name = strdup(tok);
+			kstring_t ks = {0, 0, NULL};
+			kputs(((tok = strtok(NULL, "\t")) != NULL) ? tok: NO_ID_STR, &ks);
+			LOG_DEBUG("Does kstring work? %s.\n", ks.s);
+			ksprintf(&ks, "_#%lu", ++contig_num);
+			kh_val(ret, k).contig_name = ks_release(&ks);
+			LOG_DEBUG("Contig name  with tid %u after building: %s.\n", k, kh_key(ret, k), kh_val(ret, k).contig_name);
 		} else {
 			kh_val(ret, k).intervals = (uint64_t *)realloc(kh_val(ret, k).intervals, ++kh_val(ret, k).n * sizeof(uint64_t));
 			if(!kh_val(ret, k).intervals) {
