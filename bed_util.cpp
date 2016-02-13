@@ -86,9 +86,7 @@ khash_t(bed) *parse_bed_hash(char *path, bam_hdr_t *header, uint32_t padding)
 			kh_val(ret, k).n = 1;
 			kstring_t ks = {0, 0, NULL};
 			ksprintf(&ks, "|%s|tid:%u|region_num:%lu|", ((tok = strtok(NULL, "\t")) != NULL) ? tok: NO_ID_STR, kh_key(ret, k), ++region_num);
-			LOG_DEBUG("Does kstring work? %s.\n", ks.s);
-			kh_val(ret, k).contig_name = strdup(ks.s); free(ks.s);
-			LOG_DEBUG("Contig name: %s.\n", kh_val(ret, k).contig_name);
+			kh_val(ret, k).contig_name = ks_release(&ks);
 			fputs(kh_val(ret, k).contig_name, stderr);
 		} else {
 			kh_val(ret, k).intervals = (uint64_t *)realloc(kh_val(ret, k).intervals, ++kh_val(ret, k).n * sizeof(uint64_t));
@@ -96,8 +94,6 @@ khash_t(bed) *parse_bed_hash(char *path, bam_hdr_t *header, uint32_t padding)
                 LOG_ERROR("Could not allocate memory. Abort mission!\n");
 			}
 			kh_val(ret, k).intervals[kh_val(ret, k).n - 1] = to_ivl(start - padding, stop + padding);
-            LOG_DEBUG("Number of intervals in bed file for contig "
-                    "%u, ('%s'): %lu\n", tid, header->target_name[tid], kh_val(ret, k).n);
 		}
 	}
 	sort_bed(ret);
