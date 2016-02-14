@@ -3,7 +3,7 @@
 #define N_IVL_BINS 5
 
 #ifdef __cplusplus
-std::vector<std::pair<khint_t, khiter_t>> make_sorted_keys(khash_t(bed) *h) {
+std::vector<khiter_t> make_sorted_keys(khash_t(bed) *h) {
 	std::vector<std::pair<khint_t, khiter_t>> keyset;
 	for(khiter_t ki = kh_begin(aux->bed); ki != kh_end(h); ++ki) {
 		if(kh_exist(h, ki)) keyset.push_back(std::pair<khint_t, khiter_t>(kh_key(h, ki), ki));
@@ -15,7 +15,9 @@ std::vector<std::pair<khint_t, khiter_t>> make_sorted_keys(khash_t(bed) *h) {
 #	endif
 				return p1.first < p2.first;
 	});
-	return keyset;
+	std::vector<khiter_t> ret = std::vector<khiter_t>();
+	for(auto tup: keyset) ret.push_back(tup.second);
+	return ret;
 }
 #endif
 
