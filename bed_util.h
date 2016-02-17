@@ -14,7 +14,6 @@
 #define DEFAULT_PADDING 0u
 #define NO_ID_STR ((char *)"MissingContigName")
 
-
 // Bed interval query utility macros.
 
 /* @func get_start
@@ -51,6 +50,15 @@ typedef struct region_set {
 	char *contig_name;
 	uint64_t n;
 } region_set_t;
+
+#ifdef __cplusplus
+#include <vector>
+#include <string>
+class RegionSet {
+	std::vector<uint64_t> intervals;
+	std::string contig_name;
+};
+#endif
 
 /*
  * khash_t(bed) is now a bed file: a region_set_t as a value for the key which is the contig
