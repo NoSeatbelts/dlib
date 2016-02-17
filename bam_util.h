@@ -29,6 +29,7 @@ typedef int (*single_aux_check)(bam1_t *b, void *data);
 static const int8_t seq_comp_table[16] = {0, 8, 4, 12, 2, 10, 6, 14, 1, 9, 5, 13, 3, 11, 7, 15};
 static const uint8_t seq_nt16_rc[] = {15, 8, 4, 15, 2, 15, 15, 15, 1, 15, 15, 15, 15, 15, 15, 15};
 #endif
+#define BAM_FETCH_BUFFER 150
 
 #ifdef __cplusplus
 // Miscellania, plus extern C
@@ -244,4 +245,15 @@ enum htseq {
 			}\
 		}\
 	} while(0)
+
+static inline int arr_qpos(const bam_pileup1_t *plp)
+{
+	/*
+	LOG_DEBUG("qpos: %i.\n", plp->qpos);
+	LOG_DEBUG("l_qseq: %i.\n", plp->b->core.l_qseq);
+	LOG_DEBUG("Arr qpos: %i.\n", (plp->b->core.flag & BAM_FREVERSE) ? plp->b->core.l_qseq - 1 - plp->qpos: plp->qpos);
+	*/
+	return (plp->b->core.flag & BAM_FREVERSE) ? plp->b->core.l_qseq - 1 - plp->qpos: plp->qpos;
+}
+
 #endif // BAM_UTIL_H

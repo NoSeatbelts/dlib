@@ -12,7 +12,7 @@
 #include "mem_util.h"
 
 #define DEFAULT_PADDING 0u
-#define NO_ID_STR ((char *)"L'Innommable")
+#define NO_ID_STR ((char *)"MissingContigName")
 
 
 // Bed interval query utility macros.
