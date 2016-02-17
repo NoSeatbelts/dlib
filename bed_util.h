@@ -107,7 +107,7 @@ static inline int vcf_bed_test(bcf1_t *b, khash_t(bed) *h)
 #		include <algorithm>
 #	endif
 #	include <vector>
-std::vector<std::pair<khint_t, khiter_t>> make_sorted_keys(khash_t(bed) *h);
+std::vector<khiter_t> make_sorted_keys(khash_t(bed) *h);
 #endif
 
 
