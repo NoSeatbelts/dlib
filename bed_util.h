@@ -63,7 +63,7 @@ extern "C" {
 #endif
 int intcmp(const void *a, const void *b); // Compare intervals for sorting by start
 void sort_bed(khash_t(bed) *bed);
-khash_t(bed) *parse_bed_hash(char *path, bam_hdr_t *header, uint32_t padding);
+khash_t(bed) *parse_bed_hash(const char *path, bam_hdr_t *header, uint32_t padding);
 khash_t(bed) *build_ref_hash(bam_hdr_t *header);
 void *bed_read(const char *fn);
 void bed_destroy_hash(void *);

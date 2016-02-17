@@ -8,12 +8,8 @@ std::vector<khiter_t> make_sorted_keys(khash_t(bed) *h) {
 	for(khiter_t ki = kh_begin(aux->bed); ki != kh_end(h); ++ki) {
 		if(kh_exist(h, ki)) keyset.push_back(std::pair<khint_t, khiter_t>(kh_key(h, ki), ki));
 	}
-#	ifdef __GNUC__
-			__gnu_parallel::sort(keyset.begin(), keyset.end(), [](std::pair<khint_t, khiter_t> p1, std::pair<khint_t, khiter_t> p2) {
-#	else
-			std::sort(keyset.begin(), keyset.end(), [](std::pair<khint_t, khiter_t> p1, std::pair<khint_t, khiter_t> p2) {
-#	endif
-				return p1.first < p2.first;
+	std::sort(keyset.begin(), keyset.end(), [](std::pair<khint_t, khiter_t> p1, std::pair<khint_t, khiter_t> p2) {
+			return p1.first < p2.first;
 	});
 	std::vector<khiter_t> ret = std::vector<khiter_t>();
 	for(auto tup: keyset) ret.push_back(tup.second);
@@ -38,27 +34,20 @@ khash_t(bed) *build_ref_hash(bam_hdr_t *header) {
 	uint64_t binsize;
 	for(int i = 0; i < header->n_targets; ++i) {
 		k = kh_put(bed, ret, i, &khr);
-		kh_val(ret, k).n = N_IVL_BINS;
-		kh_val(ret, k).intervals = (uint64_t *)calloc(N_IVL_BINS, sizeof(uint64_t));
-		binsize = (header->target_len[i] - 1) / N_IVL_BINS;
-		for(int j = 0; j < N_IVL_BINS - 1; ++j) {
-			LOG_INFO("ivl sizes: %lu, %lu.\n", (uint64_t)(j * binsize), (uint64_t)((j + 1) * binsize) - 1);
-			if((j + 1) * binsize >= header->target_len[i] - 1)
-				kh_val(ret, k).intervals[j] = to_ivl((uint64_t)(j * binsize), header->target_len[i] - 1);
-			else
-				kh_val(ret, k).intervals[j] = to_ivl((uint64_t)(j * binsize), (uint64_t)((j + 1) * binsize) - 1);
-			kh_val(ret, k).intervals[j] = to_ivl((uint64_t)(j * binsize), ((j + 1) * binsize >= header->target_len[i] - 1) ? (uint64_t)header->target_len[i] - 1:(uint64_t)((j + 1) * binsize) - 1);
-		}
+		kh_val(ret, k).n = 1;
+		kh_val(ret, k).intervals = (uint64_t *)calloc(1, sizeof(uint64_t));
+		*kh_val(ret, k).intervals = to_ivl(0, header->target_len[i] - 1);
 		kh_val(ret, k).contig_name = strdup(header->target_name[i]);
 	}
 #if !NDEBUG
 	print_bed_hash(stderr, ret);
 #endif
+	sort_bed(ret);
 	return ret;
 }
 
 
-khash_t(bed) *parse_bed_hash(char *path, bam_hdr_t *header, uint32_t padding)
+khash_t(bed) *parse_bed_hash(const char *path, bam_hdr_t *header, uint32_t padding)
 {
 	khash_t(bed) *ret = kh_init(bed);
 	FILE *ifp = fopen(path, "r");
