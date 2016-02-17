@@ -49,7 +49,7 @@ static inline void seq_nt16_cpy(char *read_str, uint8_t *seq, int len, int is_re
 		for(; len != -1; --len) *read_str++ = seq_nt16_str[bam_seqi_cmpl(seq, len)];
 		*read_str++ = '\0';
 	} else {
-		read_str += len + 1;
+		read_str += len;
 		*read_str-- = '\0';
 		for(;len != -1; --len) *read_str-- = seq_nt16_str[bam_seqi(seq, len)];
 	}
