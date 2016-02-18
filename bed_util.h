@@ -36,7 +36,7 @@
  * :param: stop [int32_t/uint32_t] stop position of the interval
  * :returns: [uint64_t] Interval encoded in start/stop format.
  */
-#define to_ivl(start, stop) (start > 0 ? ((start) << 32 | (stop)): stop)
+#define to_ivl(start, stop) (start > 0 ? (((uint64_t)start) << 32 | (stop)): stop)
 
 /*
  * struct region_set, aka region_set_t
@@ -54,9 +54,61 @@ typedef struct region_set {
 #ifdef __cplusplus
 #include <vector>
 #include <string>
+#include <unordered_map>
+#include <unordered_set>
+#include <algorithm>
 class RegionSet {
 	std::vector<uint64_t> intervals;
 	std::string contig_name;
+	std::vector<std::string> region_names;
+	RegionSet(): intervals(std::vector<uint64_t>()),
+			contig_name(""){
+	}
+public:
+	RegionSet(int start, int stop, char *refname, char *region_name): intervals(1, to_ivl(start, stop)),
+			contig_name(refname ? refname: NO_ID_STR),
+			region_names(1, region_name){
+	}
+	void add_region(int start, int stop, char *region_name) {
+		intervals.push_back(to_ivl(start, stop));
+		region_names.push_back(region_name);
+		assert(region_names.size() == intervals.size());
+	}
+};
+class ParsedBed {
+	std::vector<int> sorted_keys;
+	std::unordered_map<int, RegionSet> contig_hash;
+	ParsedBed(const char *path, bam_hdr_t *header, uint32_t padding=DEFAULT_PADDING) {
+		contig_hash = std::unordered_map<int, RegionSet>();
+		FILE *ifp = fopen(path, "r");
+		char *line = NULL;
+		char *tok = NULL;
+		size_t len = 0;
+		ssize_t read;
+		int tid;
+		uint64_t start, stop;
+		std::unordered_map<int, RegionSet>::iterator it;
+		std::unordered_set<int> keyset;
+		while ((read = getline(&line, &len, ifp)) != -1) {
+			if(line[0] == '\0' || line[0] == '#') // Empty line or comment line
+				continue;
+			tok = strtok(line, "\t");
+			tid = bam_name2id(header, tok);
+			keyset.insert(tid);
+			tok = strtok(NULL, "\t");
+			start = strtoull(tok, NULL, 10) - padding;
+			tok = strtok(NULL, "\t");
+			stop = strtoull(tok, NULL, 10) + padding;
+			tok = strtok(NULL, "\t");
+			if((it = contig_hash.find(tid)) == contig_hash.end())
+				it->second = RegionSet(start, stop, header->target_name[tid], tok ? tok: NO_ID_STR);
+			else it->second.add_region(start, stop, tok ? tok: NO_ID_STR);
+		}
+		sorted_keys = std::vector<int>(keyset.begin(), keyset.end());
+		keyset.clear();
+		std::sort(sorted_keys.begin(), sorted_keys.end());
+		fclose(ifp);
+	}
 };
 #endif
 

@@ -33,8 +33,8 @@ static const uint8_t seq_nt16_rc[] = {15, 8, 4, 15, 2, 15, 15, 15, 1, 15, 15, 15
 
 #ifdef __cplusplus
 // Miscellania, plus extern C
-#include <set>
-void abstract_pair_set(samFile *in, bam_hdr_t *hdr, samFile *ofp, std::set<pair_fn> functions);
+#include <unordered_set>
+void abstract_pair_set(samFile *in, bam_hdr_t *hdr, samFile *ofp, std::unordered_set<pair_fn> functions);
 
 extern "C" {
 #endif

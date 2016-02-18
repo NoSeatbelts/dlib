@@ -37,7 +37,7 @@ void abstract_single_filter(samFile *in, bam_hdr_t *hdr, samFile *out, single_au
 
 #ifdef __cplusplus
 
-void abstract_pair_set(samFile *in, bam_hdr_t *hdr, samFile *ofp, std::set<pair_fn> functions)
+void abstract_pair_set(samFile *in, bam_hdr_t *hdr, samFile *ofp, std::unordered_set<pair_fn> functions)
 {
 	bam1_t *b = bam_init1(), *b1 = bam_init1();
 	while (LIKELY(sam_read1(in, hdr, b) >= 0)) {

@@ -17,6 +17,7 @@ std::vector<khiter_t> make_sorted_keys(khash_t(bed) *h) {
 }
 #endif
 
+
 void print_bed_hash(FILE *fp, khash_t(bed) *bed)
 {
 	for(khiter_t k = kh_begin(bed); k != kh_end(bed); ++k)
