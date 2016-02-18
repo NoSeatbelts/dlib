@@ -81,11 +81,9 @@ khash_t(bed) *parse_bed_hash(const char *path, bam_hdr_t *header, uint32_t paddi
 			kh_val(ret, k).contig_name = ks_release(&ks);
 			fputs(kh_val(ret, k).contig_name, stderr);
 		} else {
-			kh_val(ret, k).intervals = (uint64_t *)realloc(kh_val(ret, k).intervals, ++kh_val(ret, k).n * sizeof(uint64_t));
-			if(!kh_val(ret, k).intervals) {
-                LOG_ERROR("Could not allocate memory. Abort mission!\n");
-			}
-			kh_val(ret, k).intervals[kh_val(ret, k).n - 1] = to_ivl(start - padding, stop + padding);
+			kh_val(ret, k).intervals = (uint64_t *)realloc(kh_val(ret, k).intervals, (kh_val(ret, k).n + 1)* sizeof(uint64_t));
+			if(!kh_val(ret, k).intervals) LOG_ERROR("Could not allocate memory. Abort mission!\n");
+			kh_val(ret, k).intervals[kh_val(ret, k).n++] = to_ivl(start - padding, stop + padding);
 		}
 	}
 	sort_bed(ret);

@@ -8,8 +8,9 @@
 #include "htslib/khash.h"
 #include "htslib/sam.h"
 #include "htslib/vcf.h"
-#include "logging_util.h"
-#include "mem_util.h"
+#include "dlib/logging_util.h"
+#include "dlib/mem_util.h"
+#include "dlib/bam_util.h"
 
 #define DEFAULT_PADDING 0u
 #define NO_ID_STR ((char *)"MissingContigName")
@@ -57,7 +58,10 @@ typedef struct region_set {
 #include <unordered_map>
 #include <unordered_set>
 #include <algorithm>
+
+class ParsedBed;
 class RegionSet {
+	friend ParsedBed;
 	std::vector<uint64_t> intervals;
 	std::string contig_name;
 	std::vector<std::string> region_names;
@@ -78,6 +82,26 @@ public:
 class ParsedBed {
 	std::vector<int> sorted_keys;
 	std::unordered_map<int, RegionSet> contig_hash;
+	int test(int tid, int pos) {
+		auto match = contig_hash.find(tid);
+		if(match == contig_hash.end())
+			return 0;
+		for(auto& ivl: match->second.intervals)
+			if(pos >= get_start(ivl) && pos < get_stop(ivl)) return 1;
+		return 0;
+	}
+	int bcf1_test(bcf1_t *vrec) {
+		return test(vrec->rid, vrec->pos);
+	}
+	int bam1_test(bam1_t *b) {
+		if(b->core.flag & BAM_FUNMAP) return 0;
+		auto match = contig_hash.find(b->core.tid);
+		if(match == contig_hash.end())
+			return 0;
+		for(auto& ivl: match->second.intervals)
+			if(bam_getend(b) >= get_start(ivl) && b->core.pos < get_stop(ivl)) return 1;
+		return 0;
+	}
 	ParsedBed(const char *path, bam_hdr_t *header, uint32_t padding=DEFAULT_PADDING) {
 		contig_hash = std::unordered_map<int, RegionSet>();
 		FILE *ifp = fopen(path, "r");
@@ -86,19 +110,20 @@ class ParsedBed {
 		size_t len = 0;
 		ssize_t read;
 		int tid;
-		uint64_t start, stop;
+		int64_t start, stop;
 		std::unordered_map<int, RegionSet>::iterator it;
 		std::unordered_set<int> keyset;
 		while ((read = getline(&line, &len, ifp)) != -1) {
-			if(line[0] == '\0' || line[0] == '#') // Empty line or comment line
-				continue;
+			switch(*line) {
+				case '\0': case '#': continue;
+			}
 			tok = strtok(line, "\t");
 			tid = bam_name2id(header, tok);
 			keyset.insert(tid);
 			tok = strtok(NULL, "\t");
-			start = strtoull(tok, NULL, 10) - padding;
+			start = strtoll(tok, NULL, 10) - padding;
 			tok = strtok(NULL, "\t");
-			stop = strtoull(tok, NULL, 10) + padding;
+			stop = strtoll(tok, NULL, 10) + padding;
 			tok = strtok(NULL, "\t");
 			if((it = contig_hash.find(tid)) == contig_hash.end())
 				it->second = RegionSet(start, stop, header->target_name[tid], tok ? tok: NO_ID_STR);
@@ -128,9 +153,6 @@ khash_t(bed) *build_ref_hash(bam_hdr_t *header);
 void *bed_read(const char *fn);
 void bed_destroy_hash(void *);
 size_t get_nregions(khash_t(bed) *h);
-
-// Like bam_endpos, but doesn't check that the read is mapped, as that's already been checked.
-#define bam_getend(b) ((b)->core.pos + bam_cigar2rlen((b)->core.n_cigar, bam_get_cigar(b)))
 
 static inline int bed_test(bam1_t *b, khash_t(bed) *h)
 {

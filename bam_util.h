@@ -31,6 +31,9 @@ static const uint8_t seq_nt16_rc[] = {15, 8, 4, 15, 2, 15, 15, 15, 1, 15, 15, 15
 #endif
 #define BAM_FETCH_BUFFER 150
 
+// Like bam_endpos, but doesn't check that the read is mapped, as that's already been checked.
+#define bam_getend(b) ((b)->core.pos + bam_cigar2rlen((b)->core.n_cigar, bam_get_cigar(b)))
+
 #ifdef __cplusplus
 // Miscellania, plus extern C
 #include <unordered_set>
