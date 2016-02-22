@@ -48,17 +48,16 @@ khash_t(bed) *build_ref_hash(bam_hdr_t *header) {
 khash_t(bed) *parse_bed_hash(const char *path, bam_hdr_t *header, uint32_t padding)
 {
 	khash_t(bed) *ret = kh_init(bed);
-	FILE *ifp = fopen(path, "r");
-	char *line = NULL;
+	gzFile ifp = gzopen(path, "rb");
+	char line[10000];
+	char *tmp = NULL;
 	char *tok = NULL;
-	size_t len = 0;
-	ssize_t read;
 	uint32_t tid;
 	uint64_t start, stop;
 	int khr;
 	size_t region_num = 0;
 	khint_t k;
-	while ((read = getline(&line, &len, ifp)) != -1) {
+	while ((tmp = gzgets(ifp, line, sizeof(line))) != NULL) {
 		if(line[0] == '\0' || line[0] == '#') // Empty line or comment line
 			continue;
 		tok = strtok(line, "\t");
