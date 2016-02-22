@@ -1,15 +1,14 @@
 #ifndef BAM_UTIL_H
 #define BAM_UTIL_H
-#include "io_util.h"
-#include <stdlib.h>
-#include <stdio.h>
-#include <zlib.h>
-#include <unistd.h>
 #include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <zlib.h>
 #include "htslib/sam.h"
-#include "bam.h"
 #include "char_util.h"
 #include "compiler_util.h"
+#include "io_util.h"
 #include "logging_util.h"
 #include "misc_util.h"
 

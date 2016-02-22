@@ -1,7 +1,5 @@
 #include "bed_util.h"
 
-#define N_IVL_BINS 5
-
 #ifdef __cplusplus
 std::vector<khiter_t> make_sorted_keys(khash_t(bed) *h) {
 	std::vector<std::pair<khint_t, khiter_t>> keyset;
@@ -32,7 +30,6 @@ khash_t(bed) *build_ref_hash(bam_hdr_t *header) {
 	khiter_t k;
 	int khr;
 	khash_t(bed) *ret = kh_init(bed);
-	uint64_t binsize;
 	for(int i = 0; i < header->n_targets; ++i) {
 		k = kh_put(bed, ret, i, &khr);
 		kh_val(ret, k).n = 1;
@@ -79,7 +76,6 @@ khash_t(bed) *parse_bed_hash(const char *path, bam_hdr_t *header, uint32_t paddi
 			kstring_t ks = {0, 0, NULL};
 			ksprintf(&ks, "|%s|tid:%u|region_num:%lu|", ((tok = strtok(NULL, "\t")) != NULL) ? tok: NO_ID_STR, kh_key(ret, k), ++region_num);
 			kh_val(ret, k).contig_name = ks_release(&ks);
-			fputs(kh_val(ret, k).contig_name, stderr);
 		} else {
 			kh_val(ret, k).intervals = (uint64_t *)realloc(kh_val(ret, k).intervals, (kh_val(ret, k).n + 1)* sizeof(uint64_t));
 			if(!kh_val(ret, k).intervals) LOG_ERROR("Could not allocate memory. Abort mission!\n");

@@ -93,6 +93,7 @@ class ParsedBed {
 	int bcf1_test(bcf1_t *vrec) {
 		return test(vrec->rid, vrec->pos);
 	}
+public:
 	int bam1_test(bam1_t *b) {
 		if(b->core.flag & BAM_FUNMAP) return 0;
 		auto match = contig_hash.find(b->core.tid);
