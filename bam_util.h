@@ -104,21 +104,21 @@ void check_bam_tag_exit(char *bampath, const char *tag);
 
 static inline void check_bam_tag(bam1_t *b, const char *tag)
 {
-	if(!bam_aux_get(b, tag)) LOG_ERROR((char *)"Required bam tag '%s' not found. Abort mission!\n",tag);
+	if(!bam_aux_get(b, tag)) LOG_EXIT((char *)"Required bam tag '%s' not found. Abort mission!\n",tag);
 }
 
 CONST static inline void *array_tag(bam1_t *b, const char *tag) {
 	uint8_t *data = bam_aux_get(b, tag);
 	if(!data) {
-		LOG_ERROR("Missing tag %s. Abort!\n", tag);
+		LOG_EXIT("Missing tag %s. Abort!\n", tag);
 	}
 	const char tagtype = *data++;
-	if(UNLIKELY(tagtype != 'B')) LOG_ERROR("Incorrect byte %c where B expected in array tag. Abort!\n", tagtype);
+	if(UNLIKELY(tagtype != 'B')) LOG_EXIT("Incorrect byte %c where B expected in array tag. Abort!\n", tagtype);
 	switch(*data++) {
 		case 'i': case 'I': case 's': case 'S': case 'f': case 'c': case 'C':
 			break;
 		default:
-			LOG_ERROR("Unrecognized tag type %c.\n", *(data - 1));
+			LOG_EXIT("Unrecognized tag type %c.\n", *(data - 1));
 	}
 	
 #if 0
@@ -243,7 +243,7 @@ enum htseq {
 	do {\
 		for(int i##arr = 0; i##arr < len; ++i##arr) {\
 			if(arr[i##arr] > fm){\
-				LOG_ERROR((char *)"%u arr value greater than FM %u.\n", arr[i##arr], fm);\
+				LOG_EXIT((char *)"%u arr value greater than FM %u.\n", arr[i##arr], fm);\
 			}\
 		}\
 	} while(0)

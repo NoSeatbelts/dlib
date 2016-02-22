@@ -12,7 +12,7 @@
 
 #define LOG_INFO(...) log_info(__func__, ##__VA_ARGS__);
 #define LOG_WARNING(...) log_warning(_FUNCTION_MACRO_, ##__VA_ARGS__);
-#define LOG_ERROR(...) log_error(_FUNCTION_MACRO_, __LINE__, ##__VA_ARGS__);
+#define LOG_EXIT(...) log_error(_FUNCTION_MACRO_, __LINE__, ##__VA_ARGS__);
 #define LOG_ASSERT(condition) log_assert(_FUNCTION_MACRO_, __LINE__, (uint64_t)condition, (#condition))
 #if !NDEBUG
 #	define LOG_DEBUG(...) log_debug(_FUNCTION_MACRO_, __LINE__, ##__VA_ARGS__);

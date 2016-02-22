@@ -74,11 +74,11 @@ int bampath_has_tag(char *bampath, const char *tag)
 	samFile *fp = sam_open(bampath, "r");
 	bam_hdr_t *header = sam_hdr_read(fp);
 	if(!header || !fp) {
-		LOG_ERROR("Could not open bam file at '%s' for reading. Abort!\n", bampath);
+		LOG_EXIT("Could not open bam file at '%s' for reading. Abort!\n", bampath);
 	}
 	bam1_t *b = bam_init1();
 	if(sam_read1(fp, header, b) < 0) {
-		LOG_ERROR("Empty bam file at '%s'. Abort!\n", bampath);
+		LOG_EXIT("Empty bam file at '%s'. Abort!\n", bampath);
 	}
 	int ret = !!bam_aux_get(b, tag);
 	bam_destroy1(b);
@@ -95,7 +95,7 @@ void check_bam_tag_exit(char *bampath, const char *tag)
 			return;
 	}
 	if(!bampath_has_tag(bampath, tag)) {
-		LOG_ERROR("Required bam tag '%s' missing from bam file at path '%s'. Abort!\n", tag, bampath);
+		LOG_EXIT("Required bam tag '%s' missing from bam file at path '%s'. Abort!\n", tag, bampath);
 	}
 }
 

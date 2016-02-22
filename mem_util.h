@@ -25,7 +25,7 @@
 	do {\
 		var = (type_t)realloc(var, newsize);\
 		if(!var){\
-			LOG_ERROR("Could not allocate new memory for size %" PRIu64 ". Abort mission!\n", newsize);\
+			LOG_EXIT("Could not allocate new memory for size %" PRIu64 ". Abort mission!\n", newsize);\
 		}\
 	} while(0)
 
@@ -33,7 +33,7 @@
 	do {\
 		var = realloc(var, newsize);\
 		if(!var){\
-            LOG_ERROR("Could not allocate new memory for size %lu. Abort mission!\n", (size_t)newsize);\
+            LOG_EXIT("Could not allocate new memory for size %lu. Abort mission!\n", (size_t)newsize);\
 		}\
 	} while(0)
 
@@ -47,7 +47,7 @@
 #define ifn_abort(var) \
 	do {\
         if(!var) {\
-            LOG_ERROR("Could not allocate memory or get pointer ('%s'). Abort!\n", #var);\
+            LOG_EXIT("Could not allocate memory or get pointer ('%s'). Abort!\n", #var);\
         }\
     } while(0)
 

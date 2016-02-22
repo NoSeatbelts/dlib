@@ -49,7 +49,7 @@ static inline gzFile open_gzfile(char *infname) {
 	do {\
 		LOG_DEBUG("About to call '%s' via popen.\n", cmd);\
 		if(pclose(popen(cmd, "w"))) {\
-			LOG_ERROR("Command '%s' failed. Abort!\n", cmd);\
+			LOG_EXIT("Command '%s' failed. Abort!\n", cmd);\
 		}\
 	} while(0)
 
@@ -63,14 +63,14 @@ static inline gzFile open_gzfile(char *infname) {
 	do {\
 		LOG_DEBUG("Now check calling command '%s'.\n", buff); \
 		if(system(buff) < 0) {\
-			LOG_ERROR("System call failed. Command: '%s'.\n", buff);\
+			LOG_EXIT("System call failed. Command: '%s'.\n", buff);\
 		}\
 	} while(0)
 
 #	else
 #		define CHECK_CALL(buff) \
 	if(system(buff) < 0) {\
-		LOG_ERROR("System call failed. Command: '%s'.\n", buff);\
+		LOG_EXIT("System call failed. Command: '%s'.\n", buff);\
 	}
 
 #	endif

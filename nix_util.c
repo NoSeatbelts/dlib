@@ -12,7 +12,7 @@ void increase_nofile_limit(int soft_limit)
 	getrlimit(RLIMIT_NOFILE, &rl);
 	rl.rlim_cur = (soft_limit > rl.rlim_cur) ? soft_limit : rl.rlim_cur;
 	if(setrlimit(RLIMIT_NOFILE, &rl)) {
-		LOG_ERROR("Could not increase the soft limit for number "
+		LOG_EXIT("Could not increase the soft limit for number "
 					"of open files in a directory to %i. The hard "
 					"limit needs to be changed, which may require sudo privileges."
 					"Abort mission!\n", soft_limit);

@@ -172,7 +172,7 @@ static inline char *trim_ext(char *fname)
 	char *ret = (char *)malloc((strlen(fname) + 1) * sizeof(char ));
 	char *found_pos = strrchr(fname, '.');
 	if(!found_pos) {
-		LOG_ERROR((char *)"Could not trim file name's extension. Looks like it's missing a '.' (name: '%s').\n", fname);
+		LOG_EXIT((char *)"Could not trim file name's extension. Looks like it's missing a '.' (name: '%s').\n", fname);
 	}
 	memcpy(ret, fname, (found_pos - fname) * sizeof(char));
 	ret[found_pos - fname] = '\0';
