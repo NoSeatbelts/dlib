@@ -3,9 +3,8 @@
 #ifdef __cplusplus
 std::vector<khiter_t> make_sorted_keys(khash_t(bed) *h) {
 	std::vector<std::pair<khint_t, khiter_t>> keyset;
-	for(khiter_t ki = kh_begin(aux->bed); ki != kh_end(h); ++ki) {
+	for(khiter_t ki = kh_begin(aux->bed); ki != kh_end(h); ++ki)
 		if(kh_exist(h, ki)) keyset.push_back(std::pair<khint_t, khiter_t>(kh_key(h, ki), ki));
-	}
 	std::sort(keyset.begin(), keyset.end(), [](std::pair<khint_t, khiter_t> p1, std::pair<khint_t, khiter_t> p2) {
 			return p1.first < p2.first;
 	});
