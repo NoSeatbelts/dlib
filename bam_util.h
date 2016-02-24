@@ -258,4 +258,6 @@ static inline int arr_qpos(const bam_pileup1_t *plp)
 	return (plp->b->core.flag & BAM_FREVERSE) ? plp->b->core.l_qseq - 1 - plp->qpos: plp->qpos;
 }
 
+#define bam_itag(b, key) bam_aux2i(bam_aux_get(b, key))
+
 #endif // BAM_UTIL_H
