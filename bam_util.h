@@ -160,9 +160,9 @@ CONST static inline float bam_frac_align(bam1_t *b)
 static inline void add_sc_lens(bam1_t *b1, bam1_t *b2) {
 	   const int sc1 = bam_sc_len(b1); const int sc2 = bam_sc_len(b2);
 	   bam_aux_append(b2, "SC", 'i', sizeof(int), (uint8_t *)&sc2);
-	   bam_aux_append(b2, "MC", 'i', sizeof(int), (uint8_t *)&sc1);
+	   bam_aux_append(b2, "mc", 'i', sizeof(int), (uint8_t *)&sc1);
 	   bam_aux_append(b1, "SC", 'i', sizeof(int), (uint8_t *)&sc1);
-	   bam_aux_append(b1, "MC", 'i', sizeof(int), (uint8_t *)&sc2);
+	   bam_aux_append(b1, "mc", 'i', sizeof(int), (uint8_t *)&sc2);
 }
 
 /*  @func add_unclipped_mate_starts
