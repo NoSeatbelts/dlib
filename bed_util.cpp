@@ -58,19 +58,19 @@ khash_t(bed) *parse_bed_hash(const char *path, bam_hdr_t *header, uint32_t paddi
 	size_t region_num = 0;
 	khint_t k;
 	while ((tmp = gzgets(ifp, line, sizeof(line))) != NULL) {
-		if(line[0] == '\0' || line[0] == '#') // Empty line or comment line
-			continue;
+		switch(*line) {
+			case '\0': case '#': continue;
+		}
 		tok = strtok(line, "\t");
 		tid = (uint32_t)bam_name2id(header, tok);
 		tok = strtok(NULL, "\t");
 		start = strtoull(tok, NULL, 10);
 		tok = strtok(NULL, "\t");
 		stop = strtoull(tok, NULL, 10);
-		k = kh_get(bed, ret, tid);
-		if(k == kh_end(ret)) {
+		if((k = kh_get(bed, ret, tid)) == kh_end(ret)) {
 			k = kh_put(bed, ret, tid, &khr);
 			kh_val(ret, k).intervals = (uint64_t *)calloc(1, sizeof(uint64_t));
-			kh_val(ret, k).intervals[0] = to_ivl(start - padding, stop + padding);
+			*kh_val(ret, k).intervals = to_ivl(start - padding, stop + padding);
 			kh_val(ret, k).n = 1;
 			kstring_t ks = {0, 0, NULL};
 			ksprintf(&ks, "|%s|tid:%u|region_num:%lu|", ((tok = strtok(NULL, "\t")) != NULL) ? tok: NO_ID_STR, kh_key(ret, k), ++region_num);
@@ -81,6 +81,7 @@ khash_t(bed) *parse_bed_hash(const char *path, bam_hdr_t *header, uint32_t paddi
 			kh_val(ret, k).intervals[kh_val(ret, k).n++] = to_ivl(start - padding, stop + padding);
 		}
 	}
+	gzclose(ifp);
 	sort_bed(ret);
 	return ret;
 }
