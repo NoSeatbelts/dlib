@@ -63,6 +63,8 @@ void abstract_pair_iter(samFile *in, bam_hdr_t *hdr, samFile *ofp, pair_fn funct
 		if(b->core.flag & BAM_FREAD1) {
 			bam_copy1(b1, b); continue;
 		}
+		if(strcmp(bam_get_qname(b1), bam_get_qname(b)) == 0)
+			LOG_EXIT("Is the bam name sorted? Reads in 'pair' don't have the same name. Abort!\n");
 		function(b1, b);
 		sam_write1(ofp, hdr, b1), sam_write1(ofp, hdr, b);
 	}
