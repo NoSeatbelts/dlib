@@ -60,9 +60,11 @@ khash_t(bed) *build_ref_hash(bam_hdr_t *header) {
 
 khash_t(bed) *parse_bed_hash(const char *path, bam_hdr_t *header, uint32_t padding)
 {
+	LOG_DEBUG("Bedpath: %s. padding: %u. hdr: %p.", path, padding, (void *)header);
 	khash_t(bed) *ret = kh_init(bed);
 	gzFile ifp = gzopen(path, "rb");
-	char line[10000];
+	const size_t bufsize = 15000;
+	char *line = (char *)malloc(bufsize);
 	char *tmp = NULL;
 	char *tok = NULL;
 	uint32_t tid;
@@ -70,7 +72,7 @@ khash_t(bed) *parse_bed_hash(const char *path, bam_hdr_t *header, uint32_t paddi
 	int khr;
 	size_t region_num = 0;
 	khint_t k;
-	while ((tmp = gzgets(ifp, line, sizeof(line))) != NULL) {
+	while ((tmp = gzgets(ifp, line, bufsize)) != NULL) {
 		switch(*line) {
 			case '\0': case '#': continue;
 		}
@@ -94,6 +96,7 @@ khash_t(bed) *parse_bed_hash(const char *path, bam_hdr_t *header, uint32_t paddi
 			kh_val(ret, k).intervals[kh_val(ret, k).n++] = to_ivl(start - padding, stop + padding);
 		}
 	}
+	free(line);
 	gzclose(ifp);
 	sort_bed(ret);
 	return ret;
