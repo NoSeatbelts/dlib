@@ -12,6 +12,56 @@
 #include "logging_util.h"
 #include "misc_util.h"
 
+#ifdef __cplusplus
+namespace dlib {
+	class BamHandle {
+	public:
+		int is_write;
+		samFile *fp;
+		hts_itr_t *iter;
+		bam_hdr_t *header;
+		hts_idx_t *idx;
+		const bam_pileup1_t *pileups;
+		bam_plp_t plp;
+		BamHandle(char *path):
+			is_write(0),
+			fp(sam_open(path, "r")),
+			iter(NULL),
+			header(sam_hdr_read(fp)),
+			idx(bam_index_load(path)),
+			pileups(NULL),
+			plp(NULL) {
+			if(!fp) LOG_EXIT("Could not open input bam %s for reading. Abort!\n", path);
+			if(!idx) LOG_WARNING("Could not load index file for input bam, just FYI.\n");
+		}
+		BamHandle(char *path, bam_hdr_t *hdr, const char *mode = "wb") {
+			if((fp = sam_open(path, mode)) == NULL)
+				LOG_EXIT("Could not open output bam %s for reading. Abort!\n", path);
+			iter = NULL;
+			header = bam_hdr_dup(hdr);
+			idx = NULL;
+			is_write = 1;
+			pileups = NULL;
+			plp = NULL;
+		}
+		~BamHandle() {
+			if(fp) sam_close(fp), fp = NULL;
+			if(iter) hts_itr_destroy(iter), iter = NULL;
+			if(header) bam_hdr_destroy(header);
+			if(idx) hts_idx_destroy(idx);
+			if(plp) bam_plp_destroy(plp);
+		}
+		void write(bam1_t *b) {
+			sam_write1(fp, header, b);
+		}
+		void read(bam1_t *b) {
+			sam_read1(fp, header, b);
+		}
+	};
+} // namespace dlib
+
+#endif
+
 
 /*
  *bam_seqi_cmpl: returns the complement of bam_seqi.
