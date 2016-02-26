@@ -12,6 +12,20 @@ std::vector<khiter_t> make_sorted_keys(khash_t(bed) *h) {
 	for(auto tup: keyset) ret.push_back(tup.second);
 	return ret;
 }
+
+template<typename K, typename V>
+std::vector<K> make_sorted_keys(std::unordered_map<K,V> hashmap) {
+	std::vector<std::pair<K,V>> keyset;
+	keyset.reserve(hashmap.size());
+	for(auto& pair: hashmap) keyset.push_back(pair);
+	std::sort(keyset.begin(), keyset.end(), [](std::pair<K,V> p1, std::pair<K,V> p2){
+		return p1.second < p2.second;
+	});
+	std::vector<K> ret = std::vector<K>();
+	ret.reserve(keyset.size());
+	for(auto& pair: keyset) ret.push_back(pair.first);
+	return ret;
+}
 #endif
 
 

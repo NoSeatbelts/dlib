@@ -18,13 +18,13 @@ namespace dlib {
 	class VcfHandle {
 		const int is_write;
 		vcfFile *fp;
-		bcf_hdr_t *vh;
 	public:
+		bcf_hdr_t *vh;
 		// Open constructor
 		VcfHandle(char *vcf_path):
+			is_write(0),
 			fp(vcf_open(vcf_path, "r")),
-			vh(bcf_hdr_read(fp)),
-			is_write(0)
+			vh(bcf_hdr_read(fp))
 		{
 			if(!fp || !vh) LOG_EXIT("Could not open vcf file at %s for reading.", vcf_path);
 		}
@@ -34,11 +34,12 @@ namespace dlib {
 		}
 
 		VcfHandle(char *vcf_path, bcf_hdr_t *hdr_template, const char *mode):
+			is_write(1),
 			fp(vcf_open(vcf_path, mode)),
-			vh(bcf_hdr_dup(hdr_template)),
-			is_write(1)
+			vh(bcf_hdr_dup(hdr_template))
 		{
 			if(!fp) LOG_EXIT("Could not open vcf file at %s for writing.", vcf_path);
+			bcf_hdr_write(fp, vh);
 			// Opens vcf
 		}
 		~VcfHandle(){
