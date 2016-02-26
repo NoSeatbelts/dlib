@@ -98,17 +98,17 @@ void abstract_single_iter(samFile *in, bam_hdr_t *hdr, samFile *out, single_fn f
 
 static inline void seq_nt16_cpy(char *read_str, uint8_t *seq, int len, int is_rev) {
 	if(is_rev) {
-		for(; len != -1; --len) *read_str++ = seq_nt16_str[bam_seqi_cmpl(seq, len)];
+		for(--len;len != -1; --len) *read_str++ = seq_nt16_str[bam_seqi_cmpl(seq, len)];
 		*read_str++ = '\0';
 	} else {
-		read_str += len + 1;
+		read_str += len;
 		*read_str-- = '\0';
-		for(;len != -1; --len) *read_str-- = seq_nt16_str[bam_seqi(seq, len)];
+		for(--len;len != -1; --len) *read_str-- = seq_nt16_str[bam_seqi(seq, len)];
 	}
 }
 
 static inline void bam_seq_cpy(char *read_str, bam1_t *b) {
-	seq_nt16_cpy(read_str, (uint8_t *)bam_get_seq(b), b->core.l_qseq - 1, b->core.flag & BAM_FREVERSE);
+	seq_nt16_cpy(read_str, (uint8_t *)bam_get_seq(b), b->core.l_qseq, b->core.flag & BAM_FREVERSE);
 }
 
 CONST static inline int32_t get_unclipped_start(bam1_t *b)
