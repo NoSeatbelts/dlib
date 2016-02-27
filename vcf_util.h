@@ -2,6 +2,8 @@
 #define VCF_UTIL_H
 
 #include "htslib/vcf.h"
+#include "htslib/sam.h"
+#include "logging_util.h"
 
 #define check_vcf_open(path, fp, header) \
 	do {\
@@ -12,6 +14,9 @@
 			LOG_EXIT("Could not read header from input [bv]cf %s. Abort!\n", path);\
 		}\
 	} while(0)
+
+void bcf_add_bam_contigs(bcf_hdr_t *hdr, bam_hdr_t *src);
+
 
 #ifdef __cplusplus
 namespace dlib {

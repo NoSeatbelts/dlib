@@ -163,7 +163,7 @@ CONST static inline void *array_tag(bam1_t *b, const char *tag) {
 		LOG_EXIT("Missing tag %s. Abort!\n", tag);
 	}
 	const char tagtype = *data++;
-	if(UNLIKELY(tagtype != 'B')) LOG_EXIT("Incorrect byte %c where B expected in array tag. Abort!\n", tagtype);
+	if(UNLIKELY(tagtype != 'B')) LOG_EXIT("Incorrect byte %c where B expected in array tag for key %s. Abort!\n", tagtype, tag);
 	switch(*data++) {
 		case 'i': case 'I': case 's': case 'S': case 'f': case 'c': case 'C':
 			break;

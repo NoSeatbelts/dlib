@@ -60,7 +60,6 @@ khash_t(bed) *build_ref_hash(bam_hdr_t *header) {
 
 khash_t(bed) *parse_bed_hash(const char *path, bam_hdr_t *header, uint32_t padding)
 {
-	LOG_DEBUG("Bedpath: %s. padding: %u. hdr: %p.", path, padding, (void *)header);
 	khash_t(bed) *ret = kh_init(bed);
 	gzFile ifp = gzopen(path, "rb");
 	const size_t bufsize = 15000;
