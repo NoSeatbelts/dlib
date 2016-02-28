@@ -25,7 +25,7 @@ namespace dlib {
 		vcfFile *fp;
 	public:
 		bcf_hdr_t *vh;
-		// Open constructor
+		// Reading constructor
 		VcfHandle(char *vcf_path):
 			is_write(0),
 			fp(vcf_open(vcf_path, "r")),
@@ -37,7 +37,7 @@ namespace dlib {
 		char *get_fname() {
 			return fp->fn;
 		}
-
+		// Writing constructr
 		VcfHandle(char *vcf_path, bcf_hdr_t *hdr_template, const char *mode):
 			is_write(1),
 			fp(vcf_open(vcf_path, mode)),

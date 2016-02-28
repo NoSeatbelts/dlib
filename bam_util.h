@@ -14,6 +14,24 @@
 
 #ifdef __cplusplus
 namespace dlib {
+	class BamRec {
+	public:
+		bam1_t *b;
+		BamRec():b(bam_init1()){
+		}
+		~BamRec() {
+			if(b) bam_destroy1(b);
+		}
+		// Copy
+		BamRec(bam1_t *b) :
+		b(bam_dup1(b)){
+
+		}
+		BamRec(BamRec other) :
+		b(bam_dup1(other.b)){
+
+		}
+	};
 	class BamHandle {
 	public:
 		int is_write;
@@ -50,6 +68,12 @@ namespace dlib {
 			if(header) bam_hdr_destroy(header);
 			if(idx) hts_idx_destroy(idx);
 			if(plp) bam_plp_destroy(plp);
+		}
+		void write(BamRec b) {
+			sam_write1(fp, header, b.b);
+		}
+		void read(BamRec b) {
+			sam_read1(fp, header, b.b);
 		}
 		void write(bam1_t *b) {
 			sam_write1(fp, header, b);
