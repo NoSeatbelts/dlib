@@ -17,19 +17,15 @@ namespace dlib {
 	class BamRec {
 	public:
 		bam1_t *b;
-		BamRec():b(bam_init1()){
+		BamRec():b(bam_init1()){}
+		// Copy
+		BamRec(bam1_t *b) : b(bam_dup1(b)){}
+		BamRec(BamRec& other) :
+		b(bam_dup1(other.b)){
+
 		}
 		~BamRec() {
 			if(b) bam_destroy1(b);
-		}
-		// Copy
-		BamRec(bam1_t *b) :
-		b(bam_dup1(b)){
-
-		}
-		BamRec(BamRec other) :
-		b(bam_dup1(other.b)){
-
 		}
 	};
 	class BamHandle {
