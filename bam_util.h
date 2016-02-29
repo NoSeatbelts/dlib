@@ -23,18 +23,6 @@ typedef int (*plp_fn)(const bam_pileup1_t *plp, int n_plp, void *data);
 
 #ifdef __cplusplus
 namespace dlib {
-    class BamHandle;
-    template<typename T>
-    struct plp_aux {
-        void *data;
-        T *plp_aux;
-        BamHandle *handle;
-    };
-    template<typename T>
-    static int read_bam(void *data, bam1_t *b) {
-        plp_aux<T> *aux = (plp_aux<T> *)data;
-        return aux->handle->iter ? bam_itr_next(aux->handle->fp, aux->handle->iter, aux->handle->rec.b): sam_read1(aux->handle->fp, aux->handle->header, aux->handle->rec.b);
-    }
     class BamRec {
     public:
         bam1_t *b;
@@ -92,7 +80,7 @@ namespace dlib {
             if(plp) bam_plp_destroy(plp);
         }
         template<typename T>
-        int bed_plp_auto(khash_t(bed) *bed, plp_fn fn, void *data, T *plp_aux);
+        int bed_plp_auto(khash_t(bed) *bed, plp_fn fn, T *plp_aux, unsigned minMQ=0);
         int for_each_pair(pair_aux_fn fn, BamHandle& ofp, void *data=NULL);
         int for_each(single_aux_check fn, BamHandle& ofp, void *data=NULL);
         int write();
@@ -101,8 +89,36 @@ namespace dlib {
         int read(BamRec b);
         int read(bam1_t *b);
         int next();
-        int bed_plp_auto(khash_t(bed) *bed, plp_fn fn, void *data);
     };
+    template<typename T>
+    class plp_aux {
+        T *plp_aux;
+        BamHandle *handle;
+        unsigned minMQ;
+        plp_aux(T *auxen, BamHandle *_handle, unsigned _minMQ=0):
+        plp_aux(auxen),
+        handle(_handle),
+        minMQ(_minMQ)
+        {
+
+        }
+    };
+    template<typename T>
+    static inline int bam_readrec(void *data, bam1_t *b) {
+        BamHandle *handle = ((plp_aux<T> *)data)->handle;
+        return handle->iter ? bam_itr_next(handle->fp, handle->iter, handle->rec.b): sam_read1(handle->fp, handle->header, handle->rec.b);
+    }
+    template<typename T>
+    static int read_bam(void *data, bam1_t *b) {
+        int ret;
+        for(;;) {
+            if((ret = bam_readrec<T>(data, b)) >= 0) break;
+            if(b->core.flag & (BAM_FSECONDARY | BAM_FUNMAP | BAM_FQCFAIL | BAM_FDUP))
+                continue;
+        }
+        return ret;
+    }
+
     int bam_apply_function(char *infname, char *outfname,
                            single_aux_check fn, void *data=NULL, const char *mode="wb");
     int bam_pair_apply_function(char *infname, char *outfname,
@@ -110,7 +126,7 @@ namespace dlib {
 
 } // namespace dlib
 
-#endif
+#endif /* ifdef __cplusplus */
 
 
 /*

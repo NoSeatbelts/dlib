@@ -164,9 +164,9 @@ namespace dlib {
         return in.for_each_pair(fn, out, data);
     }
     template<typename T>
-    int BamHandle::bed_plp_auto(khash_t(bed) *bed, plp_fn fn, void *data, T *auxen) {
-        plp_aux<T> aux = {data, auxen, plp};
-        plp = bam_plp_init(&read_bam<plp_aux<T>>, (void *)&aux->data);
+    int BamHandle::bed_plp_auto(khash_t(bed) *bed, plp_fn fn, T *auxen, unsigned minMQ) {
+        plp_aux<T> aux = plp_aux<T>(auxen, this, minMQ);
+        plp = bam_plp_init(&read_bam<plp_aux<T>>, (void *)&aux);
         for(khiter_t ki = kh_begin(bed); ki != kh_end(bed); ++ki) {
             for(unsigned i = 0; i < kh_val(bed, ki).n; ++i) {
                 const int start = get_start(kh_val(bed, ki).intervals[i]);
@@ -177,6 +177,8 @@ namespace dlib {
                 iter = bam_itr_queryi(idx,bed_tid, start, stop);
                 bam_plp_reset(plp);
                 while(bam_plp_auto(plp, &tid, &pos, &n_plp) != 0) {
+                    if(pos < start) continue;
+                    if(pos >= stop) break;
                     fn(pileups, n_plp, aux->plp_aux);
                 }
             }
