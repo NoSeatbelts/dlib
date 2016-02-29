@@ -31,7 +31,7 @@ int main(int argc, char *argv[]) {
     while((c = get_opt(argc, argv, "l:h?")) > -1) {
         switch(c) {
         case 'l':
-            out_mode[2] = atoi(optarg) % 10; break;
+            out_mode[2] = atoi(optarg) % 10 + '0'; break;
         case 'h': case '?': usage(); return EXIT_SUCCESS;
         default: LOG_INFO("Unrecognized option %c\n", optopt); return usage();
         }

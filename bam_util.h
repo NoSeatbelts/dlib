@@ -85,8 +85,7 @@ namespace dlib {
             pileups(NULL),
             plp(NULL)
         {
-            if(fp == NULL)
-                LOG_EXIT("Could not open output bam %s for reading. Abort!\n", path);
+            if(fp == NULL) LOG_EXIT("Could not open output bam %s for reading. Abort!\n", path);
         }
         ~BamHandle() {
             if(fp) sam_close(fp), fp = NULL;
