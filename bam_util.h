@@ -29,7 +29,9 @@ namespace dlib {
     class BamRec {
     public:
         bam1_t *b;
-        BamRec(): b(bam_init1()){}
+        BamRec(): b(bam_init1()){
+            LOG_DEBUG("Initialized rec at pointer %p.\n", (void *)b);
+        }
         // Copy
         BamRec(bam1_t *b) : b(bam_dup1(b)){}
         BamRec(BamRec& other) :
@@ -62,7 +64,7 @@ namespace dlib {
         hts_idx_t *idx;
         const bam_pileup1_t *pileups;
         bam_plp_t plp;
-        BamRec rec;
+        bam1_t *rec;
         BamHandle(char *path):
             is_write(0),
             fp(sam_open(path, "r")),
@@ -71,7 +73,7 @@ namespace dlib {
             idx(bam_index_load(path)),
             pileups(NULL),
             plp(NULL),
-            rec()
+            rec(bam_init1())
         {
             if(!fp) LOG_EXIT("Could not open input bam %s for reading. Abort!\n", path);
             if(!idx) LOG_WARNING("Could not load index file for input bam, just FYI.\n");
@@ -83,7 +85,8 @@ namespace dlib {
             header(bam_hdr_dup(hdr)),
             idx(NULL),
             pileups(NULL),
-            plp(NULL)
+            plp(NULL),
+            rec(NULL)
         {
             if(fp == NULL) LOG_EXIT("Could not open output bam %s for reading. Abort!\n", path);
         }
@@ -93,6 +96,7 @@ namespace dlib {
             if(header) bam_hdr_destroy(header);
             if(idx) hts_idx_destroy(idx);
             if(plp) bam_plp_destroy(plp);
+            if(rec) bam_destroy1(rec);
         }
         int for_each_pair(std::function<int (bam1_t *, bam1_t *, void *)> fn, BamHandle& ofp, void *data=NULL);
         int for_each(std::function<int (bam1_t *, void *)> fn, BamHandle& ofp, void *data=NULL);
@@ -106,8 +110,8 @@ namespace dlib {
                          BedPlpAuxBase *auxen);
     };
     static inline int bam_readrec(BedPlpAuxBase *data, bam1_t *b) {
-        return data->handle->iter ? bam_itr_next(data->handle->fp, data->handle->iter, data->handle->rec.b)
-                                  : sam_read1(data->handle->fp, data->handle->header, data->handle->rec.b);
+        return data->handle->iter ? bam_itr_next(data->handle->fp, data->handle->iter, data->handle->rec)
+                                  : sam_read1(data->handle->fp, data->handle->header, data->handle->rec);
     }
     static int read_bam(BedPlpAuxBase *data, bam1_t *b) {
         int ret;

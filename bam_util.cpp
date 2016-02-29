@@ -91,6 +91,7 @@ int bampath_has_tag(char *bampath, const char *tag)
 
 void check_bam_tag_exit(char *bampath, const char *tag)
 {
+    LOG_DEBUG("Bam at %s has the tag %s.\n", bampath, tag);
     if(!(strcmp(bampath, "-") && strcmp(bampath, "stdin"))) {
             LOG_WARNING("Could not check for bam tag without exhausting a pipe. "
                         "Tag '%s' has not been verified.\n", tag);
@@ -112,8 +113,8 @@ namespace dlib {
     int BamHandle::for_each(std::function<int (bam1_t *, void *)> fn, BamHandle& ofp, void *data) {
         int ret;
         while(next() >= 0) {
-            if((ret = fn(rec.b, data)) != 0) continue;
-            ofp.write(rec.b);
+            if((ret = fn(rec, data)) != 0) continue;
+            ofp.write(rec);
         }
         return 0;
     }
@@ -121,13 +122,13 @@ namespace dlib {
         int ret;
         BamRec r1;
         while(next() >= 0) {
-            if(rec.b->core.flag & BAM_FREAD1) {
-                bam_copy1(r1.b, rec.b);
+            if(rec->core.flag & BAM_FREAD1) {
+                bam_copy1(r1.b, rec);
                 continue;
             }
-            assert(strcmp(bam_get_qname(r1.b), bam_get_qname(rec.b)) == 0);
-            if((ret = fn(r1.b, rec.b, data)) != 0) continue;
-            ofp.write(r1.b), ofp.write(rec.b);
+            assert(strcmp(bam_get_qname(r1.b), bam_get_qname(rec)) == 0);
+            if((ret = fn(r1.b, rec, data)) != 0) continue;
+            ofp.write(r1.b), ofp.write(rec);
         }
         return 0;
     }
@@ -138,7 +139,7 @@ namespace dlib {
         }
         return ret;
     }
-    int BamHandle::write() {return write(rec.b);}
+    int BamHandle::write() {return write(rec);}
     int BamHandle::write(bam1_t *b) {
         return sam_write1(fp, header, b);
     }
@@ -147,9 +148,6 @@ namespace dlib {
     }
     int BamHandle::read(bam1_t *b) {
         return iter ? bam_itr_next(fp, iter, b) :sam_read1(fp, header, b);
-    }
-    int BamHandle::read(BamRec b) {
-        return read(b.b);
     }
     int bam_apply_function(char *infname, char *outfname,
                            std::function<int (bam1_t *, void *)> func, void *data, const char *mode) {
