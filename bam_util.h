@@ -12,15 +12,29 @@
 #include "io_util.h"
 #include "logging_util.h"
 #include "misc_util.h"
+#include "bed_util.h"
 
 typedef void (*pair_fn)(bam1_t *b, bam1_t *b1);
 typedef int (*pair_aux_fn)(bam1_t *b, bam1_t *b1, void *data);
 typedef void (*single_fn)(bam1_t *b);
 typedef void (*single_aux)(bam1_t *b, void *data);
 typedef int (*single_aux_check)(bam1_t *b, void *data);
+typedef int (*plp_fn)(const bam_pileup1_t *plp, int n_plp, void *data);
 
 #ifdef __cplusplus
 namespace dlib {
+    class BamHandle;
+    template<typename T>
+    struct plp_aux {
+        void *data;
+        T *plp_aux;
+        BamHandle *handle;
+    };
+    template<typename T>
+    static int read_bam(void *data, bam1_t *b) {
+        plp_aux<T> *aux = (plp_aux<T> *)data;
+        return aux->handle->iter ? bam_itr_next(aux->handle->fp, aux->handle->iter, aux->handle->rec.b): sam_read1(aux->handle->fp, aux->handle->header, aux->handle->rec.b);
+    }
     class BamRec {
     public:
         bam1_t *b;
@@ -77,6 +91,8 @@ namespace dlib {
             if(idx) hts_idx_destroy(idx);
             if(plp) bam_plp_destroy(plp);
         }
+        template<typename T>
+        int bed_plp_auto(khash_t(bed) *bed, plp_fn fn, void *data, T *plp_aux);
         int for_each_pair(pair_aux_fn fn, BamHandle& ofp, void *data=NULL);
         int for_each(single_aux_check fn, BamHandle& ofp, void *data=NULL);
         int write();
@@ -85,6 +101,7 @@ namespace dlib {
         int read(BamRec b);
         int read(bam1_t *b);
         int next();
+        int bed_plp_auto(khash_t(bed) *bed, plp_fn fn, void *data);
     };
     int bam_apply_function(char *infname, char *outfname,
                            single_aux_check fn, void *data=NULL, const char *mode="wb");
@@ -111,7 +128,9 @@ static const uint8_t seq_nt16_rc[] = {15, 8, 4, 15, 2, 15, 15, 15, 1, 15, 15, 15
 #define BAM_FETCH_BUFFER 150
 
 // Like bam_endpos, but doesn't check that the read is mapped, as that's already been checked.
+#ifndef bam_getend
 #define bam_getend(b) ((b)->core.pos + bam_cigar2rlen((b)->core.n_cigar, bam_get_cigar(b)))
+#endif
 
 #ifdef __cplusplus
 // Miscellania, plus extern C

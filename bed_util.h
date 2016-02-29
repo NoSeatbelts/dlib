@@ -10,10 +10,14 @@
 #include "htslib/vcf.h"
 #include "dlib/logging_util.h"
 #include "dlib/mem_util.h"
-#include "dlib/bam_util.h"
+#include "dlib/io_util.h"
 
 #define DEFAULT_PADDING 0u
 #define NO_ID_STR ((char *)"MissingContigName")
+// Like bam_endpos, but doesn't check that the read is mapped, as that's already been checked.
+#ifndef bam_getend
+#define bam_getend(b) ((b)->core.pos + bam_cigar2rlen((b)->core.n_cigar, bam_get_cigar(b)))
+#endif
 
 // Bed interval query utility macros.
 
