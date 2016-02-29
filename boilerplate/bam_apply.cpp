@@ -30,6 +30,7 @@ int main(int argc, char *argv[]) {
     }
     // Actually this function. You can't really apply a null function....
     single_aux_check fn = NULL;
+    std::function<int (bam1_t *, void *)> fn = NULL;
     // Actually create your type for data and then provide it if needed.
     void *data = NULL;
     dlib::bam_apply_function(argv[optind], argv[optind + 1], fn, data, out_mode);

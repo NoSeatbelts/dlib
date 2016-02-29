@@ -1,10 +1,21 @@
 #include "dlib/bam_util.h"
+#include "dlib/bed_util.h"
 #include <getopt.h>
 
 int usage() {
     fprintf(stderr, "<-l output_compression_level> in.bam out.bam\n"
                     "Use - for stdin or stdout.\n");
     return EXIT_FAILURE;
+}
+
+class BedCovAux : dlib::BedPlpAuxBase {
+
+};
+
+
+
+int bed_plp_core(char *infname, char *outfname) {
+
 }
 
 int main(int argc, char *argv[]) {
@@ -28,10 +39,6 @@ int main(int argc, char *argv[]) {
     if(argc - 2 != optind) {
         LOG_EXIT("Required: precisely two positional arguments (in bam, out bam).\n");
     }
-    // Actually this function. You can't really apply a null function....
-    single_aux_check fn = NULL;
-    // Actually create your type for data and then provide it if needed.
-    void *data = NULL;
-    dlib::bam_apply_function(argv[optind], argv[optind + 1], fn, data, out_mode);
+
     return EXIT_SUCCESS;
 }

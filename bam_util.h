@@ -13,6 +13,9 @@
 #include "logging_util.h"
 #include "misc_util.h"
 #include "bed_util.h"
+#ifdef __cplusplus
+#include <functional>
+#endif
 
 typedef void (*pair_fn)(bam1_t *b, bam1_t *b1);
 typedef int (*pair_aux_fn)(bam1_t *b, bam1_t *b1, void *data);
@@ -35,6 +38,19 @@ namespace dlib {
         }
         ~BamRec() {
             if(b) bam_destroy1(b);
+        }
+    };
+    class BamHandle;
+    class BedPlpAuxBase {
+    public:
+        unsigned minMQ;
+        int padding;
+        BamHandle *handle;
+        BedPlpAuxBase(unsigned _minMQ, BamHandle *_handle=NULL, int _padding=DEFAULT_PADDING):
+            minMQ(_minMQ),
+            padding(_padding),
+            handle(_handle)
+        {
         }
     };
     class BamHandle {
@@ -79,40 +95,25 @@ namespace dlib {
             if(idx) hts_idx_destroy(idx);
             if(plp) bam_plp_destroy(plp);
         }
-        template<typename T>
-        int bed_plp_auto(khash_t(bed) *bed, plp_fn fn, T *plp_aux, unsigned minMQ=0);
-        int for_each_pair(pair_aux_fn fn, BamHandle& ofp, void *data=NULL);
-        int for_each(single_aux_check fn, BamHandle& ofp, void *data=NULL);
+        int for_each_pair(std::function<int (bam1_t *, bam1_t *, void *)> fn, BamHandle& ofp, void *data=NULL);
+        int for_each(std::function<int (bam1_t *, void *)> fn, BamHandle& ofp, void *data=NULL);
         int write();
         int write(BamRec b);
         int write(bam1_t *b);
         int read(BamRec b);
         int read(bam1_t *b);
         int next();
+        int bed_plp_auto(khash_t(bed) *bed, std::function<int (const bam_pileup1_t *, int, void *)> fn,
+                         BedPlpAuxBase *auxen);
     };
-    template<typename T>
-    class plp_aux {
-        T *plp_aux;
-        BamHandle *handle;
-        unsigned minMQ;
-        plp_aux(T *auxen, BamHandle *_handle, unsigned _minMQ=0):
-        plp_aux(auxen),
-        handle(_handle),
-        minMQ(_minMQ)
-        {
-
-        }
-    };
-    template<typename T>
-    static inline int bam_readrec(void *data, bam1_t *b) {
-        BamHandle *handle = ((plp_aux<T> *)data)->handle;
-        return handle->iter ? bam_itr_next(handle->fp, handle->iter, handle->rec.b): sam_read1(handle->fp, handle->header, handle->rec.b);
+    static inline int bam_readrec(BedPlpAuxBase *data, bam1_t *b) {
+        return data->handle->iter ? bam_itr_next(data->handle->fp, data->handle->iter, data->handle->rec.b)
+                                  : sam_read1(data->handle->fp, data->handle->header, data->handle->rec.b);
     }
-    template<typename T>
-    static int read_bam(void *data, bam1_t *b) {
+    static int read_bam(BedPlpAuxBase *data, bam1_t *b) {
         int ret;
         for(;;) {
-            if((ret = bam_readrec<T>(data, b)) >= 0) break;
+            if((ret = bam_readrec(data, b)) >= 0) break;
             if(b->core.flag & (BAM_FSECONDARY | BAM_FUNMAP | BAM_FQCFAIL | BAM_FDUP))
                 continue;
         }
@@ -120,7 +121,7 @@ namespace dlib {
     }
 
     int bam_apply_function(char *infname, char *outfname,
-                           single_aux_check fn, void *data=NULL, const char *mode="wb");
+                           std::function<int (bam1_t *, void *)> func, void *data=NULL, const char *mode="wb");
     int bam_pair_apply_function(char *infname, char *outfname,
             pair_aux_fn fn, void *data=NULL, const char *mode="wb");
 

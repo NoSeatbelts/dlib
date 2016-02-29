@@ -109,7 +109,7 @@ namespace dlib {
     /*
      * Applies fn
      */
-    int BamHandle::for_each(single_aux_check fn, BamHandle& ofp, void *data) {
+    int BamHandle::for_each(std::function<int (bam1_t *, void *)> fn, BamHandle& ofp, void *data) {
         int ret;
         while(next() >= 0) {
             if((ret = fn(rec.b, data)) != 0) continue;
@@ -117,7 +117,7 @@ namespace dlib {
         }
         return 0;
     }
-    int BamHandle::for_each_pair(pair_aux_fn fn, BamHandle& ofp, void *data) {
+    int BamHandle::for_each_pair(std::function<int (bam1_t *, bam1_t *, void *)> fn, BamHandle& ofp, void *data) {
         int ret;
         BamRec r1;
         while(next() >= 0) {
@@ -152,10 +152,10 @@ namespace dlib {
         return read(b.b);
     }
     int bam_apply_function(char *infname, char *outfname,
-                           single_aux_check fn, void *data, const char *mode) {
+                           std::function<int (bam1_t *, void *)> func, void *data, const char *mode) {
         BamHandle in(infname);
         BamHandle out(outfname, in.header, mode);
-        return in.for_each(fn, out, data);
+        return in.for_each(func, out, data);
     }
     int bam_pair_apply_function(char *infname, char *outfname,
             pair_aux_fn fn, void *data, const char *mode) {
@@ -163,10 +163,10 @@ namespace dlib {
         BamHandle out(outfname, in.header, mode);
         return in.for_each_pair(fn, out, data);
     }
-    template<typename T>
-    int BamHandle::bed_plp_auto(khash_t(bed) *bed, plp_fn fn, T *auxen, unsigned minMQ) {
-        plp_aux<T> aux = plp_aux<T>(auxen, this, minMQ);
-        plp = bam_plp_init(&read_bam<plp_aux<T>>, (void *)&aux);
+    int BamHandle::bed_plp_auto(khash_t(bed) *bed, std::function<int (const bam_pileup1_t *, int, void *)> fn,
+                                BedPlpAuxBase *auxen) {
+        plp = bam_plp_init((bam_plp_auto_f)&read_bam, (void *)auxen);
+        auxen->handle = this;
         for(khiter_t ki = kh_begin(bed); ki != kh_end(bed); ++ki) {
             if(!kh_exist(bed, ki)) continue;
             for(unsigned i = 0; i < kh_val(bed, ki).n; ++i) {
@@ -178,15 +178,38 @@ namespace dlib {
                 iter = bam_itr_queryi(idx, bed_tid, start, stop);
                 bam_plp_reset(plp);
                 while(bam_plp_auto(plp, &tid, &pos, &n_plp) != 0) {
-                    assert(tid == (unsigned)bed_tid);
+                    assert(tid == bed_tid);
                     if(pos < start) continue;
                     if(pos >= stop) break;
-                    fn(pileups, n_plp, aux->plp_aux);
+                    fn(pileups, n_plp, auxen);
                 }
             }
         }
         return 0;
     }
+    /*
+     * Does not own aux.
+     */
+    class BedPlpAux {
+        dlib::BamHandle in;
+        dlib::BamHandle out;
+        BedPlpAuxBase *aux;
+        khash_t(bed) *bed;
+        BedPlpAux(char *inpath, char *outpath, char *bedpath, BedPlpAuxBase *data):
+            in(inpath),
+            out(outpath, in.header),
+            aux(data),
+            bed(parse_bed_hash(bedpath, in.header, data->padding))
+        {
+            if(!bed) LOG_EXIT("Failed to open bedfile %s. Abort!\n", bedpath);
+        }
+        ~BedPlpAux() {
+            if(bed) bed_destroy_hash(bed);
+        }
+        int process(std::function<int (const bam_pileup1_t *, int, void *)> fn) {
+            return in.bed_plp_auto(bed,fn, aux);
+        }
+    };
 }
 
 #endif /* ifdef __cplusplus */
