@@ -31,13 +31,13 @@ int is_bgzipped_vcf(char *fn);
 
 // Inline Function Definitions
 static inline gzFile open_gzfile(char *infname) {
-	if(strcmp(infname, "-") == 0 || strcmp(infname, "stdin") == 0) {
-		LOG_DEBUG("Reading from standard in because infname is %s.\n", infname);
-		return gzdopen(STDIN_FILENO, "r"); // Opens stdin.
-	} else {
-		LOG_DEBUG("Reading from %s.\n", infname);
-		return gzopen(infname, "r");
-	}
+    if(strcmp(infname, "-") == 0 || strcmp(infname, "stdin") == 0) {
+        LOG_DEBUG("Reading from standard in because infname is %s.\n", infname);
+        return gzdopen(STDIN_FILENO, "r"); // Opens stdin.
+    } else {
+        LOG_DEBUG("Reading from %s.\n", infname);
+        return gzopen(infname, "r");
+    }
 }
 
 // Function Macros
@@ -46,34 +46,34 @@ static inline gzFile open_gzfile(char *infname) {
  * cmd [arg/char *] Command to execute via popen
  */
 #define CHECK_POPEN(cmd) \
-	do {\
-		LOG_DEBUG("About to call '%s' via popen.\n", cmd);\
-		if(pclose(popen(cmd, "w"))) {\
-			LOG_EXIT("Command '%s' failed. Abort!\n", cmd);\
-		}\
-	} while(0)
+    do {\
+        LOG_DEBUG("About to call '%s' via popen.\n", cmd);\
+        if(pclose(popen(cmd, "w"))) {\
+            LOG_EXIT("Command '%s' failed. Abort!\n", cmd);\
+        }\
+    } while(0)
 
 /* CHECK_CALL
  * Executes cmd with system and exits if it returns a non-zero exit status.
  * cmd [arg/char *] Command to execute via popen
  */
 #ifndef CHECK_CALL
-#	if !NDEBUG
-#		define CHECK_CALL(buff)\
-	do {\
-		LOG_DEBUG("Now check calling command '%s'.\n", buff); \
-		if(system(buff) < 0) {\
-			LOG_EXIT("System call failed. Command: '%s'.\n", buff);\
-		}\
-	} while(0)
+#    if !NDEBUG
+#        define CHECK_CALL(buff)\
+    do {\
+        LOG_DEBUG("Now check calling command '%s'.\n", buff); \
+        if(system(buff) < 0) {\
+            LOG_EXIT("System call failed. Command: '%s'.\n", buff);\
+        }\
+    } while(0)
 
-#	else
-#		define CHECK_CALL(buff) \
-	if(system(buff) < 0) {\
-		LOG_EXIT("System call failed. Command: '%s'.\n", buff);\
-	}
+#    else
+#        define CHECK_CALL(buff) \
+    if(system(buff) < 0) {\
+        LOG_EXIT("System call failed. Command: '%s'.\n", buff);\
+    }
 
-#	endif
+#    endif
 #endif
 
 int count_lines(char *fname);

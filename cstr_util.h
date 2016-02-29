@@ -35,16 +35,16 @@ KSEQ_INIT(gzFile, gzread)
  */
 static inline char *rand_string(char *str, size_t size)
 {
-	srand(time(NULL)); // Pick a seed!
-	const char charset[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKSTFUOMGZWTF";
-	if (size) {
-		--size;
-		for (size_t n = 0; n < size; n++) {
-			str[n] = charset[(int)(rand() % (int) (sizeof charset - 1))];
-		}
-		str[size] = '\0';
-	}
-	return str;
+    srand(time(NULL)); // Pick a seed!
+    const char charset[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKSTFUOMGZWTF";
+    if (size) {
+        --size;
+        for (size_t n = 0; n < size; n++) {
+            str[n] = charset[(int)(rand() % (int) (sizeof charset - 1))];
+        }
+        str[size] = '\0';
+    }
+    return str;
 }
 
 
@@ -58,12 +58,12 @@ static inline char *rand_string(char *str, size_t size)
  */
 static void fill_csv_buffer(int readlen, uint32_t *arr, char *buffer, const char *prefix_typecode)
 {
-	kstring_t ks = {0, 0, NULL};
-	kputs(prefix_typecode, &ks);
-	for(int i = 0; i < readlen; i++)
-		ksprintf(&ks, ",%u", arr[i]);
-	strcpy(buffer, ks.s);
-	free(ks.s);
+    kstring_t ks = {0, 0, NULL};
+    kputs(prefix_typecode, &ks);
+    for(int i = 0; i < readlen; i++)
+        ksprintf(&ks, ",%u", arr[i]);
+    strcpy(buffer, ks.s);
+    free(ks.s);
 }
 
 /*
@@ -76,12 +76,12 @@ static void fill_csv_buffer(int readlen, uint32_t *arr, char *buffer, const char
  */
 static inline void append_csv_buffer(int readlen, uint32_t *arr, char *buffer, char *prefix_typecode)
 {
-	char tmpbuf[12];
-	strcat(buffer, prefix_typecode);
-	for(int i = 0; i < readlen; i++) {
-		sprintf(tmpbuf, ",%u", arr[i]);
-		strcat(buffer, tmpbuf);
-	}
+    char tmpbuf[12];
+    strcat(buffer, prefix_typecode);
+    for(int i = 0; i < readlen; i++) {
+        sprintf(tmpbuf, ",%u", arr[i]);
+        strcat(buffer, tmpbuf);
+    }
 }
 
 /*
@@ -93,9 +93,9 @@ static inline void append_csv_buffer(int readlen, uint32_t *arr, char *buffer, c
  */
 static inline void append_int_tag(char *buffer, const char *tag, int i)
 {
-	char tmpbuf[15];
-	sprintf(tmpbuf, "\t%s:i:%i", tag, i);
-	strcat(buffer, tmpbuf);
+    char tmpbuf[15];
+    sprintf(tmpbuf, "\t%s:i:%i", tag, i);
+    strcat(buffer, tmpbuf);
 }
 
 /*
@@ -107,7 +107,7 @@ static inline void append_int_tag(char *buffer, const char *tag, int i)
  */
 static inline void fill_pv(int readlen, uint32_t *arr, char *buffer)
 {
-	fill_csv_buffer(readlen, arr, buffer, (char *)"PV:B:I");
+    fill_csv_buffer(readlen, arr, buffer, (char *)"PV:B:I");
 }
 
 
@@ -120,18 +120,18 @@ static inline void fill_pv(int readlen, uint32_t *arr, char *buffer)
  *  with a terminal newline and a null character)
  */
 static inline void kfill_rc(kseq_t *seq, char *buffer) {
-	uint64_t i = seq->seq.l;
-	char *seqp = seq->seq.s + i;
-	// Add seq field.
-	for(; i ; --i) *buffer++ = nuc_cmpl(*--seqp);
-	// Add "\n+\n"
-	*buffer++ = '\n'; *buffer++ = '+'; *buffer++ = '\n';
-	// Add reversed quality
-	i = seq->qual.l;
-	seqp = seq->qual.s + i;
-	for(; i ; --i) *buffer++ = *--seqp;
-	// Terminate with newline and null character.
-	*buffer++ = '\n'; *buffer++ = '\0';
+    uint64_t i = seq->seq.l;
+    char *seqp = seq->seq.s + i;
+    // Add seq field.
+    for(; i ; --i) *buffer++ = nuc_cmpl(*--seqp);
+    // Add "\n+\n"
+    *buffer++ = '\n'; *buffer++ = '+'; *buffer++ = '\n';
+    // Add reversed quality
+    i = seq->qual.l;
+    seqp = seq->qual.s + i;
+    for(; i ; --i) *buffer++ = *--seqp;
+    // Terminate with newline and null character.
+    *buffer++ = '\n'; *buffer++ = '\0';
 }
 
 /*
@@ -142,10 +142,10 @@ static inline void kfill_rc(kseq_t *seq, char *buffer) {
  * Fills a buffer with reverse-complemented characters.
  */
 static inline void fill_rc(char *str, char *buffer, size_t len) {
-	str += len; // Skip to the end of the string.
-	for(; len; --len)
-		*buffer++ = nuc_cmpl(*--str);
-	*buffer++ = '\0';
+    str += len; // Skip to the end of the string.
+    for(; len; --len)
+        *buffer++ = nuc_cmpl(*--str);
+    *buffer++ = '\0';
 }
 
 /*
@@ -156,10 +156,10 @@ static inline void fill_rc(char *str, char *buffer, size_t len) {
  * Fills a buffer with reversed characters.
  */
 static inline void fill_rv(char *str, char *buffer, size_t len) {
-	str += len; // Skip to the end of the string.
-	for(; len; --len)
-		*buffer++ = *--str;
-	*buffer++ = '\0';
+    str += len; // Skip to the end of the string.
+    for(; len; --len)
+        *buffer++ = *--str;
+    *buffer++ = '\0';
 }
 
 /*
@@ -168,15 +168,15 @@ static inline void fill_rv(char *str, char *buffer, size_t len) {
  */
 static inline char *trim_ext(char *fname)
 {
-	LOG_DEBUG((char *)"Now trimming char * %s.\n", fname);
-	char *ret = (char *)malloc((strlen(fname) + 1) * sizeof(char ));
-	char *found_pos = strrchr(fname, '.');
-	if(!found_pos) {
-		LOG_EXIT((char *)"Could not trim file name's extension. Looks like it's missing a '.' (name: '%s').\n", fname);
-	}
-	memcpy(ret, fname, (found_pos - fname) * sizeof(char));
-	ret[found_pos - fname] = '\0';
-	return ret;
+    LOG_DEBUG((char *)"Now trimming char * %s.\n", fname);
+    char *ret = (char *)malloc((strlen(fname) + 1) * sizeof(char ));
+    char *found_pos = strrchr(fname, '.');
+    if(!found_pos) {
+        LOG_EXIT((char *)"Could not trim file name's extension. Looks like it's missing a '.' (name: '%s').\n", fname);
+    }
+    memcpy(ret, fname, (found_pos - fname) * sizeof(char));
+    ret[found_pos - fname] = '\0';
+    return ret;
 }
 
 /*
@@ -184,10 +184,10 @@ static inline char *trim_ext(char *fname)
  */
 CONST static inline int fp_atoi(char *str)
 {
-	int ret = *str++ - '0';
-	while(*str)
-		ret = ret*10 + (*str++ - '0');
-	return ret;
+    int ret = *str++ - '0';
+    while(*str)
+        ret = ret*10 + (*str++ - '0');
+    return ret;
 }
 
 /*
@@ -195,55 +195,55 @@ CONST static inline int fp_atoi(char *str)
  */
 CONST static inline int fast_atoi(char *str)
 {
-	int ret = 0;
-	int sign = 1;
-	switch(*str) {
-		case '-': sign = -1; break;
-		case '+': break;
-		default: ret = *str - '0';
-	}
-	++str;
-	while(*str)
-		ret = ret*10 + (*str++ - '0');
-	return ret * sign;
+    int ret = 0;
+    int sign = 1;
+    switch(*str) {
+        case '-': sign = -1; break;
+        case '+': break;
+        default: ret = *str - '0';
+    }
+    ++str;
+    while(*str)
+        ret = ret*10 + (*str++ - '0');
+    return ret * sign;
 }
 
 static inline char *revcmp(char *dest, char *src, uint64_t l)
 {
-	src += l;
-	for(; l; --l)
-		*dest++ = nuc_cmpl(*--src);
-	*dest++ = '\0';
-	return dest;
+    src += l;
+    for(; l; --l)
+        *dest++ = nuc_cmpl(*--src);
+    *dest++ = '\0';
+    return dest;
 }
 
 
 CONST static inline int lex_memcmp(char *s1, char *s2, size_t l)
 {
-	for(; l; --l) {
-		if(*s1 != *s2) return *s1 < *s2;
-		++s1, ++s2;
-	}
-	return -1;
+    for(; l; --l) {
+        if(*s1 != *s2) return *s1 < *s2;
+        ++s1, ++s2;
+    }
+    return -1;
 }
 
 CONST static inline int lex_strlt(char *s1, char *s2)
 {
-	while(*s1) {
-		if(*s1 != *s2) return *s2 < *s1;
-		++s1, ++s2;
-	}
-	return -1;
+    while(*s1) {
+        if(*s1 != *s2) return *s2 < *s1;
+        ++s1, ++s2;
+    }
+    return -1;
 }
 
 CONST static inline int lex_lt(char *s, size_t l)
 {
-	char *s2 = s + l - 1;
-	while(*s) {
-		if(*s != *s2) return *s < *s2;
-		++s; --s2;
-	}
-	return -1; // Palindromic
+    char *s2 = s + l - 1;
+    while(*s) {
+        if(*s != *s2) return *s < *s2;
+        ++s; --s2;
+    }
+    return -1; // Palindromic
 }
 
 
@@ -253,20 +253,20 @@ CONST static inline int lex_lt(char *s, size_t l)
  */
 static inline char *make_default_outfname(char *fname, const char *suffix)
 {
-	char buf[200];
-	char *prefix = trim_ext(fname);
-	strcpy(buf, prefix);
-	strcat(buf, suffix);
-	char *ret = strdup(buf);
-	free(prefix);
-	return ret;
+    char buf[200];
+    char *prefix = trim_ext(fname);
+    strcpy(buf, prefix);
+    strcat(buf, suffix);
+    char *ret = strdup(buf);
+    free(prefix);
+    return ret;
 }
 
 static inline char *kstrdup(kstring_t *ks)
 {
-	char *ret = (char *)malloc((ks->l + 1) * sizeof(char));
-	memcpy(ret, ks->s, ks->l + 1);
-	return ret;
+    char *ret = (char *)malloc((ks->l + 1) * sizeof(char));
+    memcpy(ret, ks->s, ks->l + 1);
+    return ret;
 }
 
 #endif

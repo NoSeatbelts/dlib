@@ -4,13 +4,13 @@
 
 static inline int64_t ipow(int base, int exp)
 {
-	int64_t ret = 1;
-	while(exp) {
-		if(exp & 1) ret *= base;
-		exp >>= 1;
-		base *= base;
-	}
-	return ret;
+    int64_t ret = 1;
+    while(exp) {
+        if(exp & 1) ret *= base;
+        exp >>= 1;
+        base *= base;
+    }
+    return ret;
 }
 /*
 static inline int64_t ipow(int32_t base, int32_t exp) {
@@ -57,7 +57,7 @@ static inline int64_t ipow(int32_t base, int32_t exp) {
             case 1: return 1;
             case -1: return 1 - 2 * (exp & 1);
         }
-		return 0L;
+        return 0L;
     case 6:
         if (exp & 1) result *= base;
         exp >>= 1;
