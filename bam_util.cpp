@@ -63,8 +63,8 @@ void abstract_pair_iter(samFile *in, bam_hdr_t *hdr, samFile *ofp, pair_fn funct
         if(b->core.flag & BAM_FREAD1) {
             bam_copy1(b1, b); continue;
         }
-        if(strcmp(bam_get_qname(b1), bam_get_qname(b)) == 0)
-            LOG_EXIT("Is the bam name sorted? Reads in 'pair' don't have the same name. Abort!\n");
+        if(strcmp(bam_get_qname(b1), bam_get_qname(b)))
+            LOG_EXIT("Is the bam name sorted? Reads in 'pair' don't have the same name (%s, %s). Abort!\n", bam_get_qname(b1), bam_get_qname(b));
         function(b1, b);
         sam_write1(ofp, hdr, b1), sam_write1(ofp, hdr, b);
     }
@@ -120,16 +120,17 @@ namespace dlib {
     }
     int BamHandle::for_each_pair(std::function<int (bam1_t *, bam1_t *, void *)> fn, BamHandle& ofp, void *data) {
         int ret;
-        BamRec r1;
+        bam1_t *r1 = bam_init1();
         while(next() >= 0) {
             if(rec->core.flag & BAM_FREAD1) {
-                bam_copy1(r1.b, rec);
+                bam_copy1(r1, rec);
                 continue;
             }
-            assert(strcmp(bam_get_qname(r1.b), bam_get_qname(rec)) == 0);
-            if((ret = fn(r1.b, rec, data)) != 0) continue;
-            ofp.write(r1.b), ofp.write(rec);
+            assert(strcmp(bam_get_qname(r1), bam_get_qname(rec)) == 0);
+            if((ret = fn(r1, rec, data)) != 0) continue;
+            ofp.write(r1), ofp.write(rec);
         }
+        bam_destroy1(r1);
         return 0;
     }
     inline int BamHandle::next() {

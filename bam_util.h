@@ -88,6 +88,7 @@ namespace dlib {
             plp(NULL),
             rec(NULL)
         {
+            sam_hdr_write(fp, header);
             if(fp == NULL) LOG_EXIT("Could not open output bam %s for reading. Abort!\n", path);
         }
         ~BamHandle() {
