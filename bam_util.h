@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 #include <zlib.h>
 #include "htslib/sam.h"
@@ -12,7 +13,8 @@
 #include "logging_util.h"
 #include "misc_util.h"
 
-typedef void (*pair_fn)(bam1_t *b,bam1_t *b1);
+typedef void (*pair_fn)(bam1_t *b, bam1_t *b1);
+typedef int (*pair_aux_fn)(bam1_t *b, bam1_t *b1, void *data);
 typedef void (*single_fn)(bam1_t *b);
 typedef void (*single_aux)(bam1_t *b, void *data);
 typedef int (*single_aux_check)(bam1_t *b, void *data);
@@ -75,6 +77,7 @@ namespace dlib {
             if(idx) hts_idx_destroy(idx);
             if(plp) bam_plp_destroy(plp);
         }
+        int for_each_pair(pair_aux_fn fn, BamHandle& ofp, void *data=NULL);
         int for_each(single_aux_check fn, BamHandle& ofp, void *data=NULL);
         int write();
         int write(BamRec b);
@@ -83,6 +86,11 @@ namespace dlib {
         int read(bam1_t *b);
         int next();
     };
+    int bam_apply_function(char *infname, char *outfname,
+                           single_aux_check fn, void *data=NULL, const char *mode="wb");
+    int bam_pair_apply_function(char *infname, char *outfname,
+            pair_aux_fn fn, void *data=NULL, const char *mode="wb");
+
 } // namespace dlib
 
 #endif

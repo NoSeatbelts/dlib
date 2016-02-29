@@ -112,8 +112,22 @@ namespace dlib {
     int BamHandle::for_each(single_aux_check fn, BamHandle& ofp, void *data) {
         int ret;
         while(next() >= 0) {
-            if((ret = fn(rec.b, data)) != 0) return ret;
+            if((ret = fn(rec.b, data)) != 0) continue;
             ofp.write(rec.b);
+        }
+        return 0;
+    }
+    int BamHandle::for_each_pair(pair_aux_fn fn, BamHandle& ofp, void *data) {
+        int ret;
+        BamRec r1;
+        while(next() >= 0) {
+            if(rec.b->core.flag & BAM_FREAD1) {
+                bam_copy1(r1.b, rec.b);
+                continue;
+            }
+            assert(strcmp(bam_get_qname(r1.b), bam_get_qname(rec.b)) == 0);
+            if((ret = fn(r1.b, rec.b, data)) != 0) continue;
+            ofp.write(r1.b), ofp.write(rec.b);
         }
         return 0;
     }
@@ -137,10 +151,17 @@ namespace dlib {
     int BamHandle::read(BamRec b) {
         return read(b.b);
     }
-    void bam_apply_function(char *infname, char *outfname, single_aux_check fn, void *data, const char *mode) {
+    int bam_apply_function(char *infname, char *outfname,
+                           single_aux_check fn, void *data, const char *mode) {
         BamHandle in(infname);
         BamHandle out(outfname, in.header, mode);
-        in.for_each(fn, out, data);
+        return in.for_each(fn, out, data);
+    }
+    int bam_pair_apply_function(char *infname, char *outfname,
+            pair_aux_fn fn, void *data, const char *mode) {
+        BamHandle in(infname);
+        BamHandle out(outfname, in.header, mode);
+        return in.for_each_pair(fn, out, data);
     }
 }
 
