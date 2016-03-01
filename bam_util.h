@@ -65,7 +65,7 @@ namespace dlib {
         const bam_pileup1_t *pileups;
         bam_plp_t plp;
         bam1_t *rec;
-        BamHandle(char *path):
+        BamHandle(const char *path):
             is_write(0),
             fp(sam_open(path, "r")),
             iter(NULL),
