@@ -133,23 +133,7 @@ namespace dlib {
         bam_destroy1(r1);
         return 0;
     }
-    inline int BamHandle::next() {
-        int ret;
-        if((ret = read(rec)) < 0) {
-            LOG_INFO("StopIteration: Finished iterating through bam %s.\n", fp->fn);
-        }
-        return ret;
-    }
     int BamHandle::write() {return write(rec);}
-    int BamHandle::write(bam1_t *b) {
-        return sam_write1(fp, header, b);
-    }
-    int BamHandle::write(BamRec b) {
-        return write(b.b);
-    }
-    int BamHandle::read(bam1_t *b) {
-        return iter ? bam_itr_next(fp, iter, b) :sam_read1(fp, header, b);
-    }
     int bam_apply_function(char *infname, char *outfname,
                            std::function<int (bam1_t *, void *)> func, void *data, const char *mode) {
         BamHandle in(infname);

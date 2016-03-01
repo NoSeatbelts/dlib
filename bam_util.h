@@ -102,11 +102,23 @@ namespace dlib {
         int for_each_pair(std::function<int (bam1_t *, bam1_t *, void *)> fn, BamHandle& ofp, void *data=NULL);
         int for_each(std::function<int (bam1_t *, void *)> fn, BamHandle& ofp, void *data=NULL);
         int write();
-        int write(BamRec b);
-        int write(bam1_t *b);
         int read(BamRec b);
-        int read(bam1_t *b);
-        int next();
+        int write(bam1_t *b) {
+            return sam_write1(fp, header, b);
+        }
+        int write(BamRec b) {
+            return write(b.b);
+        }
+        int read(bam1_t *b) {
+            return iter ? bam_itr_next(fp, iter, b) :sam_read1(fp, header, b);
+        }
+        int next() {
+            if(read(rec) < 0) {
+                LOG_INFO("StopIteration: Finished iterating through bam %s.\n", fp->fn);
+                return -1;
+            }
+            return 1;
+        }
         int bed_plp_auto(khash_t(bed) *bed, std::function<int (const bam_pileup1_t *, int, void *)> fn,
                          BedPlpAuxBase *auxen);
     };
