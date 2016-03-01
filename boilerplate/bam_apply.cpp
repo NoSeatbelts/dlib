@@ -1,19 +1,18 @@
 #include "dlib/bam_util.h"
 #include <getopt.h>
 
-int usage() {
-    fprintf(stderr, "<-l output_compression_level> in.bam out.bam\n"
-                    "Use - for stdin or stdout.\n");
-    return EXIT_FAILURE;
+int usage(char **argv, int retcode=EXIT_FAILURE) {
+    fprintf(stderr, "%s <-l output_compression_level> in.bam out.bam\n"
+                    "Use - for stdin or stdout.\n", argv[0]);
+    return retcode;
 }
 
 int main(int argc, char *argv[]) {
     if(argc < 3) {
-        return usage();
+        return usage(argv);
     }
     if(strcmp(argv[1], "--help") == 0) {
-        usage();
-        return EXIT_SUCCESS;
+        return usage(argv, EXIT_SUCCESS);
     }
     int c;
     char out_mode[4] = "wb";
@@ -21,8 +20,7 @@ int main(int argc, char *argv[]) {
         switch(c) {
         case 'l':
             out_mode[2] = atoi(optarg) % 10 + '0'; break;
-        case 'h': case '?': usage(); return EXIT_SUCCESS;
-        default: LOG_INFO("Unrecognized option %c\n", optopt); return usage();
+        case 'h': case '?': return usage(argv, EXIT_SUCCESS);
         }
     }
     if(argc - 2 != optind) {
