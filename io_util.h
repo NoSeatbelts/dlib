@@ -40,41 +40,29 @@ static inline gzFile open_gzfile(char *infname) {
     }
 }
 
-// Function Macros
-/* CHECK_POPEN
+/* check_popen
  * Executes cmd with popen and exits if it returns a non-zero exit status.
  * cmd [arg/char *] Command to execute via popen
  */
-#define CHECK_POPEN(cmd) \
-    do {\
-        LOG_DEBUG("About to call '%s' via popen.\n", cmd);\
-        if(pclose(popen(cmd, "w"))) {\
-            LOG_EXIT("Command '%s' failed. Abort!\n", cmd);\
-        }\
-    } while(0)
+static void check_popen(const char *cmd) {
+    LOG_DEBUG("Now check popen-ing command '%s'.\n", cmd);
+    int ret;
+    if((ret = pclose(popen(cmd, "w"))) != 0) {
+        LOG_EXIT("System call failed. Command: '%s'. Return code: %i.\n", cmd, ret);
+    }
+}
 
-/* CHECK_CALL
+/* check_call
  * Executes cmd with system and exits if it returns a non-zero exit status.
  * cmd [arg/char *] Command to execute via popen
  */
-#ifndef CHECK_CALL
-#    if !NDEBUG
-#        define CHECK_CALL(buff)\
-    do {\
-        LOG_DEBUG("Now check calling command '%s'.\n", buff); \
-        if(system(buff) < 0) {\
-            LOG_EXIT("System call failed. Command: '%s'.\n", buff);\
-        }\
-    } while(0)
-
-#    else
-#        define CHECK_CALL(buff) \
-    if(system(buff) < 0) {\
-        LOG_EXIT("System call failed. Command: '%s'.\n", buff);\
+static void check_call(const char *cmd) {
+    LOG_DEBUG("Now check calling command '%s'.\n", cmd);
+    int ret;
+    if((ret = system(cmd)) != 0) {
+        LOG_EXIT("System call failed. Command: '%s'. Return code: %i.\n", cmd, ret);
     }
-
-#    endif
-#endif
+}
 
 int count_lines(char *fname);
 

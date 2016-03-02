@@ -193,6 +193,12 @@ static inline void bam_seq_cpy(char *read_str, bam1_t *b) {
     seq_nt16_cpy(read_str, (uint8_t *)bam_get_seq(b), b->core.l_qseq, b->core.flag & BAM_FREVERSE);
 }
 
+
+static inline int32_t int_tag_zero(uint8_t *data)
+{
+    return data ? bam_aux2i(data): 0;
+}
+
 CONST static inline int32_t get_unclipped_start(bam1_t *b)
 {
     if(b->core.flag & BAM_FUNMAP) return -1;
