@@ -178,7 +178,7 @@ static inline int vcf_bed_test(bcf1_t *b, khash_t(bed) *h)
     if((k = kh_get(bed, h, b->rid)) == kh_end(h))
         return 0;
     for(uint64_t i = 0; i < kh_val(h, k).n; ++i) {
-        if(b->pos >= get_start(kh_val(h, k).intervals[i]) && b->pos <= get_stop(kh_val(h, k).intervals[i]))
+        if(b->pos >= get_start(kh_val(h, k).intervals[i]) && b->pos < get_stop(kh_val(h, k).intervals[i]))
             return 1;
     }
     return 0;
