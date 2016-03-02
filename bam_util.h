@@ -78,7 +78,7 @@ namespace dlib {
             if(!fp) LOG_EXIT("Could not open input bam %s for reading. Abort!\n", path);
             if(!idx) LOG_WARNING("Could not load index file for input bam, just FYI.\n");
         }
-        BamHandle(char *path, bam_hdr_t *hdr, const char *mode = "wb"):
+        BamHandle(const char *path, bam_hdr_t *hdr, const char *mode = "wb"):
             is_write(1),
             fp(sam_open(path, mode)),
             iter(NULL),
