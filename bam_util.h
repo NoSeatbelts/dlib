@@ -142,14 +142,14 @@ namespace dlib {
                            std::function<int (bam1_t *, void *)> func, void *data=NULL, const char *mode="wb");
     int bam_pair_apply_function(char *infname, char *outfname,
             pair_aux_fn fn, void *data=NULL, const char *mode="wb");
-	/*
-	 * Finds the index in an array tag to use for a bam_pileup1_t struct.
-	 */
-	static inline int arr_qpos(const bam_pileup1_t *plp)
-	{
-	    return (plp->b->core.flag & BAM_FREVERSE) ? plp->b->core.l_qseq - 1 - plp->qpos
-	                                              : plp->qpos;
-	}
+    /*
+     * Finds the index in an array tag to use for a bam_pileup1_t struct.
+     */
+    static inline int arr_qpos(const bam_pileup1_t *plp)
+    {
+        return (plp->b->core.flag & BAM_FREVERSE) ? plp->b->core.l_qseq - 1 - plp->qpos
+                                                  : plp->qpos;
+    }
 
 
 #endif /* ifdef __cplusplus */

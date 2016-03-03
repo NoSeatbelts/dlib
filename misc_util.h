@@ -10,7 +10,9 @@
 
 #ifdef __cplusplus
 #    include <string>
+namespace dlib {
     void string_fmt_time(std::string& ret);
+}
 #endif
 
 // Cribbed from nlopt

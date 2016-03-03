@@ -1,32 +1,32 @@
 #include "bed_util.h"
 
 #ifdef __cplusplus
-	namespace dlib {
-	std::vector<khiter_t> make_sorted_keys(khash_t(bed) *h) {
-	    std::vector<std::pair<khint_t, khiter_t>> keyset;
-	    for(khiter_t ki = kh_begin(aux->bed); ki != kh_end(h); ++ki)
-	        if(kh_exist(h, ki)) keyset.push_back(std::pair<khint_t, khiter_t>(kh_key(h, ki), ki));
-	    std::sort(keyset.begin(), keyset.end(), [](std::pair<khint_t, khiter_t> p1, std::pair<khint_t, khiter_t> p2) {
-	            return p1.first < p2.first;
-	    });
-	    std::vector<khiter_t> ret = std::vector<khiter_t>();
-	    for(auto tup: keyset) ret.push_back(tup.second);
-	    return ret;
-	}
-	
-	template<typename K, typename V>
-	std::vector<K> make_sorted_keys(std::unordered_map<K,V> hashmap) {
-	    std::vector<std::pair<K,V>> keyset;
-	    keyset.reserve(hashmap.size());
-	    for(auto& pair: hashmap) keyset.push_back(pair);
-	    std::sort(keyset.begin(), keyset.end(), [](std::pair<K,V> p1, std::pair<K,V> p2){
-	        return p1.second < p2.second;
-	    });
-	    std::vector<K> ret = std::vector<K>();
-	    ret.reserve(keyset.size());
-	    for(auto& pair: keyset) ret.push_back(pair.first);
-	    return ret;
-	}
+    namespace dlib {
+    std::vector<khiter_t> make_sorted_keys(khash_t(bed) *h) {
+        std::vector<std::pair<khint_t, khiter_t>> keyset;
+        for(khiter_t ki = kh_begin(aux->bed); ki != kh_end(h); ++ki)
+            if(kh_exist(h, ki)) keyset.push_back(std::pair<khint_t, khiter_t>(kh_key(h, ki), ki));
+        std::sort(keyset.begin(), keyset.end(), [](std::pair<khint_t, khiter_t> p1, std::pair<khint_t, khiter_t> p2) {
+                return p1.first < p2.first;
+        });
+        std::vector<khiter_t> ret = std::vector<khiter_t>();
+        for(auto tup: keyset) ret.push_back(tup.second);
+        return ret;
+    }
+
+    template<typename K, typename V>
+    std::vector<K> make_sorted_keys(std::unordered_map<K,V> hashmap) {
+        std::vector<std::pair<K,V>> keyset;
+        keyset.reserve(hashmap.size());
+        for(auto& pair: hashmap) keyset.push_back(pair);
+        std::sort(keyset.begin(), keyset.end(), [](std::pair<K,V> p1, std::pair<K,V> p2){
+            return p1.second < p2.second;
+        });
+        std::vector<K> ret = std::vector<K>();
+        ret.reserve(keyset.size());
+        for(auto& pair: keyset) ret.push_back(pair.first);
+        return ret;
+    }
 #endif
 
 

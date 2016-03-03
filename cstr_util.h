@@ -85,20 +85,6 @@ static inline void append_csv_buffer(int readlen, uint32_t *arr, char *buffer, c
 }
 
 /*
- * @func append_int_tag
- * @abstract Adds an text integer bam tag to a buffer.
- * :param: buffer [char *] Buffer for integer tag.
- * :param: tag [char *] String for tag key.
- * :param: i [int] value to use
- */
-static inline void append_int_tag(char *buffer, const char *tag, int i)
-{
-    char tmpbuf[15];
-    sprintf(tmpbuf, "\t%s:i:%i", tag, i);
-    strcat(buffer, tmpbuf);
-}
-
-/*
  * @func fill_pv
  * Calls append_csv_buffer for 32-bit PV array tags.
  * :param: readlen [int] Length of read
