@@ -15,9 +15,6 @@
         }\
     } while(0)
 
-void bcf_add_bam_contigs(bcf_hdr_t *hdr, bam_hdr_t *src);
-
-
 #ifdef __cplusplus
 namespace dlib {
     class VcfHandle {
@@ -68,7 +65,10 @@ namespace dlib {
             return bcf_read(fp, vh, b);
         }
     };
+    void bcf_add_bam_contigs(bcf_hdr_t *hdr, bam_hdr_t *src);
 } /* namespace dlib*/
+#else 
+void bcf_add_bam_contigs(bcf_hdr_t *hdr, bam_hdr_t *src);
 #endif /* ifdef __cplusplus */
 
 #endif /* VCF_UTIL_H */

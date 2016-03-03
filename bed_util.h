@@ -11,6 +11,10 @@
 #include "dlib/logging_util.h"
 #include "dlib/mem_util.h"
 #include "dlib/io_util.h"
+#ifdef __cplusplus
+#include <vector>
+#include <algorithm>
+#endif
 
 #define DEFAULT_PADDING 0u
 #define NO_ID_STR ((char *)"MissingContigName")
@@ -18,6 +22,7 @@
 #ifndef bam_getend
 #define bam_getend(b) ((b)->core.pos + bam_cigar2rlen((b)->core.n_cigar, bam_get_cigar(b)))
 #endif
+
 
 // Bed interval query utility macros.
 
@@ -55,6 +60,12 @@ typedef struct region_set {
     char *contig_name;
     uint64_t n;
 } region_set_t;
+/*
+ * khash_t(bed) is now a bed file: a region_set_t as a value for the key which is the contig
+ * of the interval.
+ */
+KHASH_MAP_INIT_INT(bed, region_set_t)
+
 
 #ifdef __cplusplus
 #include <vector>
@@ -62,6 +73,7 @@ typedef struct region_set {
 #include <unordered_map>
 #include <unordered_set>
 #include <algorithm>
+namespace dlib {
 
 class ParsedBed;
 class RegionSet {
@@ -78,8 +90,8 @@ public:
             region_names(1, region_name){
     }
     void add_region(int start, int stop, char *region_name) {
-        intervals.push_back(to_ivl(start, stop));
-        region_names.push_back(region_name);
+        intervals.emplace_back(to_ivl(start, stop));
+        region_names.emplace_back(region_name);
         assert(region_names.size() == intervals.size());
     }
 };
@@ -142,15 +154,6 @@ public:
 };
 #endif
 
-/*
- * khash_t(bed) is now a bed file: a region_set_t as a value for the key which is the contig
- * of the interval.
- */
-KHASH_MAP_INIT_INT(bed, region_set_t)
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 int intcmp(const void *a, const void *b); // Compare intervals for sorting by start
 void sort_bed(khash_t(bed) *bed);
 khash_t(bed) *parse_bed_hash(const char *path, bam_hdr_t *header, uint32_t padding);
@@ -172,6 +175,7 @@ static inline int bed_test(bam1_t *b, khash_t(bed) *h)
     return 0;
 }
 
+
 static inline int vcf_bed_test(bcf1_t *b, khash_t(bed) *h)
 {
     khint_t k;
@@ -183,19 +187,10 @@ static inline int vcf_bed_test(bcf1_t *b, khash_t(bed) *h)
     }
     return 0;
 }
-#ifdef __cplusplus
-}
-#endif
 
 #ifdef __cplusplus
-#    ifdef __GNUC__
-#        include <parallel/algorithm>
-#    else
-#        include <algorithm>
-#    endif
-#    include <vector>
 std::vector<khiter_t> make_sorted_keys(khash_t(bed) *h);
+
+} /* namespace dlib */
 #endif
-
-
 #endif /* BED_UTIL_H */

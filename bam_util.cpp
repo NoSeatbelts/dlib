@@ -1,5 +1,11 @@
 #include "bam_util.h"
 
+
+#ifdef __cplusplus
+namespace dlib {
+#endif
+
+
 void abstract_single_data(samFile *in, bam_hdr_t *hdr, samFile *out, single_aux function, void *data)
 {
     bam1_t *b = bam_init1();
@@ -30,19 +36,19 @@ void abstract_single_filter(samFile *in, bam_hdr_t *hdr, samFile *out, single_au
 
 #ifdef __cplusplus
 
-void abstract_pair_set(samFile *in, bam_hdr_t *hdr, samFile *ofp, std::unordered_set<pair_fn> functions)
-{
-    bam1_t *b = bam_init1(), *b1 = bam_init1();
-    while (LIKELY(sam_read1(in, hdr, b) >= 0)) {
-        if(b->core.flag & (BAM_FSECONDARY | BAM_FSUPPLEMENTARY)) continue;
-        if(b->core.flag & BAM_FREAD1) {
-            bam_copy1(b1, b); continue;
-        }
-        for(auto f: functions) f(b1, b);
-        sam_write1(ofp, hdr, b1), sam_write1(ofp, hdr, b);
-    }
-    bam_destroy1(b), bam_destroy1(b1);
-}
+	void abstract_pair_set(samFile *in, bam_hdr_t *hdr, samFile *ofp, std::unordered_set<pair_fn> functions)
+	{
+	    bam1_t *b = bam_init1(), *b1 = bam_init1();
+	    while (LIKELY(sam_read1(in, hdr, b) >= 0)) {
+	        if(b->core.flag & (BAM_FSECONDARY | BAM_FSUPPLEMENTARY)) continue;
+	        if(b->core.flag & BAM_FREAD1) {
+	            bam_copy1(b1, b); continue;
+	        }
+	        for(auto f: functions) f(b1, b);
+	        sam_write1(ofp, hdr, b1), sam_write1(ofp, hdr, b);
+	    }
+	    bam_destroy1(b), bam_destroy1(b1);
+	}
 
 #endif
 
@@ -93,13 +99,7 @@ void check_bam_tag_exit(char *bampath, const char *tag)
     if(!bampath_has_tag(bampath, tag)) LOG_EXIT("Required bam tag '%s' missing from bam file at path '%s'. Abort!\n", tag, bampath);
 }
 
-void check_bam_tag(bam1_t *b, const char *tag)
-{
-    if(!bam_aux_get(b, tag)) LOG_EXIT((char *)"Required bam tag '%s' not found. Abort mission!\n",tag);
-}
-
 #ifdef __cplusplus
-namespace dlib {
     /*
      * Applies fn
      */
@@ -167,8 +167,8 @@ namespace dlib {
      * Does not own aux.
      */
     class BedPlpAux {
-        dlib::BamHandle in;
-        dlib::BamHandle out;
+        BamHandle in;
+        BamHandle out;
         BedPlpAuxBase *aux;
         khash_t(bed) *bed;
         BedPlpAux(char *inpath, char *outpath, char *bedpath, BedPlpAuxBase *data):
@@ -186,6 +186,5 @@ namespace dlib {
             return in.bed_plp_auto(bed,fn, aux);
         }
     };
-}
-
+} /* namespace dlib */
 #endif /* ifdef __cplusplus */

@@ -15,6 +15,7 @@
 #include "bed_util.h"
 #ifdef __cplusplus
 #include <functional>
+#include <unordered_set>
 #endif
 
 typedef void (*pair_fn)(bam1_t *b, bam1_t *b1);
@@ -25,6 +26,7 @@ typedef int (*single_aux_check)(bam1_t *b, void *data);
 typedef int (*plp_fn)(const bam_pileup1_t *plp, int n_plp, void *data);
 
 #ifdef __cplusplus
+void abstract_pair_set(samFile *in, bam_hdr_t *hdr, samFile *ofp, std::unordered_set<pair_fn> functions);
 namespace dlib {
     class BamRec {
     public:
@@ -140,8 +142,15 @@ namespace dlib {
                            std::function<int (bam1_t *, void *)> func, void *data=NULL, const char *mode="wb");
     int bam_pair_apply_function(char *infname, char *outfname,
             pair_aux_fn fn, void *data=NULL, const char *mode="wb");
+	/*
+	 * Finds the index in an array tag to use for a bam_pileup1_t struct.
+	 */
+	static inline int arr_qpos(const bam_pileup1_t *plp)
+	{
+	    return (plp->b->core.flag & BAM_FREVERSE) ? plp->b->core.l_qseq - 1 - plp->qpos
+	                                              : plp->qpos;
+	}
 
-} // namespace dlib
 
 #endif /* ifdef __cplusplus */
 
@@ -165,13 +174,6 @@ static const uint8_t seq_nt16_rc[] = {15, 8, 4, 15, 2, 15, 15, 15, 1, 15, 15, 15
 #define bam_getend(b) ((b)->core.pos + bam_cigar2rlen((b)->core.n_cigar, bam_get_cigar(b)))
 #endif
 
-#ifdef __cplusplus
-// Miscellania, plus extern C
-#include <unordered_set>
-void abstract_pair_set(samFile *in, bam_hdr_t *hdr, samFile *ofp, std::unordered_set<pair_fn> functions);
-
-extern "C" {
-#endif
 static inline void add_unclipped_mate_starts(bam1_t *b1, bam1_t *b2);
 void abstract_pair_iter(samFile *in, bam_hdr_t *hdr, samFile *ofp, pair_fn function);
 void abstract_single_filter(samFile *in, bam_hdr_t *hdr, samFile *out, single_aux_check function, void *data);
@@ -240,7 +242,6 @@ static inline void add_unclipped_mate_starts(bam1_t *b1, bam1_t *b2) {
 
 int bampath_has_tag(char *bampath, const char *tag);
 void check_bam_tag_exit(char *bampath, const char *tag);
-void check_bam_tag(bam1_t *b, const char *tag);
 
 
 CONST static inline void *array_tag(bam1_t *b, const char *tag) {
@@ -306,10 +307,6 @@ static inline void add_fraction_aligned(bam1_t *b1, bam1_t *b2) {
 
 void bam_plp_set_maxcnt(bam_plp_t, int);
 
-#ifdef __cplusplus
-}
-#endif
-
 enum htseq {
     HTS_A = 1,
     HTS_C = 2,
@@ -317,6 +314,10 @@ enum htseq {
     HTS_T = 8,
     HTS_N = 15
 };
+
+#ifdef __cplusplus
+} // namespace dlib
+#endif
 
 // bam utility macros.
 
@@ -382,14 +383,6 @@ enum htseq {
             }\
         }\
     } while(0)
-/*
- * Finds the index in an array tag to use for a bam_pileup1_t struct.
- */
-static inline int arr_qpos(const bam_pileup1_t *plp)
-{
-    return (plp->b->core.flag & BAM_FREVERSE) ? plp->b->core.l_qseq - 1 - plp->qpos
-                                              : plp->qpos;
-}
 
 
 #endif // BAM_UTIL_H
