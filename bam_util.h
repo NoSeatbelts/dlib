@@ -353,17 +353,25 @@ enum htseq {
 #define set_base(pSeq, base, i) (pSeq)[(i)>>1] = ((seq_nt16_table[(int8_t)base] << (((~i) & 1) << 2)) | (((pSeq)[(i)>>1]) & (0xf0U >> (((~i) & 1) << 2))))
 
 /* @func bam_set_base sets the nucleotide at index i in read p to be set to base at index i in read b.
- * :param: p [uint8_t *] One bam record
- * :param: b [uint8_t *] Second bam record
+ * :param: pSeq [uint8_t *] One bam record's seq ptr
+ * :param: bSeq [uint8_t *] Second bam record's seq ptr
  * :param: i [index] Base position in read
  */
 #define bam_set_base(pSeq, bSeq, i) (pSeq)[(i)>>1] = ((bam_seqi(bSeq, i) << (((~i) & 1) << 2)) | (((pSeq)[(i)>>1]) & (0xf0U >> (((~i) & 1) << 2))))
 
 /* @func n_base sets the nucleotide at index i in read p to N.
- * :param: p [uint8_t *] One bam record
+ * :param: p [uint8_t *] One bam record's seq ptr
  * :param: i [index] Base position in read
  */
 #define n_base(pSeq, i) pSeq[(i)>>1] |= (0xf << ((~(i) & 1) << 2));
+
+
+/* @func bam_itag gets an integer tag for a given key.
+ * Warning: will segfault if not present! Use check_bam_tag_exit to check first.
+ * :param: b [bam1_t *] Bam record
+ * :param: key [const char *] Key for tag
+ */
+#define bam_itag(b, key) bam_aux2i(bam_aux_get(b, key))
 
 /* Just an array-checking utility for debugging. I don't see much use for this. */
 #define check_fa(arr, fm, len) \
@@ -374,17 +382,14 @@ enum htseq {
             }\
         }\
     } while(0)
-
+/*
+ * Finds the index in an array tag to use for a bam_pileup1_t struct.
+ */
 static inline int arr_qpos(const bam_pileup1_t *plp)
 {
-    /*
-    LOG_DEBUG("qpos: %i.\n", plp->qpos);
-    LOG_DEBUG("l_qseq: %i.\n", plp->b->core.l_qseq);
-    LOG_DEBUG("Arr qpos: %i.\n", (plp->b->core.flag & BAM_FREVERSE) ? plp->b->core.l_qseq - 1 - plp->qpos: plp->qpos);
-    */
-    return (plp->b->core.flag & BAM_FREVERSE) ? plp->b->core.l_qseq - 1 - plp->qpos: plp->qpos;
+    return (plp->b->core.flag & BAM_FREVERSE) ? plp->b->core.l_qseq - 1 - plp->qpos
+                                              : plp->qpos;
 }
 
-#define bam_itag(b, key) bam_aux2i(bam_aux_get(b, key))
 
 #endif // BAM_UTIL_H
