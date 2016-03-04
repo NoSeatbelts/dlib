@@ -158,7 +158,12 @@ namespace dlib {
 /*
  *bam_seqi_cmpl: returns the complement of bam_seqi.
  **/
-#define bam_seqi_cmpl(seq, index) seq_nt16_rc[bam_seqi(seq, index)]
+#ifdef __cplusplus
+#    define bam_seqi_cmpl(seq, index) dlib::seq_nt16_rc[bam_seqi(seq, index)]
+#else
+#    define bam_seqi_cmpl(seq, index) seq_nt16_rc[bam_seqi(seq, index)]
+#endif
+
 
 
 
