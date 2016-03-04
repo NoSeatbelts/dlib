@@ -14,7 +14,7 @@ void abstract_single_data(samFile *in, bam_hdr_t *hdr, samFile *out, single_aux 
     bam_destroy1(b);
 }
 
-void abstract_single_iter(samFile *in, bam_hdr_t *hdr, samFile *out, single_fn function)
+void dlib::abstract_single_iter(samFile *in, bam_hdr_t *hdr, samFile *out, single_fn function)
 {
     bam1_t *b = bam_init1();
     while (LIKELY(sam_read1(in, hdr, b) >= 0))

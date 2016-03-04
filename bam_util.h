@@ -26,8 +26,8 @@ typedef int (*single_aux_check)(bam1_t *b, void *data);
 typedef int (*plp_fn)(const bam_pileup1_t *plp, int n_plp, void *data);
 
 #ifdef __cplusplus
-void abstract_pair_set(samFile *in, bam_hdr_t *hdr, samFile *ofp, std::unordered_set<pair_fn> functions);
 namespace dlib {
+    void abstract_pair_set(samFile *in, bam_hdr_t *hdr, samFile *ofp, std::unordered_set<pair_fn> functions);
     class BamRec {
     public:
         bam1_t *b;
@@ -112,7 +112,8 @@ namespace dlib {
             return write(b.b);
         }
         int read(bam1_t *b) {
-            return iter ? bam_itr_next(fp, iter, b) :sam_read1(fp, header, b);
+            return iter ? bam_itr_next(fp, iter, b)
+                        : sam_read1(fp, header, b);
         }
         int next() {
             if(read(rec) < 0) {
@@ -179,11 +180,11 @@ static const uint8_t seq_nt16_rc[] = {15, 8, 4, 15, 2, 15, 15, 15, 1, 15, 15, 15
 #define bam_getend(b) ((b)->core.pos + bam_cigar2rlen((b)->core.n_cigar, bam_get_cigar(b)))
 #endif
 
-static inline void add_unclipped_mate_starts(bam1_t *b1, bam1_t *b2);
+static inline void dlib::add_unclipped_mate_starts(bam1_t *b1, bam1_t *b2);
 void abstract_pair_iter(samFile *in, bam_hdr_t *hdr, samFile *ofp, pair_fn function);
 void abstract_single_filter(samFile *in, bam_hdr_t *hdr, samFile *out, single_aux_check function, void *data);
 void abstract_single_data(samFile *in, bam_hdr_t *hdr, samFile *out, single_aux function, void *data);
-void abstract_single_iter(samFile *in, bam_hdr_t *hdr, samFile *out, single_fn function);
+void dlib::abstract_single_iter(samFile *in, bam_hdr_t *hdr, samFile *out, single_fn function);
 
 static inline void seq_nt16_cpy(char *read_str, uint8_t *seq, int len, int is_rev) {
     if(is_rev) {
@@ -234,10 +235,10 @@ CONST static inline int32_t get_unclipped_start(bam1_t *b)
 
 
 
-/*  @func add_unclipped_mate_starts
+/*  @func dlib::add_unclipped_mate_starts
  *  @abstract Adds the unclipped start positions for each read and its mate
  */
-static inline void add_unclipped_mate_starts(bam1_t *b1, bam1_t *b2) {
+static inline void dlib::add_unclipped_mate_starts(bam1_t *b1, bam1_t *b2) {
     const int32_t ucs1 = get_unclipped_start(b1); const int32_t ucs2 = get_unclipped_start(b2);
     bam_aux_append(b2, "MU", 'i', sizeof(int32_t), (uint8_t *)&ucs1);
     bam_aux_append(b1, "MU", 'i', sizeof(int32_t), (uint8_t *)&ucs2);
@@ -290,7 +291,7 @@ CONST static inline float bam_frac_align(bam1_t *b)
     return (float)sum / b->core.l_qseq;
 }
 
-static inline void add_sc_lens(bam1_t *b1, bam1_t *b2) {
+static inline void dlib::add_sc_lens(bam1_t *b1, bam1_t *b2) {
        const int sc1 = bam_sc_len(b1); const int sc2 = bam_sc_len(b2);
        bam_aux_append(b2, "SC", 'i', sizeof(int), (uint8_t *)&sc2);
        bam_aux_append(b2, "mc", 'i', sizeof(int), (uint8_t *)&sc1);
@@ -298,7 +299,7 @@ static inline void add_sc_lens(bam1_t *b1, bam1_t *b2) {
        bam_aux_append(b1, "mc", 'i', sizeof(int), (uint8_t *)&sc2);
 }
 
-/*  @func add_unclipped_mate_starts
+/*  @func dlib::add_unclipped_mate_starts
  *  @abstract Adds the unclipped start positions for each read and its mate
  */
 static inline void add_fraction_aligned(bam1_t *b1, bam1_t *b2) {
