@@ -7,7 +7,7 @@
 
 namespace dlib {
     double hellinger(double* arr1, double* arr2, size_t length);
-    static inline int64_t dlib::ipow(int base, int exp)
+    static inline int64_t ipow(int base, int exp)
     {
         int64_t ret = 1;
         while(exp) {

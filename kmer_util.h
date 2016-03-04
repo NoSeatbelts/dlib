@@ -17,7 +17,7 @@
 namespace dlib {
 #endif
 
-    inline void dlib::kmer2cstr(uint64_t kmer, int k, char *buf)
+    inline void kmer2cstr(uint64_t kmer, int k, char *buf)
     {
         buf[k] = '\0';
         while(k) *buf++ = num2nuc((kmer >> (2 * --k)) & 0x3u);
