@@ -331,27 +331,6 @@ enum htseq {
  */
 #define bam_pair_unmapped(b2) (((b2)->core.flag & BAM_FPAIR_UNMAPPED) == BAM_FPAIR_UNMAPPED)
 
-/* @func inc_tag increments a numeric tag with a given type
- * :param: p [bam1_t *] One bam record
- * :param: b [bam1_t *] Second bam record
- * :param: key [const char *] Bam aux key
- */
-#define inc_tag(p, b, key, type) *(type *)(bam_aux_get(p, key) + 1) += *(type *)(bam_aux_get(b, key) + 1);
-
-/* @func inc_tag_int increments an integer tag with another integer tag.
- * :param: p [bam1_t *] One bam record
- * :param: b [bam1_t *] Second bam record
- * :param: key [const char *] Bam aux key
- */
-
-#define inc_tag_int(p, b, key) inc_tag(p, b, key, int)
-/* @func inc_tag_float increments a float tag
- * :param: p [bam1_t *] One bam record
- * :param: b [bam1_t *] Second bam record
- * :param: key [const char *] Bam aux key
- */
-#define inc_tag_float(p, b, key) inc_tag(p, b, key, float)
-
 /* @func bam_set_base sets the nucleotide at index i in read p to be set to base at index i in read b.
  * :param: p [bam1_t *] One bam record
  * :param: b [char] Nucleotide to set
