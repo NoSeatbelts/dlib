@@ -65,6 +65,7 @@
     {
         khash_t(bed) *ret = kh_init(bed);
         gzFile ifp = gzopen(path, "rb");
+        if(ifp == Z_NULL) return NULL;
         const size_t bufsize = 15000;
         char *line = (char *)malloc(bufsize);
         char *tmp = NULL;

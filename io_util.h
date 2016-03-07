@@ -21,8 +21,8 @@ namespace dlib {
 #endif
     int isfile(char *fname); // True if file exists.
     int bash_system(const char *command); // Call command with bash instead of sh
-    FILE *open_ofp(char *infname);
-    FILE *open_ifp(char *infname);
+    FILE *open_ofp(const char *outfname);
+    FILE *open_ifp(const char *infname);
     int file_has_ext(char *fn, const char *ext);
     int is_bgzipped_vcf(char *fn);
     void check_popen(const char *cmd);
