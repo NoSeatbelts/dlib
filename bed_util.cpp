@@ -63,9 +63,13 @@
 
     khash_t(bed) *parse_bed_hash(const char *path, bam_hdr_t *header, uint32_t padding)
     {
+        if(!path) return NULL;
         khash_t(bed) *ret = kh_init(bed);
         gzFile ifp = gzopen(path, "rb");
-        if(ifp == Z_NULL) return NULL;
+        if(ifp == Z_NULL) {
+            LOG_INFO("Could not open file at %s for reading. Returning NULL.\n");
+            return NULL;
+        }
         const size_t bufsize = 15000;
         char *line = (char *)malloc(bufsize);
         char *tmp = NULL;
