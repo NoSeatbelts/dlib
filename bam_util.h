@@ -37,10 +37,12 @@ namespace dlib {
             LOG_DEBUG("Initialized rec at pointer %p.\n", (void *)b);
         }
         // Copy
-        BamRec(bam1_t *b) : b(bam_dup1(b)){}
+        BamRec(bam1_t *b) : b(bam_dup1(b))
+        {
+        }
         BamRec(BamRec& other) :
-        b(bam_dup1(other.b)){
-
+        b(bam_dup1(other.b))
+        {
         }
         ~BamRec() {
             if(b) bam_destroy1(b);
@@ -69,6 +71,7 @@ namespace dlib {
         const bam_pileup1_t *pileups;
         bam_plp_t plp;
         bam1_t *rec;
+        // Read constructor
         BamHandle(const char *path):
             is_write(0),
             fp(sam_open(path, "r")),
@@ -82,6 +85,7 @@ namespace dlib {
             if(!fp) LOG_EXIT("Could not open input bam %s for reading. Abort!\n", path);
             if(!idx) LOG_WARNING("Could not load index file for input bam, just FYI.\n");
         }
+        // Write constructor
         BamHandle(const char *path, bam_hdr_t *hdr, const char *mode = "wb"):
             is_write(1),
             fp(sam_open(path, mode)),
@@ -172,10 +176,12 @@ namespace dlib {
 
 #ifndef SEQ_TABLE_DEFS
 #define SEQ_TABLE_DEFS
-static const int8_t seq_comp_table[16] = {0, 8, 4, 12, 2, 10, 6, 14, 1, 9, 5, 13, 3, 11, 7, 15};
+static const int8_t seq_comp_table[] = {0, 8, 4, 12, 2, 10, 6, 14, 1, 9, 5, 13, 3, 11, 7, 15};
+static const int8_t nt16_num_table[] = {0, 1, 2, 0, 3, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 5};
 static const uint8_t seq_nt16_rc[] = {15, 8, 4, 15, 2, 15, 15, 15, 1, 15, 15, 15, 15, 15, 15, 15};
 #endif
-#define BAM_FETCH_BUFFER 150
+
+#define seqnt2num(character) dlib::nt16_num_table[(int8_t)character]
 
 // Like bam_endpos, but doesn't check that the read is mapped, as that's already been checked.
 #ifndef bam_getend
@@ -321,7 +327,8 @@ static inline void add_sc_lens(bam1_t *b1, bam1_t *b2) {
  *  @abstract Adds the unclipped start positions for each read and its mate
  */
 static inline void add_fraction_aligned(bam1_t *b1, bam1_t *b2) {
-       const float frac1 = bam_frac_align(b1); const float frac2 = bam_frac_align(b2);
+       const float frac1 = bam_frac_align(b1);
+       const float frac2 = bam_frac_align(b2);
        bam_aux_append(b2, "AF", 'f', sizeof(float), (uint8_t *)&frac2);
        bam_aux_append(b2, "MF", 'f', sizeof(float), (uint8_t *)&frac1);
        bam_aux_append(b1, "AF", 'f', sizeof(float), (uint8_t *)&frac1);

@@ -18,10 +18,6 @@
 
 #define DEFAULT_PADDING 0u
 #define NO_ID_STR ((char *)"MissingContigName")
-// Like bam_endpos, but doesn't check that the read is mapped, as that's already been checked.
-#ifndef bam_getend
-#define bam_getend(b) ((b)->core.pos + bam_cigar2rlen((b)->core.n_cigar, bam_get_cigar(b)))
-#endif
 
 
 // Bed interval query utility macros.
@@ -47,6 +43,11 @@
  * :returns: [uint64_t] Interval encoded in start/stop format.
  */
 #define to_ivl(start, stop) (start > 0 ? (((uint64_t)start) << 32 | (stop)): stop)
+
+// Like bam_endpos, but doesn't check that the read is mapped, as that's already been checked.
+#ifndef bam_getend
+#define bam_getend(b) ((b)->core.pos + bam_cigar2rlen((b)->core.n_cigar, bam_get_cigar(b)))
+#endif
 
 /*
  * struct region_set, aka region_set_t
@@ -161,6 +162,7 @@ khash_t(bed) *build_ref_hash(bam_hdr_t *header);
 void *bed_read(const char *fn);
 void bed_destroy_hash(void *);
 size_t get_nregions(khash_t(bed) *h);
+
 
 static inline int bed_test(bam1_t *b, khash_t(bed) *h)
 {
