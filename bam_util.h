@@ -341,9 +341,7 @@ static inline void add_sc_lens(bam1_t *b1, bam1_t *b2) {
 }
 
 static inline void add_qseq_len(bam1_t *b1, bam1_t *b2) {
-       bam_aux_append(b2, "LR", 'i', sizeof(int), (uint8_t *)&b2->core.l_qseq);
        bam_aux_append(b2, "LM", 'i', sizeof(int), (uint8_t *)&b1->core.l_qseq);
-       bam_aux_append(b1, "LR", 'i', sizeof(int), (uint8_t *)&b1->core.l_qseq);
        bam_aux_append(b1, "LM", 'i', sizeof(int), (uint8_t *)&b2->core.l_qseq);
 }
 
