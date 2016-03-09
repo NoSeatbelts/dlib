@@ -158,6 +158,23 @@ namespace dlib {
                                                   : plp->qpos;
     }
 
+    static const char *dlib_tags[] = {
+            "MU",
+            "SU",
+            "LM",
+            "LR",
+            "SC",
+            "ML",
+            "AF",
+            "FM"
+    };
+
+    static inline void nuke_dlib_tags(bam1_t *b) {
+        uint8_t *data;
+        for(auto tag: dlib_tags)
+            if((data = bam_aux_get(b, tag)) != NULL)
+                bam_aux_del(b, data);
+    }
 
 #endif /* ifdef __cplusplus */
 
@@ -323,6 +340,13 @@ static inline void add_sc_lens(bam1_t *b1, bam1_t *b2) {
        bam_aux_append(b1, "ML", 'i', sizeof(int), (uint8_t *)&sc2);
 }
 
+static inline void add_qseq_len(bam1_t *b1, bam1_t *b2) {
+       bam_aux_append(b2, "LR", 'i', sizeof(int), (uint8_t *)&b2->core.l_qseq);
+       bam_aux_append(b2, "LM", 'i', sizeof(int), (uint8_t *)&b1->core.l_qseq);
+       bam_aux_append(b1, "LR", 'i', sizeof(int), (uint8_t *)&b1->core.l_qseq);
+       bam_aux_append(b1, "LM", 'i', sizeof(int), (uint8_t *)&b2->core.l_qseq);
+}
+
 /*  @func add_unclipped_mate_starts
  *  @abstract Adds the unclipped start positions for each read and its mate
  */
@@ -334,7 +358,6 @@ static inline void add_fraction_aligned(bam1_t *b1, bam1_t *b2) {
        bam_aux_append(b1, "AF", 'f', sizeof(float), (uint8_t *)&frac1);
        bam_aux_append(b1, "MF", 'f', sizeof(float), (uint8_t *)&frac2);
 }
-
 
 void bam_plp_set_maxcnt(bam_plp_t, int);
 

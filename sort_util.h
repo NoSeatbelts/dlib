@@ -24,5 +24,7 @@
 
 #define bmfsort_se_key(a) (uint64_t)((uint64_t)a->core.tid<<32|(bam_aux2i(bam_aux_get(b, "SU"))+1)<<2|bam_is_rev(a))
 
+// Other sort key macros
+#define sort_rlen_key(a) (uint64_t)(((uint64_t)bam_itag(a, "LR") << 10)|bam_itag(a, "LM"))
 
 #endif /* SORT_UTIL_H */
