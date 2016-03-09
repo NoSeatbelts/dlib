@@ -28,6 +28,8 @@ typedef int (*plp_fn)(const bam_pileup1_t *plp, int n_plp, void *data);
 #ifdef __cplusplus
 namespace dlib {
     void abstract_pair_set(samFile *in, bam_hdr_t *hdr, samFile *ofp, std::unordered_set<pair_fn> functions);
+    std::string get_SO(bam_hdr_t *hdr);
+    std::string bam2cppstr(bam1_t *b);
     class BamRec {
     public:
         bam1_t *b;
@@ -180,11 +182,27 @@ static const uint8_t seq_nt16_rc[] = {15, 8, 4, 15, 2, 15, 15, 15, 1, 15, 15, 15
 #define bam_getend(b) ((b)->core.pos + bam_cigar2rlen((b)->core.n_cigar, bam_get_cigar(b)))
 #endif
 
+
+typedef struct tmp_stack {
+    size_t n, max;
+    bam1_t **a;
+} tmp_stack_t;
+
+static inline void stack_insert(tmp_stack_t *stack, bam1_t *b)
+{
+    if (stack->n == stack->max) {
+        stack->max = stack->max? stack->max<<1 : 0x10000;
+        stack->a = (bam1_t**)realloc(stack->a, sizeof(bam1_t*) * stack->max);
+    }
+    stack->a[stack->n++] = bam_dup1(b);
+}
+
 static inline void add_unclipped_mate_starts(bam1_t *b1, bam1_t *b2);
 void abstract_pair_iter(samFile *in, bam_hdr_t *hdr, samFile *ofp, pair_fn function);
 void abstract_single_filter(samFile *in, bam_hdr_t *hdr, samFile *out, single_aux_check function, void *data);
 void abstract_single_data(samFile *in, bam_hdr_t *hdr, samFile *out, single_aux function, void *data);
 void abstract_single_iter(samFile *in, bam_hdr_t *hdr, samFile *out, single_fn function);
+void resize_stack(tmp_stack_t *stack, size_t n);
 
 static inline void seq_nt16_cpy(char *read_str, uint8_t *seq, int len, int is_rev) {
     if(is_rev) {
@@ -294,9 +312,9 @@ CONST static inline float bam_frac_align(bam1_t *b)
 static inline void add_sc_lens(bam1_t *b1, bam1_t *b2) {
        const int sc1 = bam_sc_len(b1); const int sc2 = bam_sc_len(b2);
        bam_aux_append(b2, "SC", 'i', sizeof(int), (uint8_t *)&sc2);
-       bam_aux_append(b2, "mc", 'i', sizeof(int), (uint8_t *)&sc1);
+       bam_aux_append(b2, "ML", 'i', sizeof(int), (uint8_t *)&sc1);
        bam_aux_append(b1, "SC", 'i', sizeof(int), (uint8_t *)&sc1);
-       bam_aux_append(b1, "mc", 'i', sizeof(int), (uint8_t *)&sc2);
+       bam_aux_append(b1, "ML", 'i', sizeof(int), (uint8_t *)&sc2);
 }
 
 /*  @func add_unclipped_mate_starts
