@@ -14,6 +14,10 @@
 # define num2nuc(x) NUM2NUC_STR[(uint8_t)x]
 #endif
 
+#ifndef BINFINITY
+#define BINFINITY 18446744073709551615uL
+#endif
+
 #ifdef __cplusplus
 namespace dlib {
 #endif
