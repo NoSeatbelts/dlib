@@ -162,17 +162,16 @@ namespace dlib {
             "MU",
             "SU",
             "LM",
-            "LR",
             "SC",
             "ML",
             "AF",
-            "FM"
+            "MF"
     };
 
     static inline void nuke_dlib_tags(bam1_t *b) {
         uint8_t *data;
         for(auto tag: dlib_tags)
-            if((data = bam_aux_get(b, tag)) != NULL)
+            if((data = bam_aux_get(b, tag)) != nullptr)
                 bam_aux_del(b, data);
     }
 
@@ -293,9 +292,7 @@ void check_bam_tag_exit(char *bampath, const char *tag);
 
 CONST static inline void *array_tag(bam1_t *b, const char *tag) {
     uint8_t *data = bam_aux_get(b, tag);
-    if(!data) {
-        LOG_EXIT("Missing tag %s. Abort!\n", tag);
-    }
+    if(!data) LOG_EXIT("Missing tag %s. Abort!\n", tag);
     char tagtype = *data++;
     if(UNLIKELY(tagtype != 'B')) LOG_EXIT("Incorrect byte %c where B expected in array tag for key %s. Abort!\n", tagtype, tag);
     switch(*data++) {
@@ -404,16 +401,6 @@ enum htseq {
  * :param: key [const char *] Key for tag
  */
 #define bam_itag(b, key) bam_aux2i(bam_aux_get(b, key))
-
-/* Just an array-checking utility for debugging. I don't see much use for this. */
-#define check_fa(arr, fm, len) \
-    do {\
-        for(int i##arr = 0; i##arr < len; ++i##arr) {\
-            if(arr[i##arr] > fm){\
-                LOG_EXIT((char *)"%u arr value greater than FM %u.\n", arr[i##arr], fm);\
-            }\
-        }\
-    } while(0)
 
 
 #endif // BAM_UTIL_H
