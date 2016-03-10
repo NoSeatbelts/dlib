@@ -2,6 +2,7 @@
 #define KMER_UTIL_H
 #include <assert.h>
 #include "logging_util.h"
+#include "bam_util.h"
 // Largest odd kmer that can be held in a uint64_t
 #define MAX_KMER 31
 #define DEFAULT_KMER 21
@@ -34,6 +35,90 @@ namespace dlib {
         return 0; // This is reverse-complementarily palindromic. Doesn't matter: it's the same string.
     }
 
+#ifdef __cplusplus
+    inline void bam_set_kmer(uint64_t &ret, uint8_t *seq, int cpos, int is_lt,
+                             uint64_t kmer_mask, int k) {
+        ret = 0;
+        if(is_lt) {
+            for(int i = cpos; i < cpos + k; ++i) {
+                ret <<= 2;
+                switch(bam_seqi(seq, i)) {
+                    case htseq::HTS_A:
+                        break;
+                    case htseq::HTS_C:
+                        ret |= 1; break;
+                    case htseq::HTS_G:
+                        ret |= 2; break;
+                    case htseq::HTS_T:
+                        ret |= 3; break;
+                    default:
+                        ret = BINFINITY; return;
+                }
+                ret &= kmer_mask;
+            }
+        } else {
+            for(int i = cpos + k - 1; i >= cpos;--i) {
+                ret <<= 2;
+                switch (bam_seqi(seq, i)) {
+                    case htseq::HTS_A:
+                        ret |= 3; break;
+                    case htseq::HTS_C:
+                        ret |= 2; break;
+                    case htseq::HTS_G:
+                        ret |= 1; break;
+                    case htseq::HTS_T:
+                        break;
+                    default:
+                        ret = BINFINITY; return;
+                }
+                ret &= kmer_mask;
+            }
+        }
+    } /*bam_set_kmer*/
+
+    inline void cstr_set_kmer(uint64_t &ret, char *seq, int cpos, int is_lt,
+                              uint64_t kmer_mask, int k) {
+        ret = 0;
+        //LOG_DEBUG("Seq: %s at pointer %p.", seq, (void *)seq);
+        if(is_lt) {
+            seq += cpos;
+            for(;k; --k) {
+                ret <<= 2;
+                switch (*seq++) {
+                  case 'A': case 'a':
+                    break;
+                  case 'C': case 'c':
+                    ret |= 1; break;
+                  case 'G': case 'g':
+                    ret |= 2; break;
+                  case 'T': case 't':
+                    ret |= 3; break;
+                  default:
+                    ret = BINFINITY; return;
+                }
+                ret &= kmer_mask;
+            }
+        } else {
+            seq += cpos + k;
+            for(;k; --k) {
+                ret <<= 2;
+                switch (*--seq) {
+                  case 'A': case 'a':
+                    ret |= 3; break;
+                  case 'C': case 'c':
+                    ret |= 2; break;
+                  case 'G': case 'g':
+                    ret |= 1; break;
+                  case 'T': case 't':
+                    break;
+                  default:
+                    ret = BINFINITY; return;
+                }
+                ret &= kmer_mask;
+            }
+        }
+    } /*cstr_set_kmer*/
+#endif /* ifdef __cplusplus */
 
 #ifdef __cplusplus
 }
