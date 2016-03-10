@@ -24,6 +24,17 @@ namespace dlib {
         //LOG_DEBUG("kmer %lu has now become string '%s'.\n", kmer, start);
     }
 
+    // Used to determine the direction in which to encode a kmer
+    inline int cstr_rc_lt(char *seq, int k, int cpos) {
+        char *_seq1 = cpos + seq, *_seq2 = _seq1 + k - 1;
+        for(;k;--k) {
+            if(*_seq1 != nuc_cmpl(*_seq2)) return *_seq1 < nuc_cmpl(*_seq2);
+            ++_seq1, --_seq2;
+        }
+        return 0; // This is reverse-complementarily palindromic. Doesn't matter: it's the same string.
+    }
+
+
 #ifdef __cplusplus
 }
 #endif
