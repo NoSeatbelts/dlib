@@ -36,6 +36,86 @@ void abstract_single_filter(samFile *in, bam_hdr_t *hdr, samFile *out, single_au
 
 #ifdef __cplusplus
 
+    std::string bam2cppstr(bam1_t *b)
+    {
+        char *qual, *seqbuf;
+        int i;
+        uint8_t *seq, *rvdata;
+        uint32_t *pv, *fa;
+        int8_t t;
+        kstring_t ks = {0, 0, nullptr};
+        ksprintf(&ks, "@%s PV:B:I", bam_get_qname(b));
+        pv = (uint32_t *)dlib::array_tag(b, "PV");
+        fa = (uint32_t *)dlib::array_tag(b, "FA");
+        for(i = 0; i < b->core.l_qseq; ++i) ksprintf(&ks, ",%u", pv[i]);
+        kputs("\tFA:B:I", &ks);
+        for(i = 0; i < b->core.l_qseq; ++i) ksprintf(&ks, ",%u", fa[i]);
+        ksprintf(&ks, "\tFM:i:%i\tFP:i:%i\tNC:i:%i",
+                bam_itag(b, "FM"), bam_itag(b, "FP"), bam_itag(b, "NC"));
+        if((rvdata = bam_aux_get(b, "RV")) != nullptr)
+            ksprintf(&ks, "\tRV:i:%i", bam_aux2i(rvdata));
+        kputc('\n', &ks);
+        seq = bam_get_seq(b);
+        seqbuf = (char *)malloc(b->core.l_qseq + 1);
+        for (i = 0; i < b->core.l_qseq; ++i) seqbuf[i] = seq_nt16_str[bam_seqi(seq, i)];
+        seqbuf[i] = '\0';
+        if (b->core.flag & BAM_FREVERSE) { // reverse complement
+            for(i = 0; i < b->core.l_qseq>>1; ++i) {
+                t = seqbuf[b->core.l_qseq - i - 1];
+                seqbuf[b->core.l_qseq - i - 1] = nuc_cmpl(seqbuf[i]);
+                seqbuf[i] = nuc_cmpl(t);
+            }
+            if(b->core.l_qseq&1) seqbuf[i] = nuc_cmpl(seqbuf[i]);
+        }
+        seqbuf[b->core.l_qseq] = '\0';
+        assert(strlen(seqbuf) == (uint64_t)b->core.l_qseq);
+        kputs(seqbuf, &ks);
+        kputs("\n+\n", &ks);
+        qual = (char *)bam_get_qual(b);
+        for(i = 0; i < b->core.l_qseq; ++i) seqbuf[i] = 33 + qual[i];
+        if (b->core.flag & BAM_FREVERSE) { // reverse
+            for (i = 0; i < b->core.l_qseq>>1; ++i) {
+                t = seqbuf[b->core.l_qseq - 1 - i];
+                seqbuf[b->core.l_qseq - 1 - i] = seqbuf[i];
+                seqbuf[i] = t;
+            }
+        }
+        assert(strlen(seqbuf) == (uint64_t)b->core.l_qseq);
+        kputs(seqbuf, &ks), free(seqbuf);
+        kputc('\n', &ks);
+        std::string ret(ks.s), free(ks.s);
+        return ret;
+    }
+
+    std::string get_SO(bam_hdr_t *hdr) {
+        char *end, *so_start;
+        std::string ret;
+        if (strncmp(hdr->text, "@HD", 3) != 0) goto NA;
+        if ((end = strchr(hdr->text, '\n')) == 0) goto NA;
+        *end = '\0';
+
+        if((so_start = strstr(hdr->text, "SO:")) == nullptr) goto NA;
+        ret = std::string(so_start + strlen("SO:"));
+        *end = '\n';
+        return ret;
+
+        NA:
+        LOG_WARNING("Sort order not found. Returning N/A.\n");
+        return std::string("N/A");
+    }
+
+    void resize_stack(tmp_stack_t *stack, size_t n) {
+        if(n > stack->max) {
+            stack->max = n;
+            stack->a = (bam1_t **)realloc(stack->a, sizeof(bam1_t *) * n);
+            if(!stack->a) LOG_EXIT("Failed to reallocate memory for %lu bam1_t * objects. Abort!\n", stack->max);
+        } else if(n < stack->n){
+            for(uint64_t i = stack->n;i > n;) free(stack->a[--i]->data);
+            stack->max = n;
+            stack->a = (bam1_t **)realloc(stack->a, sizeof(bam1_t *) * n);
+        }
+    }
+
     void abstract_pair_set(samFile *in, bam_hdr_t *hdr, samFile *ofp, std::unordered_set<pair_fn> functions)
     {
         bam1_t *b = bam_init1(), *b1 = bam_init1();

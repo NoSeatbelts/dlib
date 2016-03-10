@@ -11,7 +11,7 @@
         std::sort(keyset.begin(), keyset.end(), [](std::pair<khint_t, khiter_t> p1, std::pair<khint_t, khiter_t> p2) {
                 return p1.first < p2.first;
         });
-        std::vector<khiter_t> ret = std::vector<khiter_t>();
+        std::vector<khiter_t> ret;
         for(auto tup: keyset) ret.push_back(tup.second);
         return ret;
     }
@@ -24,7 +24,7 @@
         std::sort(keyset.begin(), keyset.end(), [](std::pair<K,V> p1, std::pair<K,V> p2){
             return p1.second < p2.second;
         });
-        std::vector<K> ret = std::vector<K>();
+        std::vector<K> ret();
         ret.reserve(keyset.size());
         for(auto& pair: keyset) ret.push_back(pair.first);
         return ret;
@@ -98,7 +98,8 @@
                 ksprintf(&ks, "|%s|tid:%u|region_num:%lu|", ((tok = strtok(NULL, "\t")) != NULL) ? tok: NO_ID_STR, kh_key(ret, k), ++region_num);
                 kh_val(ret, k).contig_name = ks_release(&ks);
             } else {
-                kh_val(ret, k).intervals = (uint64_t *)realloc(kh_val(ret, k).intervals, (kh_val(ret, k).n + 1)* sizeof(uint64_t));
+                kh_val(ret, k).intervals = (uint64_t *)realloc(kh_val(ret, k).intervals,
+                                                               (kh_val(ret, k).n + 1)* sizeof(uint64_t));
                 if(!kh_val(ret, k).intervals) LOG_EXIT("Could not allocate memory. Abort mission!\n");
                 kh_val(ret, k).intervals[kh_val(ret, k).n++] = to_ivl(start - padding, stop + padding);
             }

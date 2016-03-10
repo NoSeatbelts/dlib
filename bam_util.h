@@ -28,6 +28,8 @@ typedef int (*plp_fn)(const bam_pileup1_t *plp, int n_plp, void *data);
 #ifdef __cplusplus
 namespace dlib {
     void abstract_pair_set(samFile *in, bam_hdr_t *hdr, samFile *ofp, std::unordered_set<pair_fn> functions);
+    std::string get_SO(bam_hdr_t *hdr);
+    std::string bam2cppstr(bam1_t *b);
     class BamRec {
     public:
         bam1_t *b;
@@ -35,10 +37,12 @@ namespace dlib {
             LOG_DEBUG("Initialized rec at pointer %p.\n", (void *)b);
         }
         // Copy
-        BamRec(bam1_t *b) : b(bam_dup1(b)){}
+        BamRec(bam1_t *b) : b(bam_dup1(b))
+        {
+        }
         BamRec(BamRec& other) :
-        b(bam_dup1(other.b)){
-
+        b(bam_dup1(other.b))
+        {
         }
         ~BamRec() {
             if(b) bam_destroy1(b);
@@ -67,6 +71,7 @@ namespace dlib {
         const bam_pileup1_t *pileups;
         bam_plp_t plp;
         bam1_t *rec;
+        // Read constructor
         BamHandle(const char *path):
             is_write(0),
             fp(sam_open(path, "r")),
@@ -80,6 +85,7 @@ namespace dlib {
             if(!fp) LOG_EXIT("Could not open input bam %s for reading. Abort!\n", path);
             if(!idx) LOG_WARNING("Could not load index file for input bam, just FYI.\n");
         }
+        // Write constructor
         BamHandle(const char *path, bam_hdr_t *hdr, const char *mode = "wb"):
             is_write(1),
             fp(sam_open(path, mode)),
@@ -152,6 +158,22 @@ namespace dlib {
                                                   : plp->qpos;
     }
 
+    static const char *dlib_tags[] = {
+            "MU",
+            "SU",
+            "LM",
+            "SC",
+            "ML",
+            "AF",
+            "MF"
+    };
+
+    static inline void nuke_dlib_tags(bam1_t *b) {
+        uint8_t *data;
+        for(auto tag: dlib_tags)
+            if((data = bam_aux_get(b, tag)) != nullptr)
+                bam_aux_del(b, data);
+    }
 
 #endif /* ifdef __cplusplus */
 
@@ -170,21 +192,39 @@ namespace dlib {
 
 #ifndef SEQ_TABLE_DEFS
 #define SEQ_TABLE_DEFS
-static const int8_t seq_comp_table[16] = {0, 8, 4, 12, 2, 10, 6, 14, 1, 9, 5, 13, 3, 11, 7, 15};
+static const int8_t seq_comp_table[] = {0, 8, 4, 12, 2, 10, 6, 14, 1, 9, 5, 13, 3, 11, 7, 15};
+static const int8_t nt16_num_table[] = {0, 1, 2, 0, 3, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 5};
 static const uint8_t seq_nt16_rc[] = {15, 8, 4, 15, 2, 15, 15, 15, 1, 15, 15, 15, 15, 15, 15, 15};
 #endif
-#define BAM_FETCH_BUFFER 150
+
+#define seqnt2num(character) dlib::nt16_num_table[(int8_t)character]
 
 // Like bam_endpos, but doesn't check that the read is mapped, as that's already been checked.
 #ifndef bam_getend
 #define bam_getend(b) ((b)->core.pos + bam_cigar2rlen((b)->core.n_cigar, bam_get_cigar(b)))
 #endif
 
+
+typedef struct tmp_stack {
+    size_t n, max;
+    bam1_t **a;
+} tmp_stack_t;
+
+static inline void stack_insert(tmp_stack_t *stack, bam1_t *b)
+{
+    if (stack->n == stack->max) {
+        stack->max = stack->max? stack->max<<1 : 0x10000;
+        stack->a = (bam1_t**)realloc(stack->a, sizeof(bam1_t*) * stack->max);
+    }
+    stack->a[stack->n++] = bam_dup1(b);
+}
+
 static inline void add_unclipped_mate_starts(bam1_t *b1, bam1_t *b2);
 void abstract_pair_iter(samFile *in, bam_hdr_t *hdr, samFile *ofp, pair_fn function);
 void abstract_single_filter(samFile *in, bam_hdr_t *hdr, samFile *out, single_aux_check function, void *data);
 void abstract_single_data(samFile *in, bam_hdr_t *hdr, samFile *out, single_aux function, void *data);
 void abstract_single_iter(samFile *in, bam_hdr_t *hdr, samFile *out, single_fn function);
+void resize_stack(tmp_stack_t *stack, size_t n);
 
 static inline void seq_nt16_cpy(char *read_str, uint8_t *seq, int len, int is_rev) {
     if(is_rev) {
@@ -252,9 +292,7 @@ void check_bam_tag_exit(char *bampath, const char *tag);
 
 CONST static inline void *array_tag(bam1_t *b, const char *tag) {
     uint8_t *data = bam_aux_get(b, tag);
-    if(!data) {
-        LOG_EXIT("Missing tag %s. Abort!\n", tag);
-    }
+    if(!data) LOG_EXIT("Missing tag %s. Abort!\n", tag);
     char tagtype = *data++;
     if(UNLIKELY(tagtype != 'B')) LOG_EXIT("Incorrect byte %c where B expected in array tag for key %s. Abort!\n", tagtype, tag);
     switch(*data++) {
@@ -294,22 +332,27 @@ CONST static inline float bam_frac_align(bam1_t *b)
 static inline void add_sc_lens(bam1_t *b1, bam1_t *b2) {
        const int sc1 = bam_sc_len(b1); const int sc2 = bam_sc_len(b2);
        bam_aux_append(b2, "SC", 'i', sizeof(int), (uint8_t *)&sc2);
-       bam_aux_append(b2, "mc", 'i', sizeof(int), (uint8_t *)&sc1);
+       bam_aux_append(b2, "ML", 'i', sizeof(int), (uint8_t *)&sc1);
        bam_aux_append(b1, "SC", 'i', sizeof(int), (uint8_t *)&sc1);
-       bam_aux_append(b1, "mc", 'i', sizeof(int), (uint8_t *)&sc2);
+       bam_aux_append(b1, "ML", 'i', sizeof(int), (uint8_t *)&sc2);
+}
+
+static inline void add_qseq_len(bam1_t *b1, bam1_t *b2) {
+       bam_aux_append(b2, "LM", 'i', sizeof(int), (uint8_t *)&b1->core.l_qseq);
+       bam_aux_append(b1, "LM", 'i', sizeof(int), (uint8_t *)&b2->core.l_qseq);
 }
 
 /*  @func add_unclipped_mate_starts
  *  @abstract Adds the unclipped start positions for each read and its mate
  */
 static inline void add_fraction_aligned(bam1_t *b1, bam1_t *b2) {
-       const float frac1 = bam_frac_align(b1); const float frac2 = bam_frac_align(b2);
+       const float frac1 = bam_frac_align(b1);
+       const float frac2 = bam_frac_align(b2);
        bam_aux_append(b2, "AF", 'f', sizeof(float), (uint8_t *)&frac2);
        bam_aux_append(b2, "MF", 'f', sizeof(float), (uint8_t *)&frac1);
        bam_aux_append(b1, "AF", 'f', sizeof(float), (uint8_t *)&frac1);
        bam_aux_append(b1, "MF", 'f', sizeof(float), (uint8_t *)&frac2);
 }
-
 
 void bam_plp_set_maxcnt(bam_plp_t, int);
 
@@ -358,16 +401,6 @@ enum htseq {
  * :param: key [const char *] Key for tag
  */
 #define bam_itag(b, key) bam_aux2i(bam_aux_get(b, key))
-
-/* Just an array-checking utility for debugging. I don't see much use for this. */
-#define check_fa(arr, fm, len) \
-    do {\
-        for(int i##arr = 0; i##arr < len; ++i##arr) {\
-            if(arr[i##arr] > fm){\
-                LOG_EXIT((char *)"%u arr value greater than FM %u.\n", arr[i##arr], fm);\
-            }\
-        }\
-    } while(0)
 
 
 #endif // BAM_UTIL_H
