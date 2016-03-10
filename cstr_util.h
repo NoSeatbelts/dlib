@@ -28,6 +28,7 @@ KSEQ_INIT(gzFile, gzread)
 
 #ifdef __cplusplus
 #include <string>
+#include <sstream>
 
 using namespace std::string_literals; // For ""s suffix for std::string literals.
 namespace dlib {
