@@ -360,8 +360,11 @@ CONST static inline float bam_frac_align(bam1_t *b)
     int sum = 0;
     uint32_t *cigar = bam_get_cigar(b);
     for(unsigned i = 0; i < b->core.n_cigar; ++i)
-        if(bam_cigar_op(cigar[i]) & (BAM_CMATCH | BAM_CEQUAL | BAM_CDIFF))
+        switch(bam_cigar_op(cigar[i])) {
+        case BAM_CMATCH: case BAM_CEQUAL: case BAM_CDIFF:
             sum += bam_cigar_oplen(cigar[i]);
+            // Default: do nothing
+        }
     return (float)sum / b->core.l_qseq;
 }
 
@@ -376,13 +379,14 @@ static inline void add_sc_lens(bam1_t *b1, bam1_t *b2) {
 /* Set the bit flag for QC fail for reads where the barcode is failed.
  */
 static inline int bitset_qcfail(bam1_t *b1, bam1_t *b2) {
-       if(bam_itag(b1, "FP") == 0) {
-           // Both reads are failed, since they share the barcode
-           b1->core.flag |= BAM_FQCFAIL;
-           b2->core.flag |= BAM_FQCFAIL;
-           return 1;
-        }
-       return 0;
+    uint8_t *data;
+    if((data = bam_aux_get(b1, "FP")) != NULL && bam_aux2i(data) == 0) {
+    // Both reads are failed, since they share the barcode
+        b1->core.flag |= BAM_FQCFAIL;
+        b2->core.flag |= BAM_FQCFAIL;
+        return 1;
+    }
+   return 0;
 }
 
 static inline void add_qseq_len(bam1_t *b1, bam1_t *b2) {
