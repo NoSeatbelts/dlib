@@ -49,6 +49,9 @@
 #define bam_getend(b) ((b)->core.pos + bam_cigar2rlen((b)->core.n_cigar, bam_get_cigar(b)))
 #endif
 
+
+
+
 /*
  * struct region_set, aka region_set_t
  * Struct holding an array of intervals and a count for the number of intervals.
@@ -75,121 +78,107 @@ KHASH_MAP_INIT_INT(bed, region_set_t)
 #include <unordered_set>
 #include <algorithm>
 namespace dlib {
-
-class ParsedBed;
-class RegionSet {
-    friend ParsedBed;
-    std::vector<uint64_t> intervals;
-    std::string contig_name;
-    std::vector<std::string> region_names;
-    RegionSet(): intervals(std::vector<uint64_t>()),
-                 contig_name(""),
-                 region_names(0)
-    {
-    }
-public:
-    RegionSet(int start, int stop, char *refname, char *region_name): intervals(1, to_ivl(start, stop)),
-            contig_name(refname ? refname: NO_ID_STR),
-            region_names(1, region_name){
-    }
-    void add_region(int start, int stop, char *region_name) {
-        intervals.emplace_back(to_ivl(start, stop));
-        region_names.emplace_back(region_name);
-        assert(region_names.size() == intervals.size());
-    }
-};
-class ParsedBed {
-    std::vector<int> sorted_keys;
-    std::unordered_map<int, RegionSet> contig_hash;
-    int test(int tid, int pos) {
-        auto match = contig_hash.find(tid);
-        if(match == contig_hash.end())
-            return 0;
-        for(auto& ivl: match->second.intervals)
-            if(pos >= get_start(ivl) && pos < get_stop(ivl)) return 1;
-        return 0;
-    }
-    int bcf1_test(bcf1_t *vrec) {
-        return test(vrec->rid, vrec->pos);
-    }
-public:
-    int bam1_test(bam1_t *b) {
-        if(b->core.flag & BAM_FUNMAP) return 0;
-        return test(b->core.tid, b->core.pos);
-    }
-    ParsedBed(const char *path, bam_hdr_t *header, uint32_t padding=DEFAULT_PADDING) {
-        contig_hash = std::unordered_map<int, RegionSet>();
-        FILE *ifp = fopen(path, "r");
-        char *line = NULL;
-        char *tok = NULL;
-        size_t len = 0;
-        ssize_t read;
-        int tid;
-        int64_t start, stop;
-        std::unordered_map<int, RegionSet>::iterator it;
-        std::unordered_set<int> keyset;
-        while ((read = getline(&line, &len, ifp)) != -1) {
-            switch(*line) {
-                case '\0': case '#': continue;
-            }
-            tok = strtok(line, "\t");
-            tid = bam_name2id(header, tok);
-            keyset.insert(tid);
-            tok = strtok(NULL, "\t");
-            start = strtoll(tok, NULL, 10) - padding;
-            tok = strtok(NULL, "\t");
-            stop = strtoll(tok, NULL, 10) + padding;
-            tok = strtok(NULL, "\t");
-            if((it = contig_hash.find(tid)) == contig_hash.end())
-                contig_hash.emplace(std::make_pair(tid, RegionSet(start, stop, header->target_name[tid], tok ? tok: NO_ID_STR)));
-            else it->second.add_region(start, stop, tok ? tok: NO_ID_STR);
-        }
-        sorted_keys = std::vector<int>(keyset.begin(), keyset.end());
-        keyset.clear();
-        std::sort(sorted_keys.begin(), sorted_keys.end());
-        fclose(ifp);
-    }
-};
 #endif
-
-int intcmp(const void *a, const void *b); // Compare intervals for sorting by start
-void sort_bed(khash_t(bed) *bed);
-khash_t(bed) *parse_bed_hash(const char *path, bam_hdr_t *header, uint32_t padding);
-khash_t(bed) *build_ref_hash(bam_hdr_t *header);
-void *bed_read(const char *fn);
-void bed_destroy_hash(void *);
-size_t get_nregions(khash_t(bed) *h);
-
-
-static inline int bed_test(bam1_t *b, khash_t(bed) *h)
-{
-    khint_t k;
-    if(b->core.flag & BAM_FUNMAP) return 0;
-    if((k = kh_get(bed, h, b->core.tid)) == kh_end(h)) return 0;
-    for(uint64_t i = 0; i < kh_val(h, k).n; ++i) {
-        if(get_start(kh_val(h, k).intervals[i]) <= bam_getend(b) &&
-                b->core.pos <= get_stop(kh_val(h, k).intervals[i])) {
-            return 1;
+    khash_t(bed) *parse_bed_hash(const char *path, bam_hdr_t *header, uint32_t padding);
+    int intcmp(const void *a, const void *b); // Compare intervals for sorting by start
+    void sort_bed(khash_t(bed) *bed);
+    khash_t(bed) *build_ref_hash(bam_hdr_t *header);
+    void *bed_read(const char *fn);
+    void bed_destroy_hash(void *);
+    size_t get_nregions(khash_t(bed) *h);
+#ifdef __cplusplus
+    std::vector<khiter_t> make_sorted_keys(khash_t(bed) *h);
+    class ParsedBed;
+    class RegionSet {
+        friend ParsedBed;
+        std::vector<uint64_t> intervals;
+        std::string contig_name;
+        std::vector<std::string> region_names;
+        RegionSet(): intervals(std::vector<uint64_t>()),
+                     contig_name(""),
+                     region_names(0)
+        {
         }
-    }
-    return 0;
-}
+    public:
+        RegionSet(int start, int stop, char *refname, char *region_name): intervals(1, to_ivl(start, stop)),
+                contig_name(refname ? refname: NO_ID_STR),
+                region_names(1, region_name){
+        }
+        void add_region(int start, int stop, char *region_name) {
+            intervals.emplace_back(to_ivl(start, stop));
+            region_names.emplace_back(region_name);
+            assert(region_names.size() == intervals.size());
+        }
+    };
+    class ParsedBed {
+        khash_t(bed) *contig_hash;
+        std::vector<khiter_t> sorted_keys;
+    public:
+        int test(int tid, int pos) {
+            khiter_t k;
+            if((k = kh_get(bed, contig_hash, tid)) == kh_end(contig_hash)) return 0;
+            for(uint64_t i = 0; i < kh_val(contig_hash, k).n; ++i) {
+                if(get_start(kh_val(contig_hash, k).intervals[i]) <= pos &&
+                        pos < get_stop(kh_val(contig_hash, k).intervals[i])) {
+                    return 1;
+                }
+            }
+            return 0;
+        }
+        int bcf1_test(bcf1_t *vrec) {
+            return test(vrec->rid, vrec->pos);
+        }
+        int bam1_test(bam1_t *b) {
+            if(b->core.flag & BAM_FUNMAP) return 0;
+            khiter_t k;
+            if((k = kh_get(bed, contig_hash, b->core.tid)) == kh_end(contig_hash)) return 0;
+            for(uint64_t i = 0; i < kh_val(contig_hash, k).n; ++i) {
+                if(get_start(kh_val(contig_hash, k).intervals[i]) <= bam_getend(b) &&
+                        b->core.pos < get_stop(kh_val(contig_hash, k).intervals[i])) {
+                    return 1;
+                }
+            }
+            return 0;
+        }
+        ~ParsedBed() {
+            bed_destroy_hash(contig_hash);
+        }
+        ParsedBed(const char *path, bam_hdr_t *header, uint32_t padding=DEFAULT_PADDING) :
+            contig_hash(parse_bed_hash(path, header, padding)),
+            sorted_keys(make_sorted_keys(contig_hash))
+        {
+        }
+    };
+    #endif
 
-
-static inline int vcf_bed_test(bcf1_t *b, khash_t(bed) *h)
-{
-    khint_t k;
-    if((k = kh_get(bed, h, b->rid)) == kh_end(h))
+    static inline int bed_test(bam1_t *b, khash_t(bed) *h)
+    {
+        khint_t k;
+        if(b->core.flag & BAM_FUNMAP) return 0;
+        if((k = kh_get(bed, h, b->core.tid)) == kh_end(h)) return 0;
+        for(uint64_t i = 0; i < kh_val(h, k).n; ++i) {
+            if(get_start(kh_val(h, k).intervals[i]) <= bam_getend(b) &&
+                    b->core.pos <= get_stop(kh_val(h, k).intervals[i])) {
+                return 1;
+            }
+        }
         return 0;
-    for(uint64_t i = 0; i < kh_val(h, k).n; ++i) {
-        if(b->pos >= get_start(kh_val(h, k).intervals[i]) && b->pos < get_stop(kh_val(h, k).intervals[i]))
-            return 1;
     }
-    return 0;
-}
+
+
+    static inline int vcf_bed_test(bcf1_t *b, khash_t(bed) *h)
+    {
+        khint_t k;
+        if((k = kh_get(bed, h, b->rid)) == kh_end(h))
+            return 0;
+        for(uint64_t i = 0; i < kh_val(h, k).n; ++i) {
+            if(b->pos >= get_start(kh_val(h, k).intervals[i]) && b->pos < get_stop(kh_val(h, k).intervals[i]))
+                return 1;
+        }
+        return 0;
+    }
 
 #ifdef __cplusplus
-std::vector<khiter_t> make_sorted_keys(khash_t(bed) *h);
 
 } /* namespace dlib */
 #endif
