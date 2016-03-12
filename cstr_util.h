@@ -36,7 +36,7 @@ namespace dlib {
 /* sprintf's to the buffer in string.
  * If not long enough, everything breaks. Be careful!
 */
-#define stringprintf(str, ...) str.resize(sprintf((char *)str.data(), ##__VA_ARGS__))
+#define stringprintf(str, ...) str.resize(sprintf((char *)str.data(), ##__VA_ARGS__) + 1)
 #endif
 
     /*
