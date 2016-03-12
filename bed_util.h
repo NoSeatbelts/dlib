@@ -83,7 +83,9 @@ class RegionSet {
     std::string contig_name;
     std::vector<std::string> region_names;
     RegionSet(): intervals(std::vector<uint64_t>()),
-            contig_name(""){
+                 contig_name(""),
+                 region_names(0)
+    {
     }
 public:
     RegionSet(int start, int stop, char *refname, char *region_name): intervals(1, to_ivl(start, stop)),
@@ -113,12 +115,7 @@ class ParsedBed {
 public:
     int bam1_test(bam1_t *b) {
         if(b->core.flag & BAM_FUNMAP) return 0;
-        auto match = contig_hash.find(b->core.tid);
-        if(match == contig_hash.end())
-            return 0;
-        for(auto& ivl: match->second.intervals)
-            if(bam_getend(b) >= get_start(ivl) && b->core.pos < get_stop(ivl)) return 1;
-        return 0;
+        return test(b->core.tid, b->core.pos);
     }
     ParsedBed(const char *path, bam_hdr_t *header, uint32_t padding=DEFAULT_PADDING) {
         contig_hash = std::unordered_map<int, RegionSet>();
@@ -144,7 +141,7 @@ public:
             stop = strtoll(tok, NULL, 10) + padding;
             tok = strtok(NULL, "\t");
             if((it = contig_hash.find(tid)) == contig_hash.end())
-                it->second = RegionSet(start, stop, header->target_name[tid], tok ? tok: NO_ID_STR);
+                contig_hash.emplace(std::make_pair(tid, RegionSet(start, stop, header->target_name[tid], tok ? tok: NO_ID_STR)));
             else it->second.add_region(start, stop, tok ? tok: NO_ID_STR);
         }
         sorted_keys = std::vector<int>(keyset.begin(), keyset.end());
@@ -167,6 +164,7 @@ size_t get_nregions(khash_t(bed) *h);
 static inline int bed_test(bam1_t *b, khash_t(bed) *h)
 {
     khint_t k;
+    if(b->core.flag & BAM_FUNMAP) return 0;
     if((k = kh_get(bed, h, b->core.tid)) == kh_end(h)) return 0;
     for(uint64_t i = 0; i < kh_val(h, k).n; ++i) {
         if(get_start(kh_val(h, k).intervals[i]) <= bam_getend(b) &&

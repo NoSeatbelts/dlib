@@ -66,6 +66,7 @@ namespace dlib {
     void abstract_pair_set(samFile *in, bam_hdr_t *hdr, samFile *ofp, std::unordered_set<pair_fn> functions);
     std::string get_SO(bam_hdr_t *hdr);
     std::string bam2cppstr(bam1_t *b);
+    std::string bam2cppstr(bam1_t *b, std::string& qname); // Provide a qname
     class BamRec {
     public:
         bam1_t *b;
