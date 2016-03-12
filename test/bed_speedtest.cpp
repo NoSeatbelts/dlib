@@ -11,21 +11,19 @@ int main(int argc, char *argv[]) {
     int c;
     bam1_t *b = bam_init1();
     const size_t n_iter = 1uL << 16;
-    for(size_t j = 0; j < 2816; ++j) {
-        sam_read1(fp, hdr, b);
+    while(sam_read1(fp, hdr, b) >= 0)
         for(uint64_t i = 0; i < n_iter; ++i)
-            c = dlib::bed_test(b, cbed);
-    }
+            dlib::bed_test(b, cbed);
     afterc = clock();
     sam_close(fp);
-    fprintf(stderr, "#s for c style: %f\n", ((double)afterc - startc) / CLOCKS_PER_SEC);
+    bam_hdr_destroy(hdr);
     fp = sam_open("test.bam", "r");
+    hdr = sam_hdr_read(fp);
+    fprintf(stderr, "#s for c style: %f\n", ((double)afterc - startc) / CLOCKS_PER_SEC);
     startcpp = clock();
-    for(size_t j = 0; j < 2816; ++j) {
-        sam_read1(fp, hdr, b);
+    while(sam_read1(fp, hdr, b) >= 0)
         for(uint64_t i = 0; i < n_iter; ++i)
-            c = cppbed.bam1_test(b);
-    }
+            cppbed.bam1_test(b);
     aftercpp = clock();
     fprintf(stderr, "#s for cpp style: %f\n", ((double)aftercpp - startcpp) / CLOCKS_PER_SEC);
     dlib::bed_destroy_hash(cbed);
