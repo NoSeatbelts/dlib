@@ -88,28 +88,6 @@ namespace dlib {
     size_t get_nregions(khash_t(bed) *h);
 #ifdef __cplusplus
     std::vector<khiter_t> make_sorted_keys(khash_t(bed) *h);
-    class ParsedBed;
-    class RegionSet {
-        friend ParsedBed;
-        std::vector<uint64_t> intervals;
-        std::string contig_name;
-        std::vector<std::string> region_names;
-        RegionSet(): intervals(std::vector<uint64_t>()),
-                     contig_name(""),
-                     region_names(0)
-        {
-        }
-    public:
-        RegionSet(int start, int stop, char *refname, char *region_name): intervals(1, to_ivl(start, stop)),
-                contig_name(refname ? refname: NO_ID_STR),
-                region_names(1, region_name){
-        }
-        void add_region(int start, int stop, char *region_name) {
-            intervals.emplace_back(to_ivl(start, stop));
-            region_names.emplace_back(region_name);
-            assert(region_names.size() == intervals.size());
-        }
-    };
     class ParsedBed {
         khash_t(bed) *contig_hash;
         std::vector<khiter_t> sorted_keys;
