@@ -79,13 +79,28 @@ KHASH_MAP_INIT_INT(bed, region_set_t)
 #include <algorithm>
 namespace dlib {
 #endif
+    void sort_bed_hash(khash_t(bed) *hash);
     khash_t(bed) *parse_bed_hash(const char *path, bam_hdr_t *header, uint32_t padding);
-    int intcmp(const void *a, const void *b); // Compare intervals for sorting by start
+    static int intcmp(const void *a, const void *b); // Compare intervals for sorting by start
     void sort_bed(khash_t(bed) *bed);
     khash_t(bed) *build_ref_hash(bam_hdr_t *header);
     void *bed_read(const char *fn);
     void bed_destroy_hash(void *);
     size_t get_nregions(khash_t(bed) *h);
+
+    static inline int bed_test(bam1_t *b, khash_t(bed) *h)
+    {
+        khint_t k;
+        if(b->core.flag & BAM_FUNMAP) return 0;
+        if((k = kh_get(bed, h, b->core.tid)) == kh_end(h)) return 0;
+        for(uint64_t i = 0; i < kh_val(h, k).n; ++i) {
+            if(get_start(kh_val(h, k).intervals[i]) <= bam_getend(b) && b->core.pos <= get_stop(kh_val(h, k).intervals[i])) {
+                return 1;
+            }
+        }
+        return 0;
+    }
+
 #ifdef __cplusplus
     std::vector<khiter_t> make_sorted_keys(khash_t(bed) *h);
     class ParsedBed {
@@ -95,28 +110,16 @@ namespace dlib {
         int test(int tid, int pos) {
             khiter_t k;
             if((k = kh_get(bed, contig_hash, tid)) == kh_end(contig_hash)) return 0;
-            for(uint64_t i = 0; i < kh_val(contig_hash, k).n; ++i) {
-                if(get_start(kh_val(contig_hash, k).intervals[i]) <= pos &&
-                        pos < get_stop(kh_val(contig_hash, k).intervals[i])) {
+            for(uint64_t i = 0; i < kh_val(contig_hash, k).n; ++i)
+                if(get_start(kh_val(contig_hash, k).intervals[i]) <= pos && pos < get_stop(kh_val(contig_hash, k).intervals[i]))
                     return 1;
-                }
-            }
             return 0;
         }
         int bcf1_test(bcf1_t *vrec) {
             return test(vrec->rid, vrec->pos);
         }
         int bam1_test(bam1_t *b) {
-            if(b->core.flag & BAM_FUNMAP) return 0;
-            khiter_t k;
-            if((k = kh_get(bed, contig_hash, b->core.tid)) == kh_end(contig_hash)) return 0;
-            for(uint64_t i = 0; i < kh_val(contig_hash, k).n; ++i) {
-                if(get_start(kh_val(contig_hash, k).intervals[i]) <= bam_getend(b) &&
-                        b->core.pos < get_stop(kh_val(contig_hash, k).intervals[i])) {
-                    return 1;
-                }
-            }
-            return 0;
+            return bed_test(b, contig_hash);
         }
         ~ParsedBed() {
             bed_destroy_hash(contig_hash);
@@ -125,23 +128,11 @@ namespace dlib {
             contig_hash(parse_bed_hash(path, header, padding)),
             sorted_keys(make_sorted_keys(contig_hash))
         {
+            sort_bed_hash(contig_hash);
         }
     };
     #endif
 
-    static inline int bed_test(bam1_t *b, khash_t(bed) *h)
-    {
-        khint_t k;
-        if(b->core.flag & BAM_FUNMAP) return 0;
-        if((k = kh_get(bed, h, b->core.tid)) == kh_end(h)) return 0;
-        for(uint64_t i = 0; i < kh_val(h, k).n; ++i) {
-            if(get_start(kh_val(h, k).intervals[i]) <= bam_getend(b) &&
-                    b->core.pos <= get_stop(kh_val(h, k).intervals[i])) {
-                return 1;
-            }
-        }
-        return 0;
-    }
 
 
     static inline int vcf_bed_test(bcf1_t *b, khash_t(bed) *h)
@@ -159,5 +150,10 @@ namespace dlib {
 #ifdef __cplusplus
 
 } /* namespace dlib */
+#else
+static int intcmp(const void *a, const void *b) {
+    return get_start(*((uint64_t *)a)) == get_start(*((uint64_t *)b)) ? get_stop(*((uint64_t *)a)) < get_stop(*((uint64_t *)a))
+                                        : get_start(*((uint64_t *)a)) < get_start(*((uint64_t *)a));
+}
 #endif
 #endif /* BED_UTIL_H */

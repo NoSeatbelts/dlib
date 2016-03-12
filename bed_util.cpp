@@ -60,6 +60,19 @@
         return ret;
     }
 
+    void sort_bed_hash(khash_t(bed) *hash) {
+        for(khiter_t k = kh_begin(hash); k != kh_end(hash); ++k)
+            if(kh_exist(hash, k))
+#ifdef __cplusplus
+                std::sort(kh_val(hash, k).intervals, kh_val(hash, k).intervals + kh_val(hash, k).n, [](uint64_t a, uint64_t b){
+                    return get_start(a) == get_start(b) ? get_stop(a) < get_stop(b)
+                                                        : get_start(a) < get_start(b);
+                });
+#else
+                qsort(kh_val(hash, k).intervals, kh_val(hash, k).n, &intcmp);
+#endif
+    }
+
 
     khash_t(bed) *parse_bed_hash(const char *path, bam_hdr_t *header, uint32_t padding)
     {
