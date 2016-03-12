@@ -10,15 +10,22 @@ int main(int argc, char *argv[]) {
     startc = clock();
     int c;
     bam1_t *b = bam_init1();
-    sam_read1(fp, hdr, b);
-    const size_t n_iter = 1uL << 26;
-    for(uint64_t i = 0; i < n_iter; ++i)
-        c = dlib::bed_test(b, cbed);
+    const size_t n_iter = 1uL << 16;
+    for(size_t j = 0; j < 2816; ++j) {
+        sam_read1(fp, hdr, b);
+        for(uint64_t i = 0; i < n_iter; ++i)
+            c = dlib::bed_test(b, cbed);
+    }
     afterc = clock();
+    sam_close(fp);
     fprintf(stderr, "#s for c style: %f\n", ((double)afterc - startc) / CLOCKS_PER_SEC);
+    fp = sam_open("test.bam", "r");
     startcpp = clock();
-    for(uint64_t i = 0; i < n_iter; ++i)
-        c = cppbed.bam1_test(b);
+    for(size_t j = 0; j < 2816; ++j) {
+        sam_read1(fp, hdr, b);
+        for(uint64_t i = 0; i < n_iter; ++i)
+            c = cppbed.bam1_test(b);
+    }
     aftercpp = clock();
     fprintf(stderr, "#s for cpp style: %f\n", ((double)aftercpp - startcpp) / CLOCKS_PER_SEC);
     dlib::bed_destroy_hash(cbed);
