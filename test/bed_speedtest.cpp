@@ -15,12 +15,12 @@ int main(int argc, char *argv[]) {
     for(uint64_t i = 0; i < n_iter; ++i)
         c = dlib::bed_test(b, cbed);
     afterc = clock();
-    fprintf(stderr, "#s for c style: %f", ((double)afterc - startc) / CLOCKS_PER_SEC);
+    fprintf(stderr, "#s for c style: %f\n", ((double)afterc - startc) / CLOCKS_PER_SEC);
     startcpp = clock();
     for(uint64_t i = 0; i < n_iter; ++i)
         c = cppbed.bam1_test(b);
     aftercpp = clock();
-    fprintf(stderr, "#s for cpp style: %f", ((double)aftercpp - startcpp) / CLOCKS_PER_SEC);
+    fprintf(stderr, "#s for cpp style: %f\n", ((double)aftercpp - startcpp) / CLOCKS_PER_SEC);
     dlib::bed_destroy_hash(cbed);
     bam_destroy1(b);
     return 0;
