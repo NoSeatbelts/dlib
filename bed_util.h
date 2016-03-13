@@ -8,6 +8,7 @@
 #include "htslib/khash.h"
 #include "htslib/sam.h"
 #include "htslib/vcf.h"
+#include "htslib/faidx.h"
 #include "dlib/logging_util.h"
 #include "dlib/mem_util.h"
 #include "dlib/io_util.h"
@@ -81,6 +82,10 @@ namespace dlib {
 #endif
     void sort_bed_hash(khash_t(bed) *hash);
     khash_t(bed) *parse_bed_hash(const char *path, bam_hdr_t *header, uint32_t padding);
+#ifdef __cplusplus
+    // Overloading
+    khash_t(bed) *parse_bed_hash(const char *path, faidx_t *fai, uint32_t padding);
+#endif
     static int intcmp(const void *a, const void *b); // Compare intervals for sorting by start
     void sort_bed(khash_t(bed) *bed);
     khash_t(bed) *build_ref_hash(bam_hdr_t *header);
@@ -123,6 +128,12 @@ namespace dlib {
         }
         ~ParsedBed() {
             bed_destroy_hash(contig_hash);
+        }
+        ParsedBed(const char *path, faidx_t *fai, uint32_t padding=DEFAULT_PADDING) :
+            contig_hash(parse_bed_hash(path, fai, padding)),
+            sorted_keys(make_sorted_keys(contig_hash))
+        {
+            sort_bed_hash(contig_hash);
         }
         ParsedBed(const char *path, bam_hdr_t *header, uint32_t padding=DEFAULT_PADDING) :
             contig_hash(parse_bed_hash(path, header, padding)),
