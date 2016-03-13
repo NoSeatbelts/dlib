@@ -25,11 +25,48 @@ typedef void (*single_aux)(bam1_t *b, void *data);
 typedef int (*single_aux_check)(bam1_t *b, void *data);
 typedef int (*plp_fn)(const bam_pileup1_t *plp, int n_plp, void *data);
 
+
+// bam utility macros.
+
+/* true if both in pair are unmapped, false if only one.
+ */
+#define bam_pair_unmapped(b2) (((b2)->core.flag & BAM_FPAIR_UNMAPPED) == BAM_FPAIR_UNMAPPED)
+
+/* @func bam_set_base sets the nucleotide at index i in read p to be set to base at index i in read b.
+ * :param: p [bam1_t *] One bam record
+ * :param: b [char] Nucleotide to set
+ * :param: i [index] Base position in read
+ */
+#define set_base(pSeq, base, i) (pSeq)[(i)>>1] = ((seq_nt16_table[(int8_t)base] << (((~i) & 1) << 2)) | (((pSeq)[(i)>>1]) & (0xf0U >> (((~i) & 1) << 2))))
+
+/* @func bam_set_base sets the nucleotide at index i in read p to be set to base at index i in read b.
+ * :param: pSeq [uint8_t *] One bam record's seq ptr
+ * :param: bSeq [uint8_t *] Second bam record's seq ptr
+ * :param: i [index] Base position in read
+ */
+#define bam_set_base(pSeq, bSeq, i) (pSeq)[(i)>>1] = ((bam_seqi(bSeq, i) << (((~i) & 1) << 2)) | (((pSeq)[(i)>>1]) & (0xf0U >> (((~i) & 1) << 2))))
+
+/* @func n_base sets the nucleotide at index i in read p to N.
+ * :param: p [uint8_t *] One bam record's seq ptr
+ * :param: i [index] Base position in read
+ */
+#define n_base(pSeq, i) pSeq[(i)>>1] |= (0xf << ((~(i) & 1) << 2));
+
+
+/* @func bam_itag gets an integer tag for a given key.
+ * Warning: will segfault if not present! Use check_bam_tag_exit to check first.
+ * :param: b [bam1_t *] Bam record
+ * :param: key [const char *] Key for tag
+ */
+#define bam_itag(b, key) bam_aux2i(bam_aux_get(b, key))
+
+
 #ifdef __cplusplus
 namespace dlib {
     void abstract_pair_set(samFile *in, bam_hdr_t *hdr, samFile *ofp, std::unordered_set<pair_fn> functions);
     std::string get_SO(bam_hdr_t *hdr);
     std::string bam2cppstr(bam1_t *b);
+    std::string bam2cppstr(bam1_t *b, std::string& qname); // Provide a qname
     class BamRec {
     public:
         bam1_t *b;
@@ -324,8 +361,11 @@ CONST static inline float bam_frac_align(bam1_t *b)
     int sum = 0;
     uint32_t *cigar = bam_get_cigar(b);
     for(unsigned i = 0; i < b->core.n_cigar; ++i)
-        if(bam_cigar_op(cigar[i]) & (BAM_CMATCH | BAM_CEQUAL | BAM_CDIFF))
+        switch(bam_cigar_op(cigar[i])) {
+        case BAM_CMATCH: case BAM_CEQUAL: case BAM_CDIFF:
             sum += bam_cigar_oplen(cigar[i]);
+            // Default: do nothing
+        }
     return (float)sum / b->core.l_qseq;
 }
 
@@ -335,6 +375,19 @@ static inline void add_sc_lens(bam1_t *b1, bam1_t *b2) {
        bam_aux_append(b2, "ML", 'i', sizeof(int), (uint8_t *)&sc1);
        bam_aux_append(b1, "SC", 'i', sizeof(int), (uint8_t *)&sc1);
        bam_aux_append(b1, "ML", 'i', sizeof(int), (uint8_t *)&sc2);
+}
+
+/* Set the bit flag for QC fail for reads where the barcode is failed.
+ */
+static inline int bitset_qcfail(bam1_t *b1, bam1_t *b2) {
+    uint8_t *data;
+    if((data = bam_aux_get(b1, "FP")) != NULL && bam_aux2i(data) == 0) {
+    // Both reads are failed, since they share the barcode
+        b1->core.flag |= BAM_FQCFAIL;
+        b2->core.flag |= BAM_FQCFAIL;
+        return 1;
+    }
+   return 0;
 }
 
 static inline void add_qseq_len(bam1_t *b1, bam1_t *b2) {
@@ -367,40 +420,5 @@ enum htseq {
 #ifdef __cplusplus
 } // namespace dlib
 #endif
-
-// bam utility macros.
-
-/* true if both in pair are unmapped, false if only one.
- */
-#define bam_pair_unmapped(b2) (((b2)->core.flag & BAM_FPAIR_UNMAPPED) == BAM_FPAIR_UNMAPPED)
-
-/* @func bam_set_base sets the nucleotide at index i in read p to be set to base at index i in read b.
- * :param: p [bam1_t *] One bam record
- * :param: b [char] Nucleotide to set
- * :param: i [index] Base position in read
- */
-#define set_base(pSeq, base, i) (pSeq)[(i)>>1] = ((seq_nt16_table[(int8_t)base] << (((~i) & 1) << 2)) | (((pSeq)[(i)>>1]) & (0xf0U >> (((~i) & 1) << 2))))
-
-/* @func bam_set_base sets the nucleotide at index i in read p to be set to base at index i in read b.
- * :param: pSeq [uint8_t *] One bam record's seq ptr
- * :param: bSeq [uint8_t *] Second bam record's seq ptr
- * :param: i [index] Base position in read
- */
-#define bam_set_base(pSeq, bSeq, i) (pSeq)[(i)>>1] = ((bam_seqi(bSeq, i) << (((~i) & 1) << 2)) | (((pSeq)[(i)>>1]) & (0xf0U >> (((~i) & 1) << 2))))
-
-/* @func n_base sets the nucleotide at index i in read p to N.
- * :param: p [uint8_t *] One bam record's seq ptr
- * :param: i [index] Base position in read
- */
-#define n_base(pSeq, i) pSeq[(i)>>1] |= (0xf << ((~(i) & 1) << 2));
-
-
-/* @func bam_itag gets an integer tag for a given key.
- * Warning: will segfault if not present! Use check_bam_tag_exit to check first.
- * :param: b [bam1_t *] Bam record
- * :param: key [const char *] Key for tag
- */
-#define bam_itag(b, key) bam_aux2i(bam_aux_get(b, key))
-
 
 #endif // BAM_UTIL_H
