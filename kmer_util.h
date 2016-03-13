@@ -14,6 +14,10 @@
 # define num2nuc(x) NUM2NUC_STR[(uint8_t)x]
 #endif
 
+#ifndef BINFINITY
+#define BINFINITY 18446744073709551615uL
+#endif
+
 #ifdef __cplusplus
 namespace dlib {
 #endif
@@ -23,6 +27,18 @@ namespace dlib {
         buf[k] = '\0';
         while(k) *buf++ = num2nuc((kmer >> (2 * --k)) & 0x3u);
         //LOG_DEBUG("kmer %lu has now become string '%s'.\n", kmer, start);
+    }
+
+    static inline int bam_is_lt(uint8_t *seq, int cpos, int8_t k) {
+        int _cpos = cpos + k - 1;
+        uint8_t ki1, ki2;
+        for(int i = 0; i < k; ++i, --_cpos) {
+            ki1 = bam_seqi(seq, i + cpos);
+            ki2 = bam_seqi_cmpl(seq, _cpos);
+            if(ki1 != ki2)
+                return ki1 < ki2;
+        }
+        return 0;
     }
 
     // Used to determine the direction in which to encode a kmer
