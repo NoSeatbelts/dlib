@@ -43,7 +43,7 @@ namespace dlib {
     }
 
 
-    int count_lines(char *fname) {
+    int count_lines(const char *fname) {
         int ret = 0;
         FILE *fp = fopen(fname, "r");
         if(!fp) {
