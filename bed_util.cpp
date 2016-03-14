@@ -106,7 +106,7 @@
                 case '\0': case '#': continue;
             }
             tok = strtok(line, "\t");
-            if((tid = faidx_seq_num(fai, tok)) == -1) LOG_EXIT("tid %s not found in fasta reference. Abort!\n", tok);
+            if((tid = (uint32_t)faidx_seq_num(fai, tok)) == (uint32_t)-1) LOG_EXIT("tid %s not found in fasta reference. Abort!\n", tok);
             tok = strtok(NULL, "\t");
             start = strtoull(tok, NULL, 10);
             tok = strtok(NULL, "\t");
