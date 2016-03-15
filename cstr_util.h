@@ -41,27 +41,9 @@ namespace dlib {
 #define stringprintf(str, ...) str.resize(sprintf((char *)str.data(), ##__VA_ARGS__))
 
     std::vector<std::string> tokenize(const char *str, char c='\t');
-#endif
 
-    /*
-     * @func rand_string
-     * Stolen from stackoverflow.
-     * Fills the str with size random characters from the charset string
-     * and appends a terminal null character.
-     */
-    static inline char *rand_string(char *str, size_t size)
-    {
-        srand(time(NULL)); // Pick a seed!
-        const char charset[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKSTFUOMGZWTF";
-        if (size) {
-            --size;
-            for (size_t n = 0; n < size; n++) {
-                str[n] = charset[(int)(rand() % (int) (sizeof charset - 1))];
-            }
-            str[size] = '\0';
-        }
-        return str;
-    }
+    extern "C" char *rand_string(char *str, size_t size);
+#endif
 
 
     /*

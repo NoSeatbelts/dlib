@@ -12,6 +12,25 @@ namespace dlib {
         } while(*str++);
         return ret;
     }
+    /*
+     * @func rand_string
+     * Stolen from stackoverflow.
+     * Fills the str with size random characters from the charset string
+     * and appends a terminal null character.
+     */
+    char *rand_string(char *str, size_t size)
+    {
+        srand(time(NULL)); // Pick a seed!
+        const char charset[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKSTFUOMGZWTF";
+        if (size) {
+            --size;
+            for (size_t n = 0; n < size; n++) {
+                str[n] = charset[(int)(rand() % (int) (sizeof charset - 1))];
+            }
+            str[size] = '\0';
+        }
+        return str;
+    }
 }
 
 #endif
