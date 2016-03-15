@@ -30,6 +30,7 @@ KSEQ_INIT(gzFile, gzread)
 #include <string>
 #include <sstream>
 #include <fstream>
+#include <vector>
 
 using namespace std::literals::string_literals; // For ""s suffix for std::string literals.
 namespace dlib {
@@ -38,18 +39,9 @@ namespace dlib {
  * If not long enough, everything breaks. Be careful!
 */
 #define stringprintf(str, ...) str.resize(sprintf((char *)str.data(), ##__VA_ARGS__))
-#endif
 
-    std::vector<std::string> tokenize(const char *str, char c='\t') {
-        std::vector<std::string> ret;
-        do {
-            const char *begin = str;
-            while(*str && *str != c)
-                str++;
-            ret.emplace_back(begin, str);
-        } while(*str++);
-        return ret;
-    }
+    std::vector<std::string> tokenize(const char *str, char c='\t');
+#endif
 
     /*
      * @func rand_string
