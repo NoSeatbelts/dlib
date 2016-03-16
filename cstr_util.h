@@ -44,8 +44,22 @@ namespace dlib {
 
     size_t safe_stringprintf(std::string& str, const char *fmt, ...);
     extern "C" char *rand_string(char *str, size_t size);
-#endif
 
+    static inline int strhd_thresh(std::string const& str1, std::string const& str2, size_t mmlim) {
+        return strhd_thresh(str1.data(), str2.data(), mmlim);
+    }
+
+    static inline int strhd_thresh(const char *str1, const char *str2, size_t mmlim) {
+        while(*str1) {
+            if(*str1 != *str2)
+                if(mmlim-- == 0)
+                    return 0;
+            ++str1, ++str2;
+        }
+        return 1;
+    }
+
+#endif
 
     /*
      * @func fill_csv_buffer

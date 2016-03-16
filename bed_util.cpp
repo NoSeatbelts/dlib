@@ -134,6 +134,7 @@
 
     khash_t(bed) *parse_bed_hash(const char *path, bam_hdr_t *header, uint32_t padding)
     {
+        LOG_DEBUG("Path to bed: %s.\n", path);
         if(!path) return NULL;
         khash_t(bed) *ret = kh_init(bed);
         gzFile ifp = gzopen(path, "rb");
