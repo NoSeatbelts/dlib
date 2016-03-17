@@ -370,11 +370,11 @@ CONST static inline float bam_frac_align(bam1_t *b)
 }
 
 static inline void add_sc_lens(bam1_t *b1, bam1_t *b2) {
-       const int sc1 = bam_sc_len(b1); const int sc2 = bam_sc_len(b2);
-       bam_aux_append(b2, "SC", 'i', sizeof(int), (uint8_t *)&sc2);
-       bam_aux_append(b2, "ML", 'i', sizeof(int), (uint8_t *)&sc1);
-       bam_aux_append(b1, "SC", 'i', sizeof(int), (uint8_t *)&sc1);
-       bam_aux_append(b1, "ML", 'i', sizeof(int), (uint8_t *)&sc2);
+        const int sc1 = bam_sc_len(b1); const int sc2 = bam_sc_len(b2);
+        bam_aux_append(b2, "SC", 'i', sizeof(int), (uint8_t *)&sc2);
+        bam_aux_append(b2, "ML", 'i', sizeof(int), (uint8_t *)&sc1);
+        bam_aux_append(b1, "SC", 'i', sizeof(int), (uint8_t *)&sc1);
+        bam_aux_append(b1, "ML", 'i', sizeof(int), (uint8_t *)&sc2);
 }
 
 /* Set the bit flag for QC fail for reads where the barcode is failed.
@@ -390,21 +390,34 @@ static inline int bitset_qcfail(bam1_t *b1, bam1_t *b2) {
    return 0;
 }
 
+static inline void add_mate_SA_tag(bam1_t *b1, bam1_t *b2) {
+        uint8_t *data;
+        char *z;
+        if((data = bam_aux_get(b1, "SA")) != NULL) {
+            z = bam_aux2Z(data);
+            bam_aux_append(b2, "ms", 'Z', strlen(z) + 1, (uint8_t *)z);
+        }
+        if((data = bam_aux_get(b2, "SA")) != NULL) {
+            z = bam_aux2Z(data);
+            bam_aux_append(b1, "ms", 'Z', strlen(z) + 1, (uint8_t *)z);
+        }
+}
+
 static inline void add_qseq_len(bam1_t *b1, bam1_t *b2) {
-       bam_aux_append(b2, "LM", 'i', sizeof(int), (uint8_t *)&b1->core.l_qseq);
-       bam_aux_append(b1, "LM", 'i', sizeof(int), (uint8_t *)&b2->core.l_qseq);
+        bam_aux_append(b2, "LM", 'i', sizeof(int), (uint8_t *)&b1->core.l_qseq);
+        bam_aux_append(b1, "LM", 'i', sizeof(int), (uint8_t *)&b2->core.l_qseq);
 }
 
 /*  @func add_unclipped_mate_starts
  *  @abstract Adds the unclipped start positions for each read and its mate
  */
 static inline void add_fraction_aligned(bam1_t *b1, bam1_t *b2) {
-       const float frac1 = bam_frac_align(b1);
-       const float frac2 = bam_frac_align(b2);
-       bam_aux_append(b2, "AF", 'f', sizeof(float), (uint8_t *)&frac2);
-       bam_aux_append(b2, "MF", 'f', sizeof(float), (uint8_t *)&frac1);
-       bam_aux_append(b1, "AF", 'f', sizeof(float), (uint8_t *)&frac1);
-       bam_aux_append(b1, "MF", 'f', sizeof(float), (uint8_t *)&frac2);
+        const float frac1 = bam_frac_align(b1);
+        const float frac2 = bam_frac_align(b2);
+        bam_aux_append(b2, "AF", 'f', sizeof(float), (uint8_t *)&frac2);
+        bam_aux_append(b2, "MF", 'f', sizeof(float), (uint8_t *)&frac1);
+        bam_aux_append(b1, "AF", 'f', sizeof(float), (uint8_t *)&frac1);
+        bam_aux_append(b1, "MF", 'f', sizeof(float), (uint8_t *)&frac2);
 }
 
 void bam_plp_set_maxcnt(bam_plp_t, int);
