@@ -1,6 +1,9 @@
 #ifndef VCF_UTIL_H
 #define VCF_UTIL_H
 
+#ifndef __STDC_LIMIT_MACROS
+#    define __STDC_LIMIT_MACROS
+#endif
 #include "htslib/vcf.h"
 #include "htslib/sam.h"
 #include "logging_util.h"
