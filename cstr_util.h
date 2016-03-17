@@ -46,7 +46,7 @@ namespace dlib {
     extern "C" char *rand_string(char *str, size_t size);
 
     static inline int strhd_thresh(std::string const& str1, std::string const& str2, size_t mmlim) {
-        return strhd_thresh(str1.data(), str2.data(), mmlim);
+        return strhd_thresh(str1.c_str(), str2.c_str(), mmlim);
     }
 
     static inline int strhd_thresh(const char *str1, const char *str2, size_t mmlim) {
