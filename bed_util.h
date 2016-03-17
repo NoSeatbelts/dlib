@@ -1,14 +1,24 @@
 #ifndef BED_UTIL_H
 #define BED_UTIL_H
 
+#ifndef __STDC_LIMIT_MACROS
+#    define __STDC_LIMIT_MACROS
+#endif
+
 #include <stddef.h>
-#include <stdint.h>
 #include <stdio.h>
 #include <inttypes.h>
-#include "htslib/khash.h"
-#include "htslib/sam.h"
-#include "htslib/vcf.h"
-#include "htslib/faidx.h"
+#ifdef __cplusplus
+extern "C" {
+#endif
+    #include <stdint.h>
+    #include "htslib/khash.h"
+    #include "htslib/sam.h"
+    #include "htslib/vcf.h"
+    #include "htslib/faidx.h"
+#ifdef __cplusplus
+}
+#endif
 #include "dlib/logging_util.h"
 #include "dlib/mem_util.h"
 #include "dlib/io_util.h"

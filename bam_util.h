@@ -1,5 +1,8 @@
 #ifndef BAM_UTIL_H
 #define BAM_UTIL_H
+#ifndef __STDC_LIMIT_MACROS
+#    define __STDC_LIMIT_MACROS
+#endif
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
