@@ -42,6 +42,30 @@ namespace dlib {
         va_end(ap);
         return l;
     }
+
+    char *trim_ext(char *fname)
+    {
+        LOG_DEBUG("Now trimming char * %s.\n", fname);
+        char *ret = (char *)malloc((strlen(fname) + 1) * sizeof(char ));
+        char *found_pos = strrchr(fname, '.');
+        if(!found_pos) {
+            LOG_EXIT("Could not trim file name's extension. Looks like it's missing a '.' (name: '%s').\n", fname);
+        }
+        memcpy(ret, fname, (found_pos - fname) * sizeof(char));
+        ret[found_pos - fname] = '\0';
+        return ret;
+    }
+
+    char *make_default_outfname(char *fname, const char *suffix)
+    {
+        char buf[200];
+        char *prefix = trim_ext(fname);
+        strcpy(buf, prefix);
+        strcat(buf, suffix);
+        char *ret = strdup(buf);
+        free(prefix);
+        return ret;
+    }
 }
 
 #endif

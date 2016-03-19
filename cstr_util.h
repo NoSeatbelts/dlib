@@ -61,24 +61,6 @@ namespace dlib {
 #endif
 
     /*
-     * @func fill_csv_buffer
-     * Used to write out uint32_t arrays as textual bam tags.
-     * :param: readlen [int] Length of read
-     * :param: arr [uint32_t *] Array of values to put into the buffer.
-     * :param: buffer [char *] Buffer for the values.
-     * :param: prefix_typecode [const char *] typecode and prefix to append for a bam tag.
-     */
-    static void fill_csv_buffer(int readlen, uint32_t *arr, char *buffer, const char *prefix_typecode)
-    {
-        kstring_t ks = {0, 0, NULL};
-        kputs(prefix_typecode, &ks);
-        for(int i = 0; i < readlen; i++)
-            ksprintf(&ks, ",%u", arr[i]);
-        strcpy(buffer, ks.s);
-        free(ks.s);
-    }
-
-    /*
      * @func kfill_rc
      * :param: seq [kseq_t *] Input kseq object
      * :param: buffer [char *] String to copy into.
@@ -133,18 +115,7 @@ namespace dlib {
      * Returns a null-terminated string with the extension and terminal period removed.
      * Warning: Must be freed!
      */
-    static inline char *trim_ext(char *fname)
-    {
-        LOG_DEBUG("Now trimming char * %s.\n", fname);
-        char *ret = (char *)malloc((strlen(fname) + 1) * sizeof(char ));
-        char *found_pos = strrchr(fname, '.');
-        if(!found_pos) {
-            LOG_EXIT("Could not trim file name's extension. Looks like it's missing a '.' (name: '%s').\n", fname);
-        }
-        memcpy(ret, fname, (found_pos - fname) * sizeof(char));
-        ret[found_pos - fname] = '\0';
-        return ret;
-    }
+    char *trim_ext(char *fname);
 
     /*
      * Fast positive atoi
@@ -218,16 +189,8 @@ namespace dlib {
      * Returns a null-terminated string with the default outfname.
      * Warning: Must be freed!
      */
-    static inline char *make_default_outfname(char *fname, const char *suffix)
-    {
-        char buf[200];
-        char *prefix = trim_ext(fname);
-        strcpy(buf, prefix);
-        strcat(buf, suffix);
-        char *ret = strdup(buf);
-        free(prefix);
-        return ret;
-    }
+
+    char *make_default_outfname(char *fname, const char *suffix);
 
     static inline char *kstrdup(kstring_t *ks)
     {
