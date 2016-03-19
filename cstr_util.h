@@ -58,6 +58,29 @@ namespace dlib {
         return 1;
     }
 
+    /*
+     * Fast, signed atoi.
+     */
+    CONST static inline int fast_delim_atoi(char *str, char delim=',')
+    {
+        int ret = 0;
+        int sign = 1;
+        switch(*str) {
+            // While retuurn the wrong value if *str is ',': don't start a number with ,!
+            case '-': sign = -1; break;
+            case '+': break;
+            default: ret = *str - '0';
+        }
+        ++str;
+        while(*str) {
+            if(*str != delim)
+                ret = ret*10 + (*str++ - '0');
+            else ++str; // Ignore it
+        }
+        return ret * sign;
+    }
+
+
 #endif
 
     /*
