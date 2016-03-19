@@ -1,7 +1,8 @@
 #ifndef COMPILER_UTIL_H
 #define COMPILER_UTIL_H
-
-#define __CSTD_LIMIT_MACROS
+#ifndef __CSTD_LIMIT_MACROS
+#    define __CSTD_LIMIT_MACROS
+#endif
 
 #ifdef __GNUC__
 #    define LIKELY(x) __builtin_expect((x),1)
