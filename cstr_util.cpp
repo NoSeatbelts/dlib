@@ -36,7 +36,7 @@ namespace dlib {
         size_t l;
         va_start(ap, fmt);
         if((l = snprintf(const_cast<char *>(str.data()), str.size(), fmt, ap)) > str.size()) {
-            str.resize(l);
+            str.reserve(l);
             snprintf(const_cast<char *>(str.data()), str.size(), fmt, ap);
         }
         va_end(ap);
