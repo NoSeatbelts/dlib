@@ -61,8 +61,6 @@ extern "C" {
 #endif
 
 
-
-
 /*
  * struct region_set, aka region_set_t
  * Struct holding an array of intervals and a count for the number of intervals.
@@ -106,14 +104,14 @@ namespace dlib {
     static inline int bed_test(bam1_t *b, khash_t(bed) *h)
     {
         khint_t k;
-        if(b->core.flag & BAM_FUNMAP) return 0;
-        if((k = kh_get(bed, h, b->core.tid)) == kh_end(h)) return 0;
-        for(uint64_t i = 0; i < kh_val(h, k).n; ++i) {
-            if(get_start(kh_val(h, k).intervals[i]) <= bam_getend(b) && b->core.pos <= get_stop(kh_val(h, k).intervals[i])) {
-                return 1;
-            }
-        }
+        if(b->core.flag & BAM_FUNMAP == 0)
+            if((k = kh_get(bed, h, b->core.tid)) != kh_end(h))
+                for(uint64_t i = 0; i < kh_val(h, k).n; ++i)
+                    if(get_start(kh_val(h, k).intervals[i]) <= bam_getend(b))
+                        if(b->core.pos <= get_stop(kh_val(h, k).intervals[i]))
+                            return 1;
         return 0;
+        // Returns 0 if b is unmapped or k == kh_end(h)
     }
 
 #ifdef __cplusplus
@@ -124,10 +122,11 @@ namespace dlib {
     public:
         int test(int tid, int pos) {
             khiter_t k;
-            if((k = kh_get(bed, contig_hash, tid)) == kh_end(contig_hash)) return 0;
-            for(uint64_t i = 0; i < kh_val(contig_hash, k).n; ++i)
-                if(get_start(kh_val(contig_hash, k).intervals[i]) <= pos && pos < get_stop(kh_val(contig_hash, k).intervals[i]))
-                    return 1;
+            if((k = kh_get(bed, contig_hash, tid)) != kh_end(contig_hash))
+                for(uint64_t i = 0; i < kh_val(contig_hash, k).n; ++i)
+                    if(get_start(kh_val(contig_hash, k).intervals[i]) <= pos)
+                        if(pos < get_stop(kh_val(contig_hash, k).intervals[i]))
+                            return 1;
             return 0;
         }
         int bcf1_test(bcf1_t *vrec) {
@@ -159,12 +158,11 @@ namespace dlib {
     static inline int vcf_bed_test(bcf1_t *b, khash_t(bed) *h)
     {
         khint_t k;
-        if((k = kh_get(bed, h, b->rid)) == kh_end(h))
-            return 0;
-        for(uint64_t i = 0; i < kh_val(h, k).n; ++i) {
-            if(b->pos >= get_start(kh_val(h, k).intervals[i]) && b->pos < get_stop(kh_val(h, k).intervals[i]))
-                return 1;
-        }
+        if((k = kh_get(bed, h, b->rid)) != kh_end(h))
+            for(uint64_t i = 0; i < kh_val(h, k).n; ++i)
+                if(b->pos >= get_start(kh_val(h, k).intervals[i]))
+                    if(b->pos < get_stop(kh_val(h, k).intervals[i]))
+                        return 1;
         return 0;
     }
 
