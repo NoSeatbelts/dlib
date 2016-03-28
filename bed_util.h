@@ -104,7 +104,7 @@ namespace dlib {
     static inline int bed_test(bam1_t *b, khash_t(bed) *h)
     {
         khint_t k;
-        if(b->core.flag & BAM_FUNMAP == 0)
+        if((b->core.flag & BAM_FUNMAP) == 0)
             if((k = kh_get(bed, h, b->core.tid)) != kh_end(h))
                 for(uint64_t i = 0; i < kh_val(h, k).n; ++i)
                     if(get_start(kh_val(h, k).intervals[i]) <= bam_getend(b))
