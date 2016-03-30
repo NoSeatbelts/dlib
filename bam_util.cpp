@@ -94,15 +94,16 @@ void abstract_single_filter(samFile *in, bam_hdr_t *hdr, samFile *out, single_au
         uint8_t *seq, *rvdata;
         uint32_t *pv, *fa;
         int8_t t;
-        kstring_t ks = {0, 0, nullptr};
+        kstring_t ks{0, 0, nullptr};
         ksprintf(&ks, "@%s PV:B:I", bam_get_qname(b));
         pv = (uint32_t *)dlib::array_tag(b, "PV");
         fa = (uint32_t *)dlib::array_tag(b, "FA");
         for(i = 0; i < b->core.l_qseq; ++i) ksprintf(&ks, ",%u", pv[i]);
         kputs("\tFA:B:I", &ks);
         for(i = 0; i < b->core.l_qseq; ++i) ksprintf(&ks, ",%u", fa[i]);
-        ksprintf(&ks, "\tFM:i:%i\tFP:i:%i\tNC:i:%i",
-                bam_itag(b, "FM"), bam_itag(b, "FP"), bam_itag(b, "NC"));
+        ksprintf(&ks, "\tFM:i:%i\tFP:i:%i", bam_itag(b, "FM"), bam_itag(b, "FP"));
+        if((rvdata = bam_aux_get(b, "NC")) != nullptr)
+            ksprintf(&ks, "\tNC:i:%i", bam_aux2i(rvdata));
         if((rvdata = bam_aux_get(b, "RV")) != nullptr)
             ksprintf(&ks, "\tRV:i:%i", bam_aux2i(rvdata));
         kputc('\n', &ks);
