@@ -6,7 +6,7 @@ namespace dlib {
         time_t now = time(NULL);
         struct tm *t = localtime(&now);
         while(!strftime((char *)ret.data(), ret.capacity(), "%Y:%m:%d %H:%M", t))
-            ret.reserve(ret.size() << 1);
+            ret.reserve(ret.capacity() ? ret.capacity() << 1: 16);
     }
 
 }
