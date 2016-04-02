@@ -244,6 +244,7 @@ void check_bam_tag_exit(char *bampath, const char *tag)
         return 0;
     }
     int BamHandle::for_each_pair(std::function<int (bam1_t *, bam1_t *, void *)> fn, BamHandle& ofp, void *data) {
+        LOG_EXIT("Broken function.\n");
         int ret;
         bam1_t *r1 = bam_init1();
         while(next() >= 0) {
