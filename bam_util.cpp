@@ -185,7 +185,7 @@ void abstract_single_filter(samFile *in, bam_hdr_t *hdr, samFile *out, single_au
 #endif
 
 
-void abstract_pair_iter(samFile *in, bam_hdr_t *hdr, samFile *ofp, pair_fn function)
+void abstract_pair_iter(samFile *in, bam_hdr_t *hdr, samFile *ofp, pair_aux_fn function, void *aux)
 {
     bam1_t *b = bam_init1(), *b1 = bam_init1();
     while (LIKELY(sam_read1(in, hdr, b) >= 0)) {
@@ -196,8 +196,8 @@ void abstract_pair_iter(samFile *in, bam_hdr_t *hdr, samFile *ofp, pair_fn funct
         }
         if(strcmp(bam_get_qname(b1), bam_get_qname(b)))
             LOG_EXIT("Is the bam name sorted? Reads in 'pair' don't have the same name (%s, %s). Abort!\n", bam_get_qname(b1), bam_get_qname(b));
-        function(b1, b);
-        sam_write1(ofp, hdr, b1), sam_write1(ofp, hdr, b);
+        if(function(b1, b, aux) == 0)
+            sam_write1(ofp, hdr, b1), sam_write1(ofp, hdr, b);
     }
     bam_destroy1(b), bam_destroy1(b1);
 }
@@ -251,8 +251,11 @@ void check_bam_tag_exit(char *bampath, const char *tag)
                 bam_copy1(r1, rec);
                 continue;
             }
+            if((rec->core.flag & BAM_FREAD2) == 0) continue;
             assert(strcmp(bam_get_qname(r1), bam_get_qname(rec)) == 0);
             if((ret = fn(r1, rec, data)) != 0) continue;
+            if(strcmp(bam_get_qname(r1), bam_get_qname(rec)))
+                LOG_EXIT("WTF\n");
             ofp.write(r1), ofp.write(rec);
         }
         bam_destroy1(r1);
