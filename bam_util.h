@@ -140,6 +140,7 @@ namespace dlib {
             if(fp == NULL) LOG_EXIT("Could not open output bam %s for reading. Abort!\n", path);
         }
         ~BamHandle() {
+            LOG_DEBUG("About to close bam at %s.\n", fp->fn);
             if(fp) sam_close(fp), fp = NULL;
             if(iter) hts_itr_destroy(iter), iter = NULL;
             if(header) bam_hdr_destroy(header);
@@ -260,7 +261,7 @@ static inline void stack_insert(tmp_stack_t *stack, bam1_t *b)
 }
 
 static inline void add_unclipped_mate_starts(bam1_t *b1, bam1_t *b2);
-void abstract_pair_iter(samFile *in, bam_hdr_t *hdr, samFile *ofp, pair_fn function);
+void abstract_pair_iter(samFile *in, bam_hdr_t *hdr, samFile *ofp, pair_aux_fn function, void *aux);
 void abstract_single_filter(samFile *in, bam_hdr_t *hdr, samFile *out, single_aux_check function, void *data);
 void abstract_single_data(samFile *in, bam_hdr_t *hdr, samFile *out, single_aux function, void *data);
 void abstract_single_iter(samFile *in, bam_hdr_t *hdr, samFile *out, single_fn function);
@@ -423,8 +424,6 @@ static inline void add_fraction_aligned(bam1_t *b1, bam1_t *b2) {
         bam_aux_append(b1, "MF", 'f', sizeof(float), (uint8_t *)&frac2);
 }
 
-void bam_plp_set_maxcnt(bam_plp_t, int);
-
 enum htseq {
     HTS_A = 1,
     HTS_C = 2,
@@ -432,6 +431,23 @@ enum htseq {
     HTS_T = 8,
     HTS_N = 15
 };
+
+static inline int filter_n_frac(bam1_t *b1, bam1_t *b2, double frac)
+{
+    uint8_t *d1 = bam_get_seq(b1);
+    uint8_t *d2 = bam_get_seq(b2);
+    int threshold = frac * b1->core.l_qseq;
+    int count = 0;
+    for(int i = 0; i < b1->core.l_qseq; ++i)
+        if(bam_seqi(d1,i) == HTS_N) ++count;
+    if(count < threshold) return 0;
+    threshold = frac * b2->core.l_qseq;
+    for(int i = 0; i < b2->core.l_qseq; ++i)
+        if(bam_seqi(d2,i) == HTS_N) ++count;
+    return count >= threshold;
+}
+
+void bam_plp_set_maxcnt(bam_plp_t, int);
 
 #ifdef __cplusplus
 } // namespace dlib
