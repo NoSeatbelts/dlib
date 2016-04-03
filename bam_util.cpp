@@ -269,12 +269,6 @@ void check_bam_tag_exit(char *bampath, const char *tag)
         BamHandle out(outfname, in.header, mode);
         return in.for_each(func, out, data);
     }
-    int bam_pair_apply_function(char *infname, char *outfname,
-            pair_aux_fn fn, void *data, const char *mode) {
-        BamHandle in(infname);
-        BamHandle out(outfname, in.header, mode);
-        return in.for_each_pair(fn, out, data);
-    }
     int BamHandle::bed_plp_auto(khash_t(bed) *bed, std::function<int (const bam_pileup1_t *, int, void *)> fn,
                                 BedPlpAuxBase *auxen) {
         plp = bam_plp_init((bam_plp_auto_f)&read_bam, (void *)auxen);
