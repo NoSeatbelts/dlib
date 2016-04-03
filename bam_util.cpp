@@ -243,33 +243,12 @@ void check_bam_tag_exit(char *bampath, const char *tag)
         }
         return 0;
     }
-    int BamHandle::for_each_pair(std::function<int (bam1_t *, bam1_t *, void *)> fn, BamHandle& ofp, void *data) {
-        int ret;
-        bam1_t *r1 = bam_init1();
-        while(next() >= 0) {
-            if(rec->core.flag & BAM_FREAD1) {
-                bam_copy1(r1, rec);
-                continue;
-            }
-            assert(strcmp(bam_get_qname(r1), bam_get_qname(rec)) == 0);
-            if((ret = fn(r1, rec, data)) != 0) continue;
-            ofp.write(r1), ofp.write(rec);
-        }
-        bam_destroy1(r1);
-        return 0;
-    }
     int BamHandle::write() {return write(rec);}
     int bam_apply_function(char *infname, char *outfname,
                            std::function<int (bam1_t *, void *)> func, void *data, const char *mode) {
         BamHandle in(infname);
         BamHandle out(outfname, in.header, mode);
         return in.for_each(func, out, data);
-    }
-    int bam_pair_apply_function(char *infname, char *outfname,
-            pair_aux_fn fn, void *data, const char *mode) {
-        BamHandle in(infname);
-        BamHandle out(outfname, in.header, mode);
-        return in.for_each_pair(fn, out, data);
     }
     int BamHandle::bed_plp_auto(khash_t(bed) *bed, std::function<int (const bam_pileup1_t *, int, void *)> fn,
                                 BedPlpAuxBase *auxen) {
