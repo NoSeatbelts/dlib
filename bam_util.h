@@ -432,6 +432,7 @@ enum htseq {
 
 static inline int filter_n_frac(bam1_t *b1, bam1_t *b2, double frac)
 {
+    if(!frac) return 0; // Pass
     uint8_t *d1 = bam_get_seq(b1);
     uint8_t *d2 = bam_get_seq(b2);
     int threshold = frac * b1->core.l_qseq;

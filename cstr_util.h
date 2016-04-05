@@ -37,7 +37,7 @@ namespace dlib {
 /* sprintf's to the buffer in string.
  * If not long enough, everything breaks. Be careful!
 */
-#define stringprintf(str, ...) str.resize(sprintf(const_cast<char *>(str.data()), ##__VA_ARGS__))
+//#define stringprintf(str, ...) str.resize(sprintf(const_cast<char *>(str.data()), ##__VA_ARGS__))
 
     std::vector<std::string> tokenize(const char *str, char c='\t');
 
