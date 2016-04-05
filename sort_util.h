@@ -25,12 +25,12 @@
 
 
 // Pos sort key macros
-#define bmfsort_core_key(a) (uint64_t)((uint64_t)a->core.tid<<32|(a->core.pos+1)<<2|bam_is_rev(a)<<1|bam_is_r1(a))
-#define bmfsort_mate_key(a) (uint64_t)((uint64_t)a->core.mtid<<32|(a->core.mpos+1)<<1|bam_is_mrev(a))
+#define bmfsort_core_key(a) ((uint64_t)a->core.tid<<32|(a->core.pos+1)<<2|bam_is_rev(a)<<1|bam_is_r1(a))
+#define bmfsort_mate_key(a) ((uint64_t)a->core.mtid<<32|(a->core.mpos+1)<<1|bam_is_mrev(a))
 
-#define bmfsort_se_key(a) (uint64_t)((uint64_t)a->core.tid<<32|((a->core.pos+1)<<2)|bam_is_rev(a))
+#define bmfsort_se_key(a) ((uint64_t)a->core.tid<<32|((a->core.pos+1)<<2)|bam_is_rev(a))
 
 // Other sort key macros
-#define sort_rlen_key(a) (uint64_t)(((uint64_t)(b->core.l_qseq) << 10)|bam_itag(a, "LM"))
+#define sort_rlen_key(a) (((uint64_t)(b->core.l_qseq) << 10)|bam_itag(a, "LM"))
 
 #endif /* SORT_UTIL_H */

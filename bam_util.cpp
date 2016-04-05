@@ -209,6 +209,7 @@ int bampath_has_tag(char *bampath, const char *tag)
     if(!header || !fp) {
         LOG_EXIT("Could not open bam file at '%s' for reading. Abort!\n", bampath);
     }
+    LOG_DEBUG("header: %p. fp: %p.\n", (void *)header, (void *)fp);
     bam1_t *b = bam_init1();
     if(sam_read1(fp, header, b) < 0) {
         LOG_EXIT("Empty bam file at '%s'. Abort!\n", bampath);

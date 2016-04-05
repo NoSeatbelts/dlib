@@ -41,7 +41,6 @@ namespace dlib {
 
     std::vector<std::string> tokenize(const char *str, char c='\t');
 
-    size_t safe_stringprintf(std::string& str, const char *fmt, ...);
     extern "C" char *rand_string(char *str, size_t size);
 
     static inline int strhd_thresh(std::string const& str1, std::string const& str2, size_t mmlim) {

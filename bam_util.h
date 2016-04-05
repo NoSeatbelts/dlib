@@ -233,7 +233,7 @@ namespace dlib {
 #ifndef SEQ_TABLE_DEFS
 #define SEQ_TABLE_DEFS
 static const int8_t seq_comp_table[] = {0, 8, 4, 12, 2, 10, 6, 14, 1, 9, 5, 13, 3, 11, 7, 15};
-static const int8_t nt16_num_table[] = {0, 1, 2, 0, 3, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 5};
+static const int8_t nt16_num_table[] = {-1, 0, 1, -1, 2, -1, -1, -1, 3, -1, -1, -1, -1, -1, -1, 4};
 static const uint8_t seq_nt16_rc[] = {15, 8, 4, 15, 2, 15, 15, 15, 1, 15, 15, 15, 15, 15, 15, 15};
 #endif
 
@@ -298,7 +298,8 @@ CONST static inline int32_t get_unclipped_start(bam1_t *b)
             case BAM_CDEL:
             case BAM_CREF_SKIP:
             case BAM_CPAD:
-                ret -= bam_cigar_oplen(cigar[i]); break;
+                ret -= bam_cigar_oplen(cigar[i]);
+                break;
             case BAM_CMATCH:
             case BAM_CEQUAL:
             case BAM_CDIFF:
