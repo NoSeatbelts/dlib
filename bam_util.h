@@ -201,7 +201,6 @@ namespace dlib {
 
     static const char *dlib_tags[] = {
             "MU",
-            "SU",
             "LM",
             "SC",
             "ML",
@@ -323,8 +322,6 @@ static inline void add_unclipped_mate_starts(bam1_t *b1, bam1_t *b2) {
     const int32_t ucs1 = get_unclipped_start(b1); const int32_t ucs2 = get_unclipped_start(b2);
     bam_aux_append(b2, "MU", 'i', sizeof(int32_t), (uint8_t *)&ucs1);
     bam_aux_append(b1, "MU", 'i', sizeof(int32_t), (uint8_t *)&ucs2);
-    bam_aux_append(b2, "SU", 'i', sizeof(int32_t), (uint8_t *)&ucs2);
-    bam_aux_append(b1, "SU", 'i', sizeof(int32_t), (uint8_t *)&ucs1);
 }
 
 int bampath_has_tag(char *bampath, const char *tag);
