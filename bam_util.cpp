@@ -187,6 +187,9 @@ void abstract_single_filter(samFile *in, bam_hdr_t *hdr, samFile *out, single_au
 
 void abstract_pair_iter(samFile *in, bam_hdr_t *hdr, samFile *ofp, pair_aux_fn function, void *aux)
 {
+#if !NDEBUG
+    size_t npairs = 0, nfailed = 0;
+#endif
     bam1_t *b = bam_init1(), *b1 = bam_init1();
     while (LIKELY(sam_read1(in, hdr, b) >= 0)) {
         if(b->core.flag & (BAM_FSECONDARY | BAM_FSUPPLEMENTARY))
@@ -194,12 +197,22 @@ void abstract_pair_iter(samFile *in, bam_hdr_t *hdr, samFile *ofp, pair_aux_fn f
         if(b->core.flag & BAM_FREAD1) {
             bam_copy1(b1, b); continue;
         }
+#if !NDEBUG
+        ++npairs;
+#endif
         if(strcmp(bam_get_qname(b1), bam_get_qname(b)))
             LOG_EXIT("Is the bam name sorted? Reads in 'pair' don't have the same name (%s, %s). Abort!\n", bam_get_qname(b1), bam_get_qname(b));
-        if(function(b1, b, aux) == 0)
+        if(function(b1, b, aux) == 0) {
             sam_write1(ofp, hdr, b1), sam_write1(ofp, hdr, b);
+        }
+#if !NDEBUG
+        else ++nfailed;
+#endif
     }
     bam_destroy1(b), bam_destroy1(b1);
+#if !NDEBUG
+        LOG_DEBUG("Number of pairs considered: %lu. Number of pairs failed: %lu.\n", npairs, nfailed);
+#endif
 }
 
 int bampath_has_tag(char *bampath, const char *tag)

@@ -20,7 +20,7 @@ extern "C" {
 }
 #endif
 #include "dlib/logging_util.h"
-#include "dlib/mem_util.h"
+#include "dlib/misc_util.h"
 #include "dlib/io_util.h"
 #ifdef __cplusplus
 #include <vector>
