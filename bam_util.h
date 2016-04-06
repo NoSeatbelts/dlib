@@ -123,7 +123,9 @@ namespace dlib {
             rec(bam_init1())
         {
             if(!fp) LOG_EXIT("Could not open input bam %s for reading. Abort!\n", path);
-            if(!idx) LOG_WARNING("Could not load index file for input bam, just FYI.\n");
+#if !NDEBUG
+            if(!idx) LOG_WARNING("Could not load index file for input bam (%s), just FYI.\n", path);
+#endif
         }
         // Write constructor
         BamHandle(const char *path, bam_hdr_t *hdr, const char *mode = "wb"):
