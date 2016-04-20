@@ -1,4 +1,5 @@
 #include "bam_util.h"
+#include "char_util.h"
 
 
 #ifdef __cplusplus

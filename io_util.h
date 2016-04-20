@@ -1,12 +1,5 @@
 #ifndef O_IO_UTIL_H
 #define O_IO_UTIL_H
-#include <stddef.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <unistd.h>
 #include <zlib.h>
 #include "logging_util.h"
 

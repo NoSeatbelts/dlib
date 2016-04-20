@@ -1,4 +1,5 @@
 #include "bed_util.h"
+#include <zlib.h>
 
 #ifdef __cplusplus
 

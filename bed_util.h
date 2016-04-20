@@ -1,17 +1,15 @@
 #ifndef BED_UTIL_H
 #define BED_UTIL_H
 
-#ifndef __STDC_LIMIT_MACROS
-#    define __STDC_LIMIT_MACROS
-#endif
+#include "dlib/logging_util.h"
+#include "dlib/misc_util.h"
 
-#include <stddef.h>
-#include <stdio.h>
-#include <inttypes.h>
 #ifdef __cplusplus
+#    ifndef __STDC_LIMIT_MACROS
+#        define __STDC_LIMIT_MACROS
+#    endif
 extern "C" {
 #endif
-    #include <stdint.h>
     #include "htslib/khash.h"
     #include "htslib/sam.h"
     #include "htslib/vcf.h"
@@ -19,9 +17,6 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#include "dlib/logging_util.h"
-#include "dlib/misc_util.h"
-#include "dlib/io_util.h"
 #ifdef __cplusplus
 #include <vector>
 #include <algorithm>
@@ -172,7 +167,7 @@ namespace dlib {
 #else
 static int intcmp(const void *a, const void *b) {
     return get_start(*((uint64_t *)a)) == get_start(*((uint64_t *)b)) ? get_stop(*((uint64_t *)a)) < get_stop(*((uint64_t *)a))
-                                        : get_start(*((uint64_t *)a)) < get_start(*((uint64_t *)a));
+                                                                      : get_start(*((uint64_t *)a)) < get_start(*((uint64_t *)a));
 }
 #endif
 #endif /* BED_UTIL_H */

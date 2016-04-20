@@ -1,10 +1,6 @@
 #ifndef NIX_UTIL_H
 #define NIX_UTIL_H
 #include <sys/resource.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include "logging_util.h"
-
 
 typedef struct rlimit rlimit_t;
 

@@ -9,6 +9,7 @@
 
 #include <stdarg.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include "compiler_util.h"
 
 #define LOG_INFO(...) log_info(__func__, ##__VA_ARGS__);

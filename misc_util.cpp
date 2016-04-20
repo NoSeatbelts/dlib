@@ -1,4 +1,5 @@
 #include "misc_util.h"
+#include <time.h>
 
 namespace dlib {
 

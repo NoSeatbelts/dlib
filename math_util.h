@@ -2,8 +2,6 @@
 #define MATH_UTIL_H
 #include <stdint.h>
 #include <stdlib.h>
-#include <math.h>
-#include <assert.h>
 
 namespace dlib {
     double hellinger(double* arr1, double* arr2, size_t length);

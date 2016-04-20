@@ -1,22 +1,10 @@
 #ifndef BAM_UTIL_H
 #define BAM_UTIL_H
-#ifndef __STDC_LIMIT_MACROS
-#    define __STDC_LIMIT_MACROS
-#endif
-#include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <zlib.h>
-#include "htslib/sam.h"
-#include "char_util.h"
-#include "compiler_util.h"
-#include "io_util.h"
-#include "logging_util.h"
-#include "misc_util.h"
-#include "bed_util.h"
+#include "bed_util.h" // sam.h provided by bed_util.h
 #ifdef __cplusplus
+#    ifndef __STDC_LIMIT_MACROS
+#        define __STDC_LIMIT_MACROS
+#    endif
 #include <functional>
 #include <unordered_set>
 #endif

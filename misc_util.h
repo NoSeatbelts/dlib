@@ -1,15 +1,5 @@
 #ifndef MISC_UTIL_H
 #define MISC_UTIL_H
-#include <stddef.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
-#include "logging_util.h"
-#include "compiler_util.h"
-#include "logging_util.h"
-#include "htslib/kstring.h"
 
 #ifdef __cplusplus
 #    include <string>

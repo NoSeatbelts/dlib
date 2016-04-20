@@ -1,17 +1,11 @@
 #ifndef CSTR_UTIL_H
 #define CSTR_UTIL_H
-#include <inttypes.h>
-#include <time.h>
+
 #include <zlib.h>
-#include <stdio.h>
-#include <stddef.h>
-#include <stdint.h>
-#include <math.h>
-#include "kseq.h"
-#include "kstring.h"
-#include "compiler_util.h"
+#include <time.h>
 #include "logging_util.h"
 #include "char_util.h"
+#include "kseq.h"
 
 #ifndef KSEQ_DEC_GZ
 #define KSEQ_DEC_GZ

@@ -1,8 +1,6 @@
 #ifndef SORT_UTIL_H
 #define SORT_UTIL_H
 
-#include "bam_util.h"
-
 // bam flag macros
 #define bam_is_r1(b) (!!((b)->core.flag&BAM_FREAD1))
 #define bam_is_r2(b) (!!((b)->core.flag&BAM_FREAD2))

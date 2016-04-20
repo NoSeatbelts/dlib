@@ -1,5 +1,10 @@
 #include "io_util.h"
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/wait.h>
+
 namespace dlib {
 
     int isfile(char *fname)

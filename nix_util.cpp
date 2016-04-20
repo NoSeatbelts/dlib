@@ -1,4 +1,7 @@
 #include "nix_util.h"
+#include "logging_util.h"
+#include <stdio.h>
+#include <stdlib.h>
 
 namespace dlib {
 

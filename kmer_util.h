@@ -1,6 +1,5 @@
 #ifndef KMER_UTIL_H
 #define KMER_UTIL_H
-#include <assert.h>
 #include "logging_util.h"
 #include "bam_util.h"
 // Largest odd kmer that can be held in a uint64_t

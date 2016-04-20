@@ -1,4 +1,5 @@
 #include "math_util.h"
+#include <math.h>
 
 namespace dlib {
 
