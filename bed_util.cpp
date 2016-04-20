@@ -2,6 +2,7 @@
 #include <zlib.h>
 
 #ifdef __cplusplus
+    #include <algorithm>
 
     namespace dlib {
     std::vector<khiter_t> make_sorted_keys(khash_t(bed) *h) {

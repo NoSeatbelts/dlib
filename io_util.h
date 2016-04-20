@@ -20,7 +20,11 @@ namespace dlib {
     int is_bgzipped_vcf(char *fn);
     void check_popen(const char *cmd);
     void check_call(const char *cmd);
-    gzFile open_gzfile(char *infname);
+#ifdef __cplusplus
+    gzFile open_gzfile(char *infname, const char *mode="r");
+#else
+    gzFile open_gzfile(char *infname, const char *mode);
+#endif
     int count_lines(const char *fname);
 #ifdef __cplusplus
 }

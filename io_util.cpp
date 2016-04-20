@@ -37,14 +37,11 @@ namespace dlib {
     }
 
 
-    gzFile open_gzfile(char *infname) {
-        if(strcmp(infname, "-") == 0 || strcmp(infname, "stdin") == 0) {
-            LOG_DEBUG("Reading from standard in because infname is %s.\n", infname);
-            return gzdopen(STDIN_FILENO, "r"); // Opens stdin.
-        } else {
-            LOG_DEBUG("Reading from %s.\n", infname);
-            return gzopen(infname, "r");
+    gzFile open_gzfile(char *fname, const char *mode) {
+        if(strcmp(fname, "-") == 0 || strcmp(fname, "stdin") == 0 || strcmp(fname, "stdout") == 0) {
+            return gzdopen(*mode == 'r' ? STDIN_FILENO: STDOUT_FILENO, mode); // Opens stdin or stdout
         }
+        return gzopen(fname, mode);
     }
 
 

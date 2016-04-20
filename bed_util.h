@@ -10,16 +10,18 @@
 #    endif
 extern "C" {
 #endif
-    #include "htslib/khash.h"
-    #include "htslib/sam.h"
-    #include "htslib/vcf.h"
-    #include "htslib/faidx.h"
+#    include "htslib/khash.h"
+#    include "htslib/sam.h"
+#    include "htslib/vcf.h"
+#    include "htslib/faidx.h"
 #ifdef __cplusplus
 }
 #endif
 #ifdef __cplusplus
-#include <vector>
-#include <algorithm>
+#    include <vector>
+#    include <string>
+//#    include <algorithm>
+#    include <unordered_map>
 #endif
 
 #define DEFAULT_PADDING 0u
@@ -76,11 +78,6 @@ KHASH_MAP_INIT_INT(bed, region_set_t)
 
 
 #ifdef __cplusplus
-#include <vector>
-#include <string>
-#include <unordered_map>
-#include <unordered_set>
-#include <algorithm>
 namespace dlib {
 #endif
     void sort_bed_hash(khash_t(bed) *hash);
