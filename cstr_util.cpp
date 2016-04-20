@@ -12,6 +12,7 @@ namespace dlib {
         } while(*str++);
         return ret;
     }
+
     /*
      * @func rand_string
      * Stolen from stackoverflow.
