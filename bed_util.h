@@ -98,8 +98,8 @@ namespace dlib {
         if((b->core.flag & BAM_FUNMAP) == 0)
             if((k = kh_get(bed, h, b->core.tid)) != kh_end(h))
                 for(uint64_t i = 0; i < kh_val(h, k).n; ++i)
-                    if(get_start(kh_val(h, k).intervals[i]) <= bam_getend(b))
-                        if(b->core.pos <= get_stop(kh_val(h, k).intervals[i]))
+                    if(get_start(kh_val(h, k).intervals[i]) < bam_getend(b))
+                        if(b->core.pos < get_stop(kh_val(h, k).intervals[i]))
                             return 1;
         return 0;
         // Returns 0 if b is unmapped or k == kh_end(h)
