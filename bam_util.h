@@ -43,13 +43,20 @@ typedef int (*plp_fn)(const bam_pileup1_t *plp, int n_plp, void *data);
  */
 #define n_base(pSeq, i) pSeq[(i)>>1] |= (0xf << ((~(i) & 1) << 2));
 
-
 /* @func bam_itag gets an integer tag for a given key.
  * Warning: will segfault if not present! Use check_bam_tag_exit to check first.
  * :param: b [bam1_t *] Bam record
  * :param: key [const char *] Key for tag
  */
 #define bam_itag(b, key) bam_aux2i(bam_aux_get(b, key))
+
+/* @func write_tag_if_found
+ * Appends an integer tag to a bam record b if it is found.
+ */
+#define write_tag_if_found(data, b, tag, ks) do {\
+    if((data = bam_aux_get(b, tag)) != nullptr)\
+        ksprintf(&ks, "\t" tag ":i:%i", bam_aux2i(data));\
+    } while(0)
 
 
 #ifdef __cplusplus

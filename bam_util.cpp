@@ -37,57 +37,6 @@ void abstract_single_filter(samFile *in, bam_hdr_t *hdr, samFile *out, single_au
 
 #ifdef __cplusplus
 
-    std::string bam2cppstr(bam1_t *b, std::string& qname)
-    {
-        char *qual, *seqbuf;
-        int i;
-        uint8_t *seq, *rvdata;
-        uint32_t *pv, *fa;
-        int8_t t;
-        kstring_t ks = {0, 0, nullptr};
-        ksprintf(&ks, "@%s PV:B:I", qname.c_str());
-        pv = (uint32_t *)dlib::array_tag(b, "PV");
-        fa = (uint32_t *)dlib::array_tag(b, "FA");
-        for(i = 0; i < b->core.l_qseq; ++i) ksprintf(&ks, ",%u", pv[i]);
-        kputs("\tFA:B:I", &ks);
-        for(i = 0; i < b->core.l_qseq; ++i) ksprintf(&ks, ",%u", fa[i]);
-        ksprintf(&ks, "\tFM:i:%i\tFP:i:%i\tNC:i:%i",
-                bam_itag(b, "FM"), bam_itag(b, "FP"), bam_itag(b, "NC"));
-        if((rvdata = bam_aux_get(b, "RV")) != nullptr)
-            ksprintf(&ks, "\tRV:i:%i", bam_aux2i(rvdata));
-        kputc('\n', &ks);
-        seq = bam_get_seq(b);
-        seqbuf = (char *)malloc(b->core.l_qseq + 1);
-        for (i = 0; i < b->core.l_qseq; ++i) seqbuf[i] = seq_nt16_str[bam_seqi(seq, i)];
-        seqbuf[i] = '\0';
-        if (b->core.flag & BAM_FREVERSE) { // reverse complement
-            for(i = 0; i < b->core.l_qseq>>1; ++i) {
-                t = seqbuf[b->core.l_qseq - i - 1];
-                seqbuf[b->core.l_qseq - i - 1] = nuc_cmpl(seqbuf[i]);
-                seqbuf[i] = nuc_cmpl(t);
-            }
-            if(b->core.l_qseq&1) seqbuf[i] = nuc_cmpl(seqbuf[i]);
-        }
-        seqbuf[b->core.l_qseq] = '\0';
-        assert(strlen(seqbuf) == (uint64_t)b->core.l_qseq);
-        kputs(seqbuf, &ks);
-        kputs("\n+\n", &ks);
-        qual = (char *)bam_get_qual(b);
-        for(i = 0; i < b->core.l_qseq; ++i) seqbuf[i] = 33 + qual[i];
-        if (b->core.flag & BAM_FREVERSE) { // reverse
-            for (i = 0; i < b->core.l_qseq>>1; ++i) {
-                t = seqbuf[b->core.l_qseq - 1 - i];
-                seqbuf[b->core.l_qseq - 1 - i] = seqbuf[i];
-                seqbuf[i] = t;
-            }
-        }
-        assert(strlen(seqbuf) == (uint64_t)b->core.l_qseq);
-        kputs(seqbuf, &ks), free(seqbuf);
-        kputc('\n', &ks);
-        std::string ret(ks.s), free(ks.s);
-        return ret;
-    }
-
     std::string bam2cppstr(bam1_t *b)
     {
         char *qual, *seqbuf;
@@ -95,18 +44,20 @@ void abstract_single_filter(samFile *in, bam_hdr_t *hdr, samFile *out, single_au
         uint8_t *seq, *rvdata;
         uint32_t *pv, *fa;
         int8_t t;
-        kstring_t ks{0, 0, nullptr};
-        ksprintf(&ks, "@%s PV:B:I", bam_get_qname(b));
+        kstring_t ks = {1, 256uL, (char *)malloc(256uL)};
+        ks.s[0] = '@', ks.s[1] = '\0';
+        kputs(bam_get_qname(b), &ks);
+        kputsn(" PV:B:I", 7uL, &ks);
         pv = (uint32_t *)dlib::array_tag(b, "PV");
         fa = (uint32_t *)dlib::array_tag(b, "FA");
         for(i = 0; i < b->core.l_qseq; ++i) ksprintf(&ks, ",%u", pv[i]);
         kputs("\tFA:B:I", &ks);
         for(i = 0; i < b->core.l_qseq; ++i) ksprintf(&ks, ",%u", fa[i]);
         ksprintf(&ks, "\tFM:i:%i\tFP:i:%i", bam_itag(b, "FM"), bam_itag(b, "FP"));
-        if((rvdata = bam_aux_get(b, "NC")) != nullptr)
-            ksprintf(&ks, "\tNC:i:%i", bam_aux2i(rvdata));
-        if((rvdata = bam_aux_get(b, "RV")) != nullptr)
-            ksprintf(&ks, "\tRV:i:%i", bam_aux2i(rvdata));
+        write_tag_if_found(rvdata, b, "RV", ks);
+        write_tag_if_found(rvdata, b, "NC", ks);
+        write_tag_if_found(rvdata, b, "NP", ks);
+        write_tag_if_found(rvdata, b, "DR", ks);
         kputc('\n', &ks);
         seq = bam_get_seq(b);
         seqbuf = (char *)malloc(b->core.l_qseq + 1);
