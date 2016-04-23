@@ -169,7 +169,10 @@
                 *kh_val(ret, k).intervals = to_ivl(start - padding, stop + padding);
                 kh_val(ret, k).n = 1;
                 kstring_t ks = {0, 0, NULL};
-                ksprintf(&ks, "|%s|tid:%u|region_num:%lu|", ((tok = strtok(NULL, "\t")) != NULL) ? tok: NO_ID_STR, kh_key(ret, k), ++region_num);
+                ksprintf(&ks, "|%s|tid:%u|region_num:%lu|",
+                         ((tok = strtok(NULL, "\t")) != NULL) ? tok
+                                                              : NO_ID_STR,
+                         kh_key(ret, k), ++region_num);
                 kh_val(ret, k).contig_name = ks_release(&ks);
             } else {
                 kh_val(ret, k).intervals = (uint64_t *)realloc(kh_val(ret, k).intervals,
