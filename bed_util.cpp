@@ -215,7 +215,6 @@
         for(khint_t k = kh_begin(bed); k != kh_end(bed); ++k)
             if(kh_exist(bed, k))
                 std::sort(kh_val(bed, k).intervals, kh_val(bed, k).intervals + kh_val(bed, k).n);
-        return;
     }
 
 #ifdef __cplusplus
