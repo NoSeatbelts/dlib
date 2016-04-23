@@ -5,6 +5,9 @@
 #include "dlib/misc_util.h"
 
 #ifdef __cplusplus
+#    include <vector>
+#    include <string>
+#    include <unordered_map>
 #    ifndef __STDC_LIMIT_MACROS
 #        define __STDC_LIMIT_MACROS
 #    endif
@@ -17,14 +20,13 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
-#ifdef __cplusplus
-#    include <vector>
-#    include <string>
-#    include <unordered_map>
-#endif
 
-#define DEFAULT_PADDING 0u
-#define NO_ID_STR ((char *)"MissingContigName")
+#ifndef DEFAULT_PADDING
+#    define DEFAULT_PADDING 0u
+#endif
+#ifndef NO_ID_STR
+#    define NO_ID_STR "NamelessContig"
+#endif
 
 
 // Bed interval query utility macros.
@@ -69,6 +71,7 @@ typedef struct region_set {
     char *contig_name;
     uint64_t n;
 } region_set_t;
+
 /*
  * khash_t(bed) is now a bed file: a region_set_t as a value for the key which is the contig
  * of the interval.
@@ -78,13 +81,10 @@ KHASH_MAP_INIT_INT(bed, region_set_t)
 
 #ifdef __cplusplus
 namespace dlib {
+    khash_t(bed) *parse_bed_hash(const char *path, faidx_t *fai, uint32_t padding); // Overload other function
 #endif
     void sort_bed_hash(khash_t(bed) *hash);
     khash_t(bed) *parse_bed_hash(const char *path, bam_hdr_t *header, uint32_t padding);
-#ifdef __cplusplus
-    // Overloading
-    khash_t(bed) *parse_bed_hash(const char *path, faidx_t *fai, uint32_t padding);
-#endif
     static int intcmp(const void *a, const void *b); // Compare intervals for sorting by start
     void sort_bed(khash_t(bed) *bed);
     khash_t(bed) *build_ref_hash(bam_hdr_t *header);
@@ -158,10 +158,9 @@ namespace dlib {
     }
 
 #ifdef __cplusplus
-
 } /* namespace dlib */
 #else
-static int intcmp(const void *a, const void *b) {
+int intcmp(const void *a, const void *b) {
     return get_start(*((uint64_t *)a)) == get_start(*((uint64_t *)b)) ? get_stop(*((uint64_t *)a)) < get_stop(*((uint64_t *)a))
                                                                       : get_start(*((uint64_t *)a)) < get_start(*((uint64_t *)a));
 }
