@@ -290,23 +290,10 @@ CONST static inline int32_t get_unclipped_start(bam1_t *b)
     const uint32_t *cigar = bam_get_cigar(b);
     int32_t ret = b->core.pos;
     for(int i = 0; i < b->core.n_cigar; ++i) {
-        switch(bam_cigar_op(cigar[i])) {
-            case BAM_CSOFT_CLIP:
-            case BAM_CDEL:
-            case BAM_CREF_SKIP:
-            case BAM_CPAD:
-                ret -= bam_cigar_oplen(cigar[i]);
-                break;
-            case BAM_CMATCH:
-            case BAM_CEQUAL:
-            case BAM_CDIFF:
-                return ret > 0 ? ret: 0;
-                // Handles the case for reads softclipped at the start of a contig.
-            /*
-            case BAM_CINS:
-            case BAM_CHARD_CLIP:
-                // DO nothing
-            */
+        switch(bam_cigar_type(cigar[i])) {
+            case 1: ret -= bam_cigar_oplen(cigar[i]); break;
+            case 2: ret += bam_cigar_oplen(cigar[i]); break;
+            case 3: return ret > 0 ? ret: 0;
         }
     }
     return ret;
