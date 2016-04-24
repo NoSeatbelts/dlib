@@ -323,7 +323,12 @@ static inline void add_unclipped_mate_starts(bam1_t *b1, bam1_t *b2) {
 }
 
 int bampath_has_tag(char *bampath, const char *tag);
+
+#ifdef __cplusplus
+extern "C" void check_bam_tag_exit(char *bampath, const char *tag);
+#else
 void check_bam_tag_exit(char *bampath, const char *tag);
+#endif
 
 
 CONST static inline void *array_tag(bam1_t *b, const char *tag) {
