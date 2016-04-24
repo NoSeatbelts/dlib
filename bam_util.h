@@ -300,7 +300,8 @@ CONST static inline int32_t get_unclipped_start(bam1_t *b)
             case BAM_CMATCH:
             case BAM_CEQUAL:
             case BAM_CDIFF:
-                return ret;
+                return ret > 0 ? ret: 0;
+                // Handles the case for reads softclipped at the start of a contig.
             /*
             case BAM_CINS:
             case BAM_CHARD_CLIP:
