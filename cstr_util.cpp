@@ -34,13 +34,12 @@ namespace dlib {
 
     char *trim_ext(char *fname)
     {
+        char *ret, *found_pos;
         LOG_DEBUG("Now trimming char * %s.\n", fname);
-        char *ret = (char *)malloc((strlen(fname) + 1) * sizeof(char ));
-        char *found_pos = strrchr(fname, '.');
-        if(!found_pos) {
-            LOG_EXIT("Could not trim file name's extension. Looks like it's missing a '.' (name: '%s').\n", fname);
-        }
-        memcpy(ret, fname, (found_pos - fname) * sizeof(char));
+        ret = (char *)malloc((strlen(fname) + 1));
+
+        if((found_pos = strrchr(fname, '.')) == nullptr) LOG_EXIT("Filename '%s' has no '.'.).\n", fname);
+        memcpy(ret, fname, (found_pos - fname));
         ret[found_pos - fname] = '\0';
         return ret;
     }

@@ -17,11 +17,9 @@ namespace dlib {
      * cmd [arg/char *] Command to execute via popen
      */
     void check_popen(const char *cmd) {
-        LOG_DEBUG("Now check popen-ing command '%s'.\n", cmd);
         int ret;
-        if((ret = pclose(popen(cmd, "w"))) != 0) {
+        if((ret = pclose(popen(cmd, "w"))) != 0)
             LOG_EXIT("System call failed. Command: '%s'. Return code: %i.\n", cmd, ret);
-        }
     }
 
     /* check_call
@@ -31,9 +29,8 @@ namespace dlib {
     void check_call(const char *cmd) {
         LOG_DEBUG("Now check calling command '%s'.\n", cmd);
         int ret;
-        if((ret = system(cmd)) != 0) {
+        if((ret = system(cmd)) != 0)
             LOG_EXIT("System call failed. Command: '%s'. Return code: %i.\n", cmd, ret);
-        }
     }
 
 
