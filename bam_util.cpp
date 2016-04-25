@@ -188,13 +188,13 @@ int bampath_has_tag(char *bampath, const char *tag)
 
 void check_bam_tag_exit(char *bampath, const char *tag)
 {
-    LOG_DEBUG("Bam at %s has the tag %s.\n", bampath, tag);
-    if(!(strcmp(bampath, "-") && strcmp(bampath, "stdin"))) {
-            LOG_WARNING("Could not check for bam tag without exhausting a pipe. "
-                        "Tag '%s' has not been verified.\n", tag);
-            return;
+    if(strcmp(bampath, "-") && strcmp(bampath, "stdin")) {
+        if(!bampath_has_tag(bampath, tag))
+            LOG_EXIT("Required bam tag '%s' missing from bam file at path '%s'. Abort!\n", tag, bampath);
+    } else {
+        LOG_WARNING("Could not check for bam tag without exhausting a pipe. "
+                    "Tag '%s' has not been verified.\n", tag);
     }
-    if(!bampath_has_tag(bampath, tag)) LOG_EXIT("Required bam tag '%s' missing from bam file at path '%s'. Abort!\n", tag, bampath);
 }
 
 #ifdef __cplusplus

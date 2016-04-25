@@ -25,7 +25,7 @@ extern "C" {
 #    define DEFAULT_PADDING 0u
 #endif
 #ifndef NO_ID_STR
-#    define NO_ID_STR "NamelessContig"
+#    define NO_ID_STR "NamelessInterval"
 #endif
 
 

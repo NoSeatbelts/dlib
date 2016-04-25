@@ -406,9 +406,7 @@ static inline void add_qseq_len(bam1_t *b1, bam1_t *b2) {
 static inline void add_fraction_aligned(bam1_t *b1, bam1_t *b2) {
         const float frac1 = bam_frac_align(b1);
         const float frac2 = bam_frac_align(b2);
-        bam_aux_append(b2, "AF", 'f', sizeof(float), (uint8_t *)&frac2);
         bam_aux_append(b2, "MF", 'f', sizeof(float), (uint8_t *)&frac1);
-        bam_aux_append(b1, "AF", 'f', sizeof(float), (uint8_t *)&frac1);
         bam_aux_append(b1, "MF", 'f', sizeof(float), (uint8_t *)&frac2);
 }
 
