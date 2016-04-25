@@ -50,7 +50,7 @@ namespace dlib {
             exit(EXIT_FAILURE);
         }
         start:
-        switch(getc(fp)) {
+        switch(getc_unlocked(fp)) {
             case EOF: fclose(fp); return ret;
             case '\n': ++ret;
         }
