@@ -1,3 +1,8 @@
+/*
+ * This is untested, though I am attempting to write a generic boilerplate for
+ * applying a functoin to each read in a bam file.
+ */
+
 #include "dlib/bam_util.h"
 #include <getopt.h>
 
@@ -25,7 +30,7 @@ int main(int argc, char *argv[]) {
     if(argc - 2 != optind) {
         LOG_EXIT("Required: precisely two positional arguments (in bam, out bam).\n");
     }
-    // Actually this function. You can't really apply a null function....
+    // Actually set this function. You can't really apply a null function....
     single_aux_check fn = NULL;
     std::function<int (bam1_t *, void *)> fn = NULL;
     // Actually create your type for data and then provide it if needed.

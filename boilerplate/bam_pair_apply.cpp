@@ -1,3 +1,8 @@
+/*
+ * This is untested, though I am attempting to write a generic boilerplate for
+ * pairwise iterating tools.
+ */
+
 #include "dlib/bam_util.h"
 #include <getopt.h>
 

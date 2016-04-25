@@ -1,7 +1,11 @@
+/*
+ * This is untested, though I am attempting to write a generic boilerplate for
+ * pileup-based tools.
+ */
+
 #include "dlib/bam_util.h"
 #include "dlib/bed_util.h"
 #include <getopt.h>
-
 int usage() {
     fprintf(stderr, "<-l output_compression_level> in.bam out.bam\n"
                     "Use - for stdin or stdout.\n");
