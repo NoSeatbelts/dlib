@@ -11,9 +11,7 @@
 
 typedef void (*pair_fn)(bam1_t *b, bam1_t *b1);
 typedef int (*pair_aux_fn)(bam1_t *b, bam1_t *b1, void *data);
-typedef void (*single_fn)(bam1_t *b);
-typedef void (*single_aux)(bam1_t *b, void *data);
-typedef int (*single_aux_check)(bam1_t *b, void *data);
+typedef int (*single_aux_fn)(bam1_t *b, void *data);
 typedef int (*plp_fn)(const bam_pileup1_t *plp, int n_plp, void *data);
 
 
@@ -257,10 +255,8 @@ static inline void stack_insert(tmp_stack_t *stack, bam1_t *b)
 }
 
 static inline void add_unclipped_mate_starts(bam1_t *b1, bam1_t *b2);
-void abstract_pair_iter(samFile *in, bam_hdr_t *hdr, samFile *ofp, pair_aux_fn function, void *aux);
-void abstract_single_filter(samFile *in, bam_hdr_t *hdr, samFile *out, single_aux_check function, void *data);
-void abstract_single_data(samFile *in, bam_hdr_t *hdr, samFile *out, single_aux function, void *data);
-void abstract_single_iter(samFile *in, bam_hdr_t *hdr, samFile *out, single_fn function);
+int abstract_pair_iter(samFile *in, bam_hdr_t *hdr, samFile *ofp, pair_aux_fn function, void *aux);
+int abstract_single_iter(samFile *in, bam_hdr_t *hdr, samFile *out, single_aux_fn function, void *aux);
 void resize_stack(tmp_stack_t *stack, size_t n);
 
 static inline void seq_nt16_cpy(char *read_str, uint8_t *seq, int len, int is_rev) {
@@ -371,6 +367,19 @@ static inline void add_sc_lens(bam1_t *b1, bam1_t *b2) {
 
 /* Set the bit flag for QC fail for reads where the barcode is failed.
  */
+static inline int bitset_qcfail_se(bam1_t *b1) {
+    uint8_t *data;
+    if((data = bam_aux_get(b1, "FP")) != NULL && bam_aux2i(data) == 0) {
+    // Both reads are failed, since they share the barcode
+        b1->core.flag |= BAM_FQCFAIL;
+        return 1;
+    }
+   return 0;
+}
+
+
+/* Set the bit flag for QC fail for reads where the barcode is failed.
+ */
 static inline int bitset_qcfail(bam1_t *b1, bam1_t *b2) {
     uint8_t *data;
     if((data = bam_aux_get(b1, "FP")) != NULL && bam_aux2i(data) == 0) {
@@ -418,21 +427,40 @@ enum htseq {
     HTS_N = 15
 };
 
+/*
+ * Returns 1 if there are more Ns than frac * readlen, failing.
+ */
+static inline int filter_n_frac_se(bam1_t *b1, double frac)
+{
+    if(frac == 0.0) return 0; // Pass
+    uint8_t *d1 = bam_get_seq(b1);
+    int threshold = frac * b1->core.l_qseq;
+    int count = 0;
+    for(int i = 0; i < b1->core.l_qseq; ++i)
+        if(bam_seqi(d1,i) == HTS_N) ++count;
+    return count >= threshold;
+}
+
+/*
+ * Returns 1 if there are more Ns than frac * readlen in both reads, failing.
+ */
 static inline int filter_n_frac(bam1_t *b1, bam1_t *b2, double frac)
 {
-    if(!frac) {
+    if(frac == 0.0) {
         //LOG_DEBUG("filter_n_frac skipping because frac is %f.\n", frac);
         return 0; // Pass
     }
     uint8_t *d1 = bam_get_seq(b1);
     uint8_t *d2 = bam_get_seq(b2);
+    int i;
     int threshold = frac * b1->core.l_qseq;
     int count = 0;
-    for(int i = 0; i < b1->core.l_qseq; ++i)
+    for(i = 0; i < b1->core.l_qseq; ++i)
         if(bam_seqi(d1,i) == HTS_N) ++count;
     if(count < threshold) return 0;
+    count = 0;
     threshold = frac * b2->core.l_qseq;
-    for(int i = 0; i < b2->core.l_qseq; ++i)
+    for(i = 0; i < b2->core.l_qseq; ++i)
         if(bam_seqi(d2,i) == HTS_N) ++count;
     return count >= threshold;
 }

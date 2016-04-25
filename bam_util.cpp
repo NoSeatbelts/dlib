@@ -7,23 +7,7 @@ namespace dlib {
 #endif
 
 
-void abstract_single_data(samFile *in, bam_hdr_t *hdr, samFile *out, single_aux function, void *data)
-{
-    bam1_t *b = bam_init1();
-    while (LIKELY(sam_read1(in, hdr, b) >= 0))
-        function(b, data), sam_write1(out, hdr, b);
-    bam_destroy1(b);
-}
-
-void abstract_single_iter(samFile *in, bam_hdr_t *hdr, samFile *out, single_fn function)
-{
-    bam1_t *b = bam_init1();
-    while (LIKELY(sam_read1(in, hdr, b) >= 0))
-        function(b), sam_write1(out, hdr, b);
-    bam_destroy1(b);
-}
-
-void abstract_single_filter(samFile *in, bam_hdr_t *hdr, samFile *out, single_aux_check function, void *data)
+int abstract_single_iter(samFile *in, bam_hdr_t *hdr, samFile *out, single_aux_fn function, void *data)
 {
     bam1_t *b;
     b = bam_init1();
@@ -33,6 +17,7 @@ void abstract_single_filter(samFile *in, bam_hdr_t *hdr, samFile *out, single_au
         sam_write1(out, hdr, b);
     }
     bam_destroy1(b);
+    return 0;
 }
 
 #ifdef __cplusplus
@@ -137,7 +122,7 @@ void abstract_single_filter(samFile *in, bam_hdr_t *hdr, samFile *out, single_au
 #endif
 
 
-void abstract_pair_iter(samFile *in, bam_hdr_t *hdr, samFile *ofp, pair_aux_fn function, void *aux)
+int abstract_pair_iter(samFile *in, bam_hdr_t *hdr, samFile *ofp, pair_aux_fn function, void *aux)
 {
 #if !NDEBUG
     size_t npairs = 0, nfailed = 0;
@@ -165,6 +150,7 @@ void abstract_pair_iter(samFile *in, bam_hdr_t *hdr, samFile *ofp, pair_aux_fn f
 #if !NDEBUG
         LOG_DEBUG("Number of pairs considered: %lu. Number of pairs failed: %lu.\n", npairs, nfailed);
 #endif
+    return EXIT_SUCCESS;
 }
 
 int bampath_has_tag(char *bampath, const char *tag)
