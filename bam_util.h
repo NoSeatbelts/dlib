@@ -115,7 +115,7 @@ namespace dlib {
             plp(NULL),
             rec(bam_init1())
         {
-            if(!fp) LOG_EXIT("Could not open input bam %s for reading. Abort!\n", path);
+            if(!fp) LOG_EXIT("Could not open '%s' for reading. Abort!\n", path);
 #if !NDEBUG
             if(!idx) LOG_WARNING("Could not load index file for input bam (%s), just FYI.\n", path);
 #endif
