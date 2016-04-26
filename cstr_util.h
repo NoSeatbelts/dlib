@@ -20,7 +20,7 @@ KSEQ_INIT(gzFile, gzread)
 #define SEQBUF_SIZE 300
 #endif
 
-#define kputsnl(ks, literal) kputsn(literal, sizeof(literal) - 1, ks)
+#define kputsnl(literal, ks) kputsn(literal, sizeof(literal) - 1, ks)
 
 #ifdef __cplusplus
 #include <string>
