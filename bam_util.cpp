@@ -183,6 +183,44 @@ void check_bam_tag_exit(char *bampath, const char *tag)
     }
 }
 
+void add_pg_line(bam_hdr_t *hdr, int argc, char **argv,
+                 const char *id, const char *version, const char *name, const char *ds) {
+    char *tmp = hdr->text + hdr->l_text - 2;
+    char *old_pg{nullptr};
+    while(--tmp > hdr->text) {
+        if(memcmp(tmp, "@PG", 3) == 0) {
+            while(memcmp(++tmp, "ID:", 3));
+            tmp += 3;
+            char *end = tmp - 1;
+            while(*++end != '\t'); // Zoom ahead to \t
+            *end = '\0';
+            old_pg = (char *)malloc(end - tmp + 1);
+            memcpy(old_pg, tmp, end - tmp + 1);
+            *end = '\t';
+            break;
+            // Found the last @PG line!
+        }
+    }
+    kstring_t new_text{hdr->l_text, hdr->l_text, hdr->text}; // I now have ownership
+    ksprintf(&new_text, "@PG\tID:%s\tPN:%s\tCL:", id, name ? name: id);
+    kputs((const char *)argv[0], &new_text);
+    for(int i = 1; i < argc; ++i) {
+        kputc(' ', &new_text);
+        kputs((const char *)argv[i], &new_text);
+    }
+    if(old_pg) {
+        LOG_DEBUG("Found old pg: %s\n", old_pg);
+        ksprintf(&new_text, "\tPP:%s", old_pg);
+        free(old_pg);
+    }
+    if(ds) ksprintf(&new_text, "\tDS:%s", ds);
+    if(version) ksprintf(&new_text, "\tVN:%s", version);
+    kputc('\n', &new_text);
+    hdr->text = new_text.s; // In case it was invalidated, reassign.
+    hdr->l_text = new_text.l;
+}
+
+
 #ifdef __cplusplus
     /*
      * Applies fn

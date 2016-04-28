@@ -468,6 +468,13 @@ static inline int filter_n_frac(bam1_t *b1, bam1_t *b2, double frac)
 void bam_plp_set_maxcnt(bam_plp_t, int);
 
 #ifdef __cplusplus
+void add_pg_line(bam_hdr_t *hdr, int argc, char **argv, const char *id, const char *version=nullptr, const char *name=nullptr,
+		         const char *ds=nullptr);
+#else
+void add_pg_line(bam_hdr_t *hdr, int argc, char **argv, const char *id, const char *version, const char *name, const char *ds);
+#endif
+
+#ifdef __cplusplus
 } // namespace dlib
 #endif
 
