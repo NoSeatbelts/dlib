@@ -183,6 +183,9 @@ void check_bam_tag_exit(char *bampath, const char *tag)
     }
 }
 
+#ifdef __cplusplus
+extern "C"
+#endif
 void add_pg_line(bam_hdr_t *hdr, int argc, char **argv,
                  const char *id, const char *version, const char *name, const char *ds) {
     char *tmp = hdr->text + hdr->l_text - 2;
