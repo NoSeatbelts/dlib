@@ -129,6 +129,8 @@ int abstract_pair_iter(samFile *in, bam_hdr_t *hdr, samFile *ofp, pair_aux_fn fu
 #endif
     bam1_t *b = bam_init1(), *b1 = bam_init1();
     while (LIKELY(sam_read1(in, hdr, b) >= 0)) {
+        if(UNLIKELY(b->core.flag & BAM_FPAIRED == 0))
+            LOG_EXIT("Unpaired (single-end) read found in pairwise iterator. Abort!\n");
         if(b->core.flag & (BAM_FSECONDARY | BAM_FSUPPLEMENTARY))
             continue;
         if(b->core.flag & BAM_FREAD1) {
