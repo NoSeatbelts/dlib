@@ -5,7 +5,7 @@
 #include <time.h>
 #include "logging_util.h"
 #include "char_util.h"
-#include "kseq.h"
+#include "htslib/kseq.h"
 
 #ifndef KSEQ_DEC_GZ
 #define KSEQ_DEC_GZ

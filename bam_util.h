@@ -131,8 +131,8 @@ namespace dlib {
             plp(NULL),
             rec(NULL)
         {
-            sam_hdr_write(fp, header);
             if(fp == NULL) LOG_EXIT("Could not open output bam %s for reading. Abort!\n", path);
+            if(sam_hdr_write(fp, header)) LOG_EXIT("Coud not write header to output bam %s. Abort!\n", path);
         }
         ~BamHandle() {
             LOG_DEBUG("About to close bam at %s.\n", fp->fn);
