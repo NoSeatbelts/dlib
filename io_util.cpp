@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/wait.h>
+#include <fstream>
+#include <string>
 
 namespace dlib {
 
@@ -41,6 +43,17 @@ namespace dlib {
         return gzopen(fname, mode);
     }
 
+    int count_bed_lines(const char *fname) {
+        std::ifstream file(fname);
+        std::string line;
+        int ret = 0;
+        while(std::getline(file, line)) {
+            if(line[0] == '#') continue;
+            ++ret;
+        }
+        return ret;
+    }
+
 
     int count_lines(const char *fname) {
         int ret = 0;
@@ -53,8 +66,8 @@ namespace dlib {
         switch(getc_unlocked(fp)) {
             case EOF: fclose(fp); return ret;
             case '\n': ++ret;
+            default: goto start;
         }
-        goto start;
     }
 
 

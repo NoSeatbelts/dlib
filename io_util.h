@@ -26,6 +26,7 @@ namespace dlib {
     gzFile open_gzfile(char *infname, const char *mode);
 #endif
     int count_lines(const char *fname);
+    int count_bed_lines(const char *fname);
 #ifdef __cplusplus
 }
 #endif

@@ -20,6 +20,24 @@ int abstract_single_iter(samFile *in, bam_hdr_t *hdr, samFile *out, single_aux_f
     return 0;
 }
 
+void bam_aux_array_append(bam1_t *b, const char tag[2], char type, int elemsize, int nelem, uint8_t *data)
+{
+    const int ori_len = b->l_data;
+    const int len = elemsize * nelem;
+    b->l_data += 8 + len; // 8 instead of 3.
+    if (b->m_data < b->l_data) {
+        b->m_data = b->l_data;
+        kroundup32(b->m_data);
+        b->data = (uint8_t*)realloc(b->data, b->m_data);
+    }
+    b->data[ori_len] = tag[0]; b->data[ori_len + 1] = tag[1];
+    b->data[ori_len + 2] = 'B';
+    b->data[ori_len + 3] = type;
+    *(int *)(b->data + ori_len + 4) = nelem;
+    memcpy(b->data + ori_len + 8, data, len);
+}
+
+
 #ifdef __cplusplus
 
     std::string bam2cppstr(bam1_t *b)
@@ -39,10 +57,10 @@ int abstract_single_iter(samFile *in, bam_hdr_t *hdr, samFile *out, single_aux_f
         kputs("\tFA:B:I", &ks);
         for(i = 0; i < b->core.l_qseq; ++i) ksprintf(&ks, ",%u", fa[i]);
         ksprintf(&ks, "\tFM:i:%i\tFP:i:%i", bam_itag(b, "FM"), bam_itag(b, "FP"));
-        write_tag_if_found(rvdata, b, "RV", ks);
-        write_tag_if_found(rvdata, b, "NC", ks);
-        write_tag_if_found(rvdata, b, "NP", ks);
-        write_tag_if_found(rvdata, b, "DR", ks);
+        write_if_found(rvdata, b, "RV", ks);
+        write_if_found(rvdata, b, "NC", ks);
+        write_if_found(rvdata, b, "NP", ks);
+        write_if_found(rvdata, b, "DR", ks);
         kputc('\n', &ks);
         seq = bam_get_seq(b);
         seqbuf = (char *)malloc(b->core.l_qseq + 1);

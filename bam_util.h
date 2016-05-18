@@ -48,10 +48,10 @@ typedef int (*plp_fn)(const bam_pileup1_t *plp, int n_plp, void *data);
  */
 #define bam_itag(b, key) bam_aux2i(bam_aux_get(b, key))
 
-/* @func write_tag_if_found
+/* @func write_if_found
  * Appends an integer tag to a bam record b if it is found.
  */
-#define write_tag_if_found(data, b, tag, ks) do {\
+#define write_if_found(data, b, tag, ks) do {\
     if((data = bam_aux_get(b, tag)) != nullptr)\
         ksprintf(&ks, "\t" tag ":i:%i", bam_aux2i(data));\
     } while(0)
@@ -258,6 +258,7 @@ static inline void add_unclipped_mate_starts(bam1_t *b1, bam1_t *b2);
 int abstract_pair_iter(samFile *in, bam_hdr_t *hdr, samFile *ofp, pair_aux_fn function, void *aux);
 int abstract_single_iter(samFile *in, bam_hdr_t *hdr, samFile *out, single_aux_fn function, void *aux);
 void resize_stack(tmp_stack_t *stack, size_t n);
+void bam_aux_array_append(bam1_t *b, const char tag[2], char type, int elemsize, int nelem, uint8_t *data);
 
 static inline void seq_nt16_cpy(char *read_str, uint8_t *seq, int len, int is_rev) {
     if(is_rev) {
