@@ -84,11 +84,11 @@ namespace dlib {
     class BamHandle;
     class BedPlpAuxBase {
     public:
-        unsigned minMQ;
+        unsigned minmq;
         int padding;
         BamHandle *handle;
-        BedPlpAuxBase(unsigned _minMQ, BamHandle *_handle=NULL, int _padding=DEFAULT_PADDING):
-            minMQ(_minMQ),
+        BedPlpAuxBase(unsigned _minmq, BamHandle *_handle=NULL, int _padding=DEFAULT_PADDING):
+            minmq(_minmq),
             padding(_padding),
             handle(_handle)
         {
