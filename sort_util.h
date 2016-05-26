@@ -23,8 +23,8 @@
 
 
 // Pos sort key macros
-#define bmfsort_core_key(a) ((uint64_t)(a->core.tid)<<32|(a->core.pos+1)<<2|bam_is_rev(a)<<1|bam_is_r1(a))
-#define bmfsort_mate_key(a) ((uint64_t)(a->core.mtid)<<32|(a->core.mpos+1)<<1|bam_is_mrev(a))
+#define bmfsort_core_key(a) (((uint64_t)(a->core.tid) << 32) | ((a->core.pos+1) << 2) | (bam_is_rev(a) << 1) |bam_is_r1(a))
+#define bmfsort_mate_key(a) ((uint64_t)(a->core.mtid) << 32 | (a->core.pos + 1) << 1 | bam_is_mrev(a))
 
 #define bmfsort_se_key(a) ((uint64_t)(a->core.tid)<<32|((a->core.pos+1)<<2)|bam_is_rev(a))
 
