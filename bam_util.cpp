@@ -34,6 +34,7 @@ void bam_aux_array_append(bam1_t *b, const char tag[2], char type, int elemsize,
     b->data[ori_len + 2] = 'B';
     b->data[ori_len + 3] = type;
     *(int *)(b->data + ori_len + 4) = nelem;
+    LOG_DEBUG("New len: %i.\n", nelem);
     memcpy(b->data + ori_len + 8, data, len);
 }
 

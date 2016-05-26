@@ -317,8 +317,11 @@ void check_bam_tag_exit(char *bampath, const char *tag);
 
 
 CONST static inline void *array_tag(bam1_t *b, const char *tag) {
-    uint8_t *data = bam_aux_get(b, tag);
-    if(!data) LOG_EXIT("Missing tag %s. Abort!\n", tag);
+    uint8_t *data; = bam_aux_get(b, tag);
+    if((data = bam_aux_get(b, tag)) == NULL) {
+        LOG_DEBUG("Tag not found. Returning null.\n");
+        return NULL;
+    }
     char tagtype = *data++;
     if(UNLIKELY(tagtype != 'B')) LOG_EXIT("Incorrect byte %c where B expected in array tag for key %s. Abort!\n", tagtype, tag);
     switch(*data++) {
