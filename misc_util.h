@@ -22,7 +22,14 @@ namespace dlib {
 #endif
 
 // Cribbed from nlopt
+#ifdef __cplusplus
+template<typename T>
+static inline T MAX2(T x, T y) {
+    return x > y ? x: y;
+}
+#else
 #define MAX2(a, b) ((a) > (b) ? (a): (b))
+#endif
 
 // From Chromium
 #define COUNT_OF(x) ((sizeof(x)/sizeof(0[x])) / ((size_t)(!(sizeof(x) % sizeof(0[x])))))

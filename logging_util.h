@@ -3,13 +3,16 @@
 
 #ifdef __cplusplus
 #    define _FUNCTION_MACRO_ __PRETTY_FUNCTION__
+#    include <cstdlib>
+#    include <cstdio>
+#    include <cstdarg>
 #else
 #    define _FUNCTION_MACRO_ __func__
+#    include <stdlib.h>
+#    include <stdio.h>
+#    include <stdarg.h>
 #endif
 
-#include <stdarg.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include "compiler_util.h"
 
 #define LOG_INFO(...) log_info(__func__, ##__VA_ARGS__);

@@ -96,7 +96,8 @@ namespace dlib {
     };
     class BamHandle {
     public:
-        int is_write;
+        uint16_t is_write:1;
+        //uint16_t is_dummy:1;
         samFile *fp;
         hts_itr_t *iter;
         bam_hdr_t *header;
@@ -107,15 +108,16 @@ namespace dlib {
         // Read constructor
         BamHandle(const char *path):
             is_write(0),
-            fp(sam_open(path, "r")),
-            iter(NULL),
-            header(sam_hdr_read(fp)),
-            idx(bam_index_load(path)),
-            pileups(NULL),
-            plp(NULL),
-            rec(bam_init1())
+            //is_dummy(!path),
+            fp(path ? sam_open(path, "r"): nullptr),
+            iter(nullptr),
+            header(path ? sam_hdr_read(fp): nullptr),
+            idx(path ? bam_index_load(path): nullptr),
+            pileups(nullptr),
+            plp(nullptr),
+            rec(path ? bam_init1(): nullptr)
         {
-            if(!fp) LOG_EXIT("Could not open '%s' for reading. Abort!\n", path);
+            if(!fp && path) LOG_WARNING("Could not open '%s' for reading. Abort!\n", path); // Non-null path
 #if !NDEBUG
             if(!idx) LOG_WARNING("Could not load index file for input bam (%s), just FYI.\n", path);
 #endif
@@ -123,6 +125,7 @@ namespace dlib {
         // Write constructor
         BamHandle(const char *path, bam_hdr_t *hdr, const char *mode = "wb"):
             is_write(1),
+            //is_dummy(0),
             fp(sam_open(path, mode)),
             iter(NULL),
             header(bam_hdr_dup(hdr)),
@@ -135,13 +138,31 @@ namespace dlib {
             if(sam_hdr_write(fp, header)) LOG_EXIT("Coud not write header to output bam %s. Abort!\n", path);
         }
         ~BamHandle() {
-            LOG_DEBUG("About to close bam at %s.\n", fp->fn);
-            if(fp) sam_close(fp), fp = NULL;
-            if(iter) hts_itr_destroy(iter), iter = NULL;
-            if(header) bam_hdr_destroy(header);
-            if(idx) hts_idx_destroy(idx);
-            if(plp) bam_plp_destroy(plp);
-            if(rec) bam_destroy1(rec);
+            //if(is_dummy) return;
+            if(rec) {
+                LOG_DEBUG("Destroyin' rec\n");
+                bam_destroy1(rec);
+            }
+            if(fp) {
+                LOG_DEBUG("Closin' fp!\n");
+                sam_close(fp), fp = NULL;
+            }
+            if(iter) {
+                LOG_DEBUG("Closin' iter!\n");
+                hts_itr_destroy(iter), iter = NULL;
+            }
+            if(header) {
+                LOG_DEBUG("Destroyin' header!\n");
+                bam_hdr_destroy(header);
+            }
+            if(idx) {
+                LOG_DEBUG("Destroyin' idx!\n");
+                hts_idx_destroy(idx);
+            }
+            if(plp) {
+                LOG_DEBUG("Destroyin' plp!\n");
+                bam_plp_destroy(plp);
+            }
         }
         int for_each_pair(std::function<int (bam1_t *, bam1_t *, void *)> fn, BamHandle& ofp, void *data=NULL);
         int for_each(std::function<int (bam1_t *, void *)> fn, BamHandle& ofp, void *data=NULL);
