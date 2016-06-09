@@ -59,177 +59,183 @@ typedef int (*plp_fn)(const bam_pileup1_t *plp, int n_plp, void *data);
 
 #ifdef __cplusplus
 namespace dlib {
-    void abstract_pair_set(samFile *in, bam_hdr_t *hdr, samFile *ofp, std::unordered_set<pair_fn> functions);
-    std::string get_SO(bam_hdr_t *hdr);
-    std::string bam2cppstr(bam1_t *b);
-    std::string bam2cppstr(bam1_t *b, std::string& qname); // Provide a qname
-    class BamRec {
-    public:
-        bam1_t *b;
-        BamRec(): b(bam_init1()){
-            LOG_DEBUG("Initialized rec at pointer %p.\n", (void *)b);
-        }
-        // Copy
-        BamRec(bam1_t *b) : b(bam_dup1(b))
-        {
-        }
-        BamRec(BamRec& other) :
-        b(bam_dup1(other.b))
-        {
-        }
-        ~BamRec() {
-            if(b) bam_destroy1(b);
-        }
-    };
-    class BamHandle;
-    class BedPlpAuxBase {
-    public:
-        unsigned minmq;
-        int padding;
-        BamHandle *handle;
-        BedPlpAuxBase(unsigned _minmq, BamHandle *_handle=NULL, int _padding=DEFAULT_PADDING):
-            minmq(_minmq),
-            padding(_padding),
-            handle(_handle)
-        {
-        }
-    };
-    class BamHandle {
-    public:
-        uint16_t is_write:1;
-        //uint16_t is_dummy:1;
-        samFile *fp;
-        hts_itr_t *iter;
-        bam_hdr_t *header;
-        hts_idx_t *idx;
-        const bam_pileup1_t *pileups;
-        bam_plp_t plp;
-        bam1_t *rec;
-        // Read constructor
-        BamHandle(const char *path):
-            is_write(0),
-            //is_dummy(!path),
-            fp(path ? sam_open(path, "r"): nullptr),
-            iter(nullptr),
-            header(path ? sam_hdr_read(fp): nullptr),
-            idx(path ? bam_index_load(path): nullptr),
-            pileups(nullptr),
-            plp(nullptr),
-            rec(path ? bam_init1(): nullptr)
-        {
-            if(!fp && path) LOG_WARNING("Could not open '%s' for reading. Abort!\n", path); // Non-null path
-#if !NDEBUG
-            if(!idx) LOG_WARNING("Could not load index file for input bam (%s), just FYI.\n", path);
-#endif
-        }
-        // Write constructor
-        BamHandle(const char *path, bam_hdr_t *hdr, const char *mode = "wb"):
-            is_write(1),
-            //is_dummy(0),
-            fp(sam_open(path, mode)),
-            iter(NULL),
-            header(bam_hdr_dup(hdr)),
-            idx(NULL),
-            pileups(NULL),
-            plp(NULL),
-            rec(NULL)
-        {
-            if(fp == NULL) LOG_EXIT("Could not open output bam %s for reading. Abort!\n", path);
-            if(sam_hdr_write(fp, header)) LOG_EXIT("Coud not write header to output bam %s. Abort!\n", path);
-        }
-        ~BamHandle() {
-            //if(is_dummy) return;
-            if(rec) {
-                LOG_DEBUG("Destroyin' rec\n");
-                bam_destroy1(rec);
-            }
-            if(fp) {
-                LOG_DEBUG("Closin' fp!\n");
-                sam_close(fp), fp = NULL;
-            }
-            if(iter) {
-                LOG_DEBUG("Closin' iter!\n");
-                hts_itr_destroy(iter), iter = NULL;
-            }
-            if(header) {
-                LOG_DEBUG("Destroyin' header!\n");
-                bam_hdr_destroy(header);
-            }
-            if(idx) {
-                LOG_DEBUG("Destroyin' idx!\n");
-                hts_idx_destroy(idx);
-            }
-            if(plp) {
-                LOG_DEBUG("Destroyin' plp!\n");
-                bam_plp_destroy(plp);
-            }
-        }
-        int for_each_pair(std::function<int (bam1_t *, bam1_t *, void *)> fn, BamHandle& ofp, void *data=NULL);
-        int for_each(std::function<int (bam1_t *, void *)> fn, BamHandle& ofp, void *data=NULL);
-        int write();
-        int read(BamRec b);
-        int write(bam1_t *b) {
-            return sam_write1(fp, header, b);
-        }
-        int write(BamRec b) {
-            return write(b.b);
-        }
-        int read(bam1_t *b) {
-            return iter ? bam_itr_next(fp, iter, b)
-                        : sam_read1(fp, header, b);
-        }
-        int next() {
-            if(read(rec) < 0) {
-                LOG_INFO("StopIteration: Finished iterating through bam %s.\n", fp->fn);
-                return -1;
-            }
-            return 1;
-        }
-        int bed_plp_auto(khash_t(bed) *bed, std::function<int (const bam_pileup1_t *, int, void *)> fn,
-                         BedPlpAuxBase *auxen);
-    };
-    static inline int bam_readrec(BedPlpAuxBase *data, bam1_t *b) {
-        return data->handle->iter ? bam_itr_next(data->handle->fp, data->handle->iter, data->handle->rec)
-                                  : sam_read1(data->handle->fp, data->handle->header, data->handle->rec);
-    }
-    static int read_bam(BedPlpAuxBase *data, bam1_t *b) {
-        int ret;
-        for(;;) {
-            if((ret = bam_readrec(data, b)) >= 0) break;
-            if(b->core.flag & (BAM_FSECONDARY | BAM_FUNMAP | BAM_FQCFAIL | BAM_FDUP))
-                continue;
-        }
-        return ret;
-    }
 
-    int bam_apply_function(char *infname, char *outfname,
-                           std::function<int (bam1_t *, void *)> func, void *data=NULL, const char *mode="wb");
-    int bam_pair_apply_function(char *infname, char *outfname,
-            pair_aux_fn fn, void *data=NULL, const char *mode="wb");
-    /*
-     * Finds the index in an array tag to use for a bam_pileup1_t struct.
-     */
-    static inline int arr_qpos(const bam_pileup1_t *plp)
+static inline int32_t int_tag_zero(bam1_t *b, const char *tag)
+{
+    uint8_t *data;
+    return (data = bam_aux_get(b, tag)) ? bam_aux2i(data): 0;
+}
+void abstract_pair_set(samFile *in, bam_hdr_t *hdr, samFile *ofp, std::unordered_set<pair_fn> functions);
+std::string get_SO(bam_hdr_t *hdr);
+std::string bam2cppstr(bam1_t *b);
+std::string bam2cppstr(bam1_t *b, std::string& qname); // Provide a qname
+class BamRec {
+public:
+    bam1_t *b;
+    BamRec(): b(bam_init1()){
+        LOG_DEBUG("Initialized rec at pointer %p.\n", (void *)b);
+    }
+    // Copy
+    BamRec(bam1_t *b) : b(bam_dup1(b))
     {
-        return (plp->b->core.flag & BAM_FREVERSE) ? plp->b->core.l_qseq - 1 - plp->qpos
-                                                  : plp->qpos;
     }
-
-    static const char *dlib_tags[] = {
-            "MU",
-            "LM",
-            "SC",
-            "ML",
-            "AF",
-            "MF"
-    };
-
-    static inline void nuke_dlib_tags(bam1_t *b) {
-        uint8_t *data;
-        for(auto tag: dlib_tags)
-            if((data = bam_aux_get(b, tag)) != nullptr)
-                bam_aux_del(b, data);
+    BamRec(BamRec& other) :
+    b(bam_dup1(other.b))
+    {
     }
+    ~BamRec() {
+        if(b) bam_destroy1(b);
+    }
+};
+class BamHandle;
+class BedPlpAuxBase {
+public:
+    unsigned minmq;
+    int padding;
+    BamHandle *handle;
+    BedPlpAuxBase(unsigned _minmq, BamHandle *_handle=NULL, int _padding=DEFAULT_PADDING):
+        minmq(_minmq),
+        padding(_padding),
+        handle(_handle)
+    {
+    }
+};
+class BamHandle {
+public:
+    uint16_t is_write:1;
+    //uint16_t is_dummy:1;
+    samFile *fp;
+    hts_itr_t *iter;
+    bam_hdr_t *header;
+    hts_idx_t *idx;
+    const bam_pileup1_t *pileups;
+    bam_plp_t plp;
+    bam1_t *rec;
+    // Read constructor
+    BamHandle(const char *path):
+        is_write(0),
+        //is_dummy(!path),
+        fp(path ? sam_open(path, "r"): nullptr),
+        iter(nullptr),
+        header(path ? sam_hdr_read(fp): nullptr),
+        idx(path ? bam_index_load(path): nullptr),
+        pileups(nullptr),
+        plp(nullptr),
+        rec(path ? bam_init1(): nullptr)
+    {
+        if(!fp && path) LOG_WARNING("Could not open '%s' for reading. Abort!\n", path); // Non-null path
+#if !NDEBUG
+        if(!idx) LOG_WARNING("Could not load index file for input bam (%s), just FYI.\n", path);
+#endif
+    }
+    // Write constructor
+    BamHandle(const char *path, bam_hdr_t *hdr, const char *mode = "wb"):
+        is_write(1),
+        //is_dummy(0),
+        fp(sam_open(path, mode)),
+        iter(NULL),
+        header(bam_hdr_dup(hdr)),
+        idx(NULL),
+        pileups(NULL),
+        plp(NULL),
+        rec(NULL)
+    {
+        if(fp == NULL) LOG_EXIT("Could not open output bam %s for reading. Abort!\n", path);
+        if(sam_hdr_write(fp, header)) LOG_EXIT("Coud not write header to output bam %s. Abort!\n", path);
+    }
+    ~BamHandle() {
+        //if(is_dummy) return;
+        if(rec) {
+            LOG_DEBUG("Destroyin' rec\n");
+            bam_destroy1(rec);
+        }
+        if(fp) {
+            LOG_DEBUG("Closin' fp!\n");
+            sam_close(fp), fp = NULL;
+        }
+        if(iter) {
+            LOG_DEBUG("Closin' iter!\n");
+            hts_itr_destroy(iter), iter = NULL;
+        }
+        if(header) {
+            LOG_DEBUG("Destroyin' header!\n");
+            bam_hdr_destroy(header);
+        }
+        if(idx) {
+            LOG_DEBUG("Destroyin' idx!\n");
+            hts_idx_destroy(idx);
+        }
+        if(plp) {
+            LOG_DEBUG("Destroyin' plp!\n");
+            bam_plp_destroy(plp);
+        }
+    }
+    int for_each_pair(std::function<int (bam1_t *, bam1_t *, void *)> fn, BamHandle& ofp, void *data=NULL);
+    int for_each(std::function<int (bam1_t *, void *)> fn, BamHandle& ofp, void *data=NULL);
+    int write();
+    int read(BamRec b);
+    int write(bam1_t *b) {
+        return sam_write1(fp, header, b);
+    }
+    int write(BamRec b) {
+        return write(b.b);
+    }
+    int read(bam1_t *b) {
+        return iter ? bam_itr_next(fp, iter, b)
+                    : sam_read1(fp, header, b);
+    }
+    int next() {
+        if(read(rec) < 0) {
+            LOG_INFO("StopIteration: Finished iterating through bam %s.\n", fp->fn);
+            return -1;
+        }
+        return 1;
+    }
+    int bed_plp_auto(khash_t(bed) *bed, std::function<int (const bam_pileup1_t *, int, void *)> fn,
+                     BedPlpAuxBase *auxen);
+};
+static inline int bam_readrec(BedPlpAuxBase *data, bam1_t *b) {
+    return data->handle->iter ? bam_itr_next(data->handle->fp, data->handle->iter, data->handle->rec)
+                              : sam_read1(data->handle->fp, data->handle->header, data->handle->rec);
+}
+static int read_bam(BedPlpAuxBase *data, bam1_t *b) {
+    int ret;
+    for(;;) {
+        if((ret = bam_readrec(data, b)) >= 0) break;
+        if(b->core.flag & (BAM_FSECONDARY | BAM_FUNMAP | BAM_FQCFAIL | BAM_FDUP))
+            continue;
+    }
+    return ret;
+}
+
+int bam_apply_function(char *infname, char *outfname,
+                       std::function<int (bam1_t *, void *)> func, void *data=NULL, const char *mode="wb");
+int bam_pair_apply_function(char *infname, char *outfname,
+        pair_aux_fn fn, void *data=NULL, const char *mode="wb");
+/*
+ * Finds the index in an array tag to use for a bam_pileup1_t struct.
+ */
+static inline int arr_qpos(const bam_pileup1_t *plp)
+{
+    return (plp->b->core.flag & BAM_FREVERSE) ? plp->b->core.l_qseq - 1 - plp->qpos
+                                              : plp->qpos;
+}
+
+static const char *dlib_tags[] = {
+        "MU",
+        "LM",
+        "SC",
+        "ML",
+        "AF",
+        "MF"
+};
+
+static inline void nuke_dlib_tags(bam1_t *b) {
+    uint8_t *data;
+    for(auto tag: dlib_tags)
+        if((data = bam_aux_get(b, tag)) != nullptr)
+            bam_aux_del(b, data);
+}
 
 #endif /* ifdef __cplusplus */
 
