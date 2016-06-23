@@ -1,5 +1,5 @@
 #include "bam_util.h"
-#include "char_util.h"
+#include "cstr_util.h"
 
 
 #ifdef __cplusplus
@@ -62,6 +62,8 @@ void bam_aux_array_append(bam1_t *b, const char tag[2], char type, int elemsize,
         write_if_found(rvdata, b, "NC", ks);
         write_if_found(rvdata, b, "NP", ks);
         write_if_found(rvdata, b, "DR", ks);
+        if(bam_aux_get((b), "SA") || bam_aux_get((b), "ms"))
+            kputsnl("\tSP:i:1", &ks);
         kputc('\n', &ks);
         seq = bam_get_seq(b);
         seqbuf = (char *)malloc(b->core.l_qseq + 1);

@@ -216,6 +216,12 @@ namespace dlib {
         memcpy(ret, ks->s, ks->l + 1);
         return ret;
     }
+    inline int stringhd(char *a, char *b)
+    {
+        int hd = 0;
+        while(*a) hd += (*a++ != *b++);
+        return hd;
+    }
 
 #ifdef __cplusplus
 }
