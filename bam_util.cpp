@@ -50,8 +50,8 @@ void bam_aux_array_append(bam1_t *b, const char tag[2], char type, int elemsize,
         int8_t t;
         kstring_t ks = {1, 256uL, (char *)malloc(256uL)};
         ks.s[0] = '@', ks.s[1] = '\0';
-        kputs(bam_get_qname(b), &ks);
-        kputsn(" PV:B:I", 7uL, &ks);
+        kputsn(bam_get_qname(b), b->core.l_qname - 1, &ks);
+        kputsnl(" PV:B:I", &ks);
         pv = (uint32_t *)dlib::array_tag(b, "PV");
         fa = (uint32_t *)dlib::array_tag(b, "FA");
         for(i = 0; i < b->core.l_qseq; ++i) ksprintf(&ks, ",%u", pv[i]);
@@ -91,9 +91,11 @@ void bam_aux_array_append(bam1_t *b, const char tag[2], char type, int elemsize,
             }
         }
         assert(strlen(seqbuf) == (uint64_t)b->core.l_qseq);
-        kputs(seqbuf, &ks), free(seqbuf);
+        kputsn(seqbuf, b->core.l_qseq, &ks);
+        free(seqbuf);
         kputc('\n', &ks);
-        std::string ret(ks.s), free(ks.s);
+        std::string ret(ks.s);
+        free(ks.s);
         return ret;
     }
 
