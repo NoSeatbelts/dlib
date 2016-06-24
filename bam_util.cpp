@@ -62,8 +62,7 @@ void bam_aux_array_append(bam1_t *b, const char tag[2], char type, int elemsize,
         write_if_found(rvdata, b, "NC", ks);
         write_if_found(rvdata, b, "NP", ks);
         write_if_found(rvdata, b, "DR", ks);
-        if(bam_aux_get((b), "SA") || bam_aux_get((b), "ms"))
-            kputsnl("\tSP:i:1", &ks);
+        write_if_found(rvdata, b, "SP", ks);
         kputc('\n', &ks);
         seq = bam_get_seq(b);
         seqbuf = (char *)malloc(b->core.l_qseq + 1);
@@ -160,7 +159,9 @@ int abstract_pair_iter(samFile *in, bam_hdr_t *hdr, samFile *ofp, pair_aux_fn fu
             bam_copy1(b1, b); continue;
         }
 #if !NDEBUG
-        ++npairs;
+        if(UNLIKELY(++npairs % 1000000 == 0)) {
+            LOG_DEBUG("Number of pairs processed: %lu.\n", npairs);
+        }
 #endif
         if(strcmp(bam_get_qname(b1), bam_get_qname(b)))
             LOG_EXIT("Is the bam name sorted? Reads in 'pair' don't have the same name (%s, %s). Abort!\n", bam_get_qname(b1), bam_get_qname(b));
