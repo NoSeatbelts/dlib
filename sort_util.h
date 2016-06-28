@@ -12,8 +12,8 @@
 
 // Unclipped start sort key macros
 #ifdef __cplusplus
-#    define ucs_sort_mate_key(a) ((uint64_t)(a->core.mtid) << 32 | (bam_itag(a, "MU") + 1) << 1 | bam_is_mrev(a))
 #    define ucs_sort_core_key(a) (((uint64_t)(a->core.tid) << 32) | ((dlib::get_unclipped_start(a)+1) << 2) | (bam_is_rev(a) << 1) |bam_is_r1(a))
+#    define ucs_sort_mate_key(a) ((uint64_t)(a->core.mtid) << 32 | (bam_itag(a, "MU") + 1) << 1 | bam_is_mrev(a))
 #    define ucs_se_sort_key(a) ((uint64_t)(a->core.tid) <<32|((dlib::get_unclipped_start(a)+1)<<2)|bam_is_rev(a))
 #else
 #    define ucs_sort_core_key(a) (((uint64_t)(a->core.tid) << 32) | ((get_unclipped_start(a)+1) << 2) | (bam_is_rev(a) << 1) |bam_is_r1(a))
@@ -24,7 +24,7 @@
 
 // Pos sort key macros
 #define bmfsort_core_key(a) (((uint64_t)(a->core.tid) << 32) | ((a->core.pos+1) << 2) | (bam_is_rev(a) << 1) |bam_is_r1(a))
-#define bmfsort_mate_key(a) ((uint64_t)(a->core.mtid) << 32 | (a->core.pos + 1) << 1 | bam_is_mrev(a))
+#define bmfsort_mate_key(a) ((uint64_t)(a->core.mtid) << 32 | (a->core.mpos + 1) << 1 | bam_is_mrev(a))
 
 #define bmfsort_se_key(a) ((uint64_t)(a->core.tid)<<32|((a->core.pos+1)<<2)|bam_is_rev(a))
 
