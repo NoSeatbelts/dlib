@@ -21,7 +21,7 @@ int main(int argc, char *argv[]) {
     }
     int c;
     char out_mode[4] = "wb";
-    while((c = get_opt(argc, argv, "l:h?")) > -1) {
+    while((c = getopt(argc, argv, "l:h?")) > -1) {
         switch(c) {
         case 'l': out_mode[2] = atoi(optarg) % 10 + '0'; break;
         case 'h': case '?': return usage(argv, EXIT_SUCCESS);

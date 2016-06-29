@@ -19,7 +19,7 @@ class BedCovAux : dlib::BedPlpAuxBase {
 
 
 int bed_plp_core(char *infname, char *outfname) {
-
+    return 0;
 }
 
 int main(int argc, char *argv[]) {
@@ -32,7 +32,7 @@ int main(int argc, char *argv[]) {
     }
     int c;
     char out_mode[4] = "wb";
-    while((c = get_opt(argc, argv, "l:h?")) > -1) {
+    while((c = getopt(argc, argv, "l:h?")) > -1) {
         switch(c) {
         case 'l':
             out_mode[2] = atoi(optarg) % 10 + '0'; break;
@@ -43,6 +43,5 @@ int main(int argc, char *argv[]) {
     if(argc - 2 != optind) {
         LOG_EXIT("Required: precisely two positional arguments (in bam, out bam).\n");
     }
-
-    return EXIT_SUCCESS;
+    return bed_plp_core(argv[1], argv[2]);
 }

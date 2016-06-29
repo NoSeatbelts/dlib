@@ -13,13 +13,13 @@
 // Unclipped start sort key macros
 #ifdef __cplusplus
 #    define ucs_sort_core_key(a) (((uint64_t)(a->core.tid) << 32) | ((dlib::get_unclipped_start(a)+1) << 2) | (bam_is_rev(a) << 1) |bam_is_r1(a))
-#    define ucs_sort_mate_key(a) ((uint64_t)(a->core.mtid) << 32 | (bam_itag(a, "MU") + 1) << 1 | bam_is_mrev(a))
 #    define ucs_se_sort_key(a) ((uint64_t)(a->core.tid) <<32|((dlib::get_unclipped_start(a)+1)<<2)|bam_is_rev(a))
 #else
 #    define ucs_sort_core_key(a) (((uint64_t)(a->core.tid) << 32) | ((get_unclipped_start(a)+1) << 2) | (bam_is_rev(a) << 1) |bam_is_r1(a))
-#    define ucs_sort_mate_key(a) ((uint64_t)(a->core.mtid) << 32 | (bam_itag(a, "MU") + 1) << 1 | bam_is_mrev(a))
 #    define ucs_se_sort_key(a) ((uint64_t)(a->core.tid) <<32|((get_unclipped_start(a)+1)<<2)|bam_is_rev(a))
 #endif
+
+#define ucs_sort_mate_key(a) ((uint64_t)(a->core.mtid) << 32 | (bam_itag(a, "MU") + 1) << 1 | bam_is_mrev(a))
 
 
 // Pos sort key macros

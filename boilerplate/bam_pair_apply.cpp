@@ -27,11 +27,10 @@ int main(int argc, char *argv[]) {
         return EXIT_SUCCESS;
     }
     int c;
-    opts opts();
-    opts.level = -1;
-    char out_mode[4] = "wb";
+    opts opts;
+    char out_mode[4]{"wb"};
     // Add more options here to take parameters.
-    while((c = get_opt(argc, argv, "l:h?")) > -1) {
+    while((c = getopt(argc, argv, "l:h?")) > -1) {
         switch(c) {
         case 'l':
             opts.level = atoi(optarg) % 10; out_mode[2] = opts.level + '0'; break;
