@@ -21,9 +21,9 @@ namespace dlib {
     void check_popen(const char *cmd);
     void check_call(const char *cmd);
 #ifdef __cplusplus
-    gzFile open_gzfile(char *infname, const char *mode="r");
+    gzFile open_gzfile(const char *infname, const char *mode="r");
 #else
-    gzFile open_gzfile(char *infname, const char *mode);
+    gzFile open_gzfile(const char *infname, const char *mode);
 #endif
     int count_lines(const char *fname);
     int count_bed_lines(const char *fname);

@@ -36,7 +36,7 @@ namespace dlib {
     }
 
 
-    gzFile open_gzfile(char *fname, const char *mode) {
+    gzFile open_gzfile(const char *fname, const char *mode) {
         if(strcmp(fname, "-") == 0 || strcmp(fname, "stdin") == 0 || strcmp(fname, "stdout") == 0) {
             return gzdopen(*mode == 'r' ? STDIN_FILENO: STDOUT_FILENO, mode); // Opens stdin or stdout
         }
