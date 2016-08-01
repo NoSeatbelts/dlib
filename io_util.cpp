@@ -56,17 +56,18 @@ namespace dlib {
 
 
     int count_lines(const char *fname) {
-        int ret = 0;
-        FILE *fp = fopen(fname, "r");
-        if(!fp) {
-            fprintf(stderr, "[E:%s] Could not open file %s. Abort mission!\n", __func__, fname);
-            exit(EXIT_FAILURE);
+        int ret;
+        FILE *fp;
+        if(!(fp = fopen(fname, "r"))) {
+            LOG_WARNING("Could not open file %s. Returning error code -1.\n", fname);
+            return -1;
         }
-        start:
-        switch(getc_unlocked(fp)) {
-            case EOF: fclose(fp); return ret;
-            case '\n': ++ret;
-            default: goto start;
+        ret = 0;
+        for(;;) {
+            switch(getc_unlocked(fp)) {
+                case EOF: fclose(fp); return ret;
+                case '\n': ++ret;
+            }
         }
     }
 

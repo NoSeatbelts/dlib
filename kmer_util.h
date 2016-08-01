@@ -2,6 +2,7 @@
 #define KMER_UTIL_H
 #include "logging_util.h"
 #include "bam_util.h"
+#include "cstr_util.h"
 // Largest odd kmer that can be held in a uint64_t
 #define MAX_KMER 31
 #define DEFAULT_KMER 21
@@ -25,42 +26,7 @@ namespace dlib {
 #endif
 KHASH_MAP_INIT_INT64(kmer, uint64_t)
 
-//Set a return kmer (overlap_kmer) for the matched sequence, and len_pos, which contains the length of the kmer
-// and the index of the kmer match in ka as the first 16 and last 16 bits of a uin32_t, respectively.
-static inline void kmer_overlap(uint64_t ka, uint64_t kb, const int k, uint64_t *overlap_kmer, uint32_t *len_pos) {
-    uint32_t runlen;
-    for(uint32_t i(0), runstart(0), bit_offset1(63), bit_offset2(63); i < k; ++i) {
-        for(uint32_t j(0); j < k; ++j) {
-            // TODO: Finish. Is there a better way than quadraticc?
-        }
-    }
-}
-
-inline void kmer2cstr(uint64_t kmer, int k, char *buf)
-{
-    while(k) *buf++ = num2nuc((kmer >> (2 * --k)) & 0x3u);
-    *buf = '\0';
-    //LOG_DEBUG("kmer %lu has now become string '%s'.\n", kmer, start);
-}
-
-static inline int bam_is_lt(uint8_t *seq, int cpos, const int8_t k) {
-    int _cpos = cpos + k - 1;
-    uint8_t ki1, ki2;
-    for(int i = 0; i < k; ++i, --_cpos)
-        if((ki1 = bam_seqi(seq, i + cpos)) != (ki2 = bam_seqi_cmpl(seq, _cpos)))
-            return ki1 < ki2;
-    return 0;
-}
-
-// Used to determine the direction in which to encode a kmer
-inline int cstr_rc_lt(char *seq, int k, int cpos) {
-    char *_seq1 = cpos + seq, *_seq2 = _seq1 + k - 1;
-    for(;k;--k) {
-        if(*_seq1 != nuc_cmpl(*_seq2)) return *_seq1 < nuc_cmpl(*_seq2);
-        ++_seq1, --_seq2;
-    }
-    return 0; // This is reverse-complementarily palindromic. Doesn't matter: it's the same string.
-}
+void kmer_overlap(uint64_t ka, uint64_t kb, const uint32_t k, uint64_t *overlap_kmer, uint32_t *len_pos);
 
 static const uint64_t htseq_lut[] {
     BF, 0, 1, BF, 2, BF, BF, BF,
@@ -106,12 +72,51 @@ static const uint64_t lut_rev_2[] {
 #else
 #endif
 
+//Gets the 2 bits for an encoded base at an index in an unsigned 64-bit integer encoded kmer.
+#define encoded_base(kmer, k, index) ((kmer >> (2 * k - index)) & 0x3)
+#define MIN_RUNLEN 10
+
+inline void kmer2cstr(uint64_t kmer, int k, char *buf)
+{
+    while(k) *buf++ = num2nuc((kmer >> (2 * --k)) & 0x3u);
+    *buf = '\0';
+    //LOG_DEBUG("kmer %lu has now become string '%s'.\n", kmer, start);
+}
+
+static inline int bam_is_lt(uint8_t *seq, int cpos, const int8_t k) {
+    int _cpos = cpos + k - 1;
+    uint8_t ki1, ki2;
+    for(int i = 0; i < k; ++i, --_cpos)
+        if((ki1 = bam_seqi(seq, i + cpos)) != (ki2 = bam_seqi_cmpl(seq, _cpos)))
+            return ki1 < ki2;
+    return 0;
+}
+
+// Used to determine the direction in which to encode a kmer
+inline int cstr_rc_lt(char *seq, int k, int cpos) {
+    char *_seq1 = cpos + seq, *_seq2 = _seq1 + k - 1;
+    for(;k;--k) {
+        if(*_seq1 != nuc_cmpl(*_seq2)) return *_seq1 < nuc_cmpl(*_seq2);
+        ++_seq1, --_seq2;
+    }
+    return 0; // This is reverse-complementarily palindromic. Doesn't matter: it's the same string.
+}
+
+static inline int seq_is_lt(uint8_t *seq, int cpos, int k) {
+    uint32_t _khi1, _khi2;
+    int _cpos(cpos + k - 1);
+    for(int i = 0; i < k; ++i, --_cpos)
+        if((_khi1 = bam_seqi(seq, i + cpos)) != (_khi2 = bam_seqi_cmpl(seq, _cpos)))
+            return _khi1 < _khi2;
+    return 1;
+}
+
 void kmerset_print_hist(khash_t(kmer) *h, FILE *fp_);
 
-inline void bam_set_kmer(uint64_t *ret, uint8_t *seq, int cpos, int is_lt,
-                         uint64_t kmer_mask_, int k) {
+inline void bam_set_kmer(uint64_t *ret, uint8_t *const seq, const int cpos,
+                         const uint64_t kmer_mask_, const int k) {
     *ret = 0;
-    if(is_lt) {
+    if(seq_is_lt(seq, cpos, k)) {
         for(int i = cpos;i < cpos + k; ++i) {
             *ret <<= 2;
             *ret |= htseq_lut[bam_seqi(seq, i)];
@@ -129,26 +134,26 @@ inline void bam_set_kmer(uint64_t *ret, uint8_t *seq, int cpos, int is_lt,
 } /*bam_set_kmer*/
 
 
-inline void cstr_set_kmer(uint64_t *ret, char *seq, const int cpos, const int is_lt,
+inline void cstr_set_kmer(uint64_t *ret, char *seq, const int cpos,
                           uint64_t kmer_mask, int k) {
     *ret = 0;
     //LOG_DEBUG("Seq: %s at pointer %p.", seq, (void *)seq);
-    if(is_lt) {
+    if(cstr_rc_lt(seq, k, cpos)) {
         seq += cpos;
         for(;k; --k) {
             *ret <<= 2;
             *ret |= cstr_lut[static_cast<uint8_t>(*seq++)];
             if(*ret == BF) return;
-            *ret &= kmer_mask;
         }
+        *ret &= kmer_mask;
     } else {
         seq += cpos + k;
         for(;k; --k) {
             *ret <<= 2;
             *ret |= cstr_rc_lut[static_cast<uint8_t>(*--seq)];
             if(*ret == BF) return;
-            *ret &= kmer_mask;
         }
+        *ret &= kmer_mask;
     }
 } /*cstr_set_kmer*/
 
