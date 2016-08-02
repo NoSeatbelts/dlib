@@ -20,6 +20,9 @@
 #ifndef BF
 #    define BF BINFINITY
 #endif
+#ifndef XOR_MASK
+#    define XOR_MASK 0xe37e28c4271b5a2dULL
+#endif
 
 #ifdef __cplusplus
 namespace dlib {
@@ -73,8 +76,12 @@ static const uint64_t lut_rev_2[] {
 #endif
 
 //Gets the 2 bits for an encoded base at an index in an unsigned 64-bit integer encoded kmer.
-#define encoded_base(kmer, k, index) ((kmer >> (2 * k - index)) & 0x3)
-#define MIN_RUNLEN 10
+#define encoded_base(kmer, k, index) ((kmer >> (2 * (k - 1 - index))) & 0x3)
+static inline char decoded_base(uint64_t kmer, const int k, const int index) {
+   return NUM2NUC_STR[encoded_base(kmer, k, index)];
+}
+
+#define MIN_RUNLEN 4
 
 inline void kmer2cstr(uint64_t kmer, int k, char *buf)
 {
@@ -93,12 +100,11 @@ static inline int bam_is_lt(uint8_t *seq, int cpos, const int8_t k) {
 }
 
 // Used to determine the direction in which to encode a kmer
-inline int cstr_rc_lt(char *seq, int k, int cpos) {
-    char *_seq1 = cpos + seq, *_seq2 = _seq1 + k - 1;
-    for(;k;--k) {
-        if(*_seq1 != nuc_cmpl(*_seq2)) return *_seq1 < nuc_cmpl(*_seq2);
-        ++_seq1, --_seq2;
-    }
+inline int cstr_rc_lt(const char *seq, int k, int cpos) {
+    const char *_seq1 = cpos + seq, *_seq2 = _seq1 + k - 1;
+    for(;k;--k, ++_seq1, --_seq2)
+        if(*_seq1 != nuc_cmpl(*_seq2))
+            return *_seq1 < nuc_cmpl(*_seq2);
     return 0; // This is reverse-complementarily palindromic. Doesn't matter: it's the same string.
 }
 
@@ -134,7 +140,7 @@ inline void bam_set_kmer(uint64_t *ret, uint8_t *const seq, const int cpos,
 } /*bam_set_kmer*/
 
 
-inline void cstr_set_kmer(uint64_t *ret, char *seq, const int cpos,
+inline void cstr_set_kmer(uint64_t *ret, const char *seq, const int cpos,
                           uint64_t kmer_mask, int k) {
     *ret = 0;
     //LOG_DEBUG("Seq: %s at pointer %p.", seq, (void *)seq);
@@ -156,6 +162,66 @@ inline void cstr_set_kmer(uint64_t *ret, char *seq, const int cpos,
         *ret &= kmer_mask;
     }
 } /*cstr_set_kmer*/
+
+// Jellyfish/Kraken
+static inline uint64_t reverse_complement(uint64_t kmer, uint8_t n) {
+    kmer = ((kmer >> 2)  & 0x3333333333333333UL) | ((kmer & 0x3333333333333333UL) << 2);
+    kmer = ((kmer >> 4)  & 0x0F0F0F0F0F0F0F0FUL) | ((kmer & 0x0F0F0F0F0F0F0F0FUL) << 4);
+    kmer = ((kmer >> 8)  & 0x00FF00FF00FF00FFUL) | ((kmer & 0x00FF00FF00FF00FFUL) << 8);
+    kmer = ((kmer >> 16) & 0x0000FFFF0000FFFFUL) | ((kmer & 0x0000FFFF0000FFFFUL) << 16);
+    kmer = ( kmer >> 32                        ) | ( kmer                         << 32);
+    return (((uint64_t)-1) - kmer) >> (8 * sizeof(kmer) - (n << 1));
+}
+
+static inline uint64_t canonical_representation(uint64_t kmer, uint8_t n) {
+    const uint64_t revcom(reverse_complement(kmer, n));
+    return kmer < revcom ? kmer : revcom;
+}
+
+#ifdef __cplusplus
+template<uint8_t k, uint8_t m>
+uint64_t kmer_minimizer(uint64_t kmer) {
+    static const uint64_t mask(1 << (m * 2) - 1);
+    static const uint8_t key_bits(k * 2);
+    static const uint64_t xor_mask(XOR_MASK & mask);
+    uint64_t min_bin_key(~0);
+    for (uint64_t i = 0; i < key_bits / 2 - m + 1; ++i) {
+        const uint64_t temp_bin_key(xor_mask ^ canonical_representation(kmer & mask, m));
+        if (temp_bin_key < min_bin_key)
+            min_bin_key = temp_bin_key;
+        kmer >>= 2;
+    }
+    return min_bin_key;
+}
+// Minimizer is now the floor of k / 2.
+template<uint8_t k>
+uint64_t kmer_minimizer(uint64_t kmer) {
+    static const uint64_t mask((1 << (k / 2 * 2)) - 1);
+    static const uint8_t key_bits(k * 2);
+    static const uint64_t xor_mask(XOR_MASK & mask);
+    uint64_t min_bin_key(~0);
+    for (uint64_t i = 0; i < key_bits / 2 - k / 2 + 1; ++i) {
+        const uint64_t temp_bin_key(xor_mask ^ canonical_representation(kmer & mask, k / 2));
+        if (temp_bin_key < min_bin_key)
+            min_bin_key = temp_bin_key;
+        kmer >>= 2;
+    }
+    return min_bin_key;
+}
+#endif
+static inline uint64_t kmer_minimizer(uint64_t kmer, const uint8_t k, const uint8_t m) {
+    const uint64_t mask((1 << (m * 2)) - 1);
+    const uint8_t key_bits(k * 2);
+    const uint64_t xor_mask(XOR_MASK & mask);
+    uint64_t min_bin_key(~0);
+    for (uint64_t i = 0; i < ((key_bits / 2) - m + 1uL); ++i) {
+        const uint64_t temp_bin_key(xor_mask ^ canonical_representation(kmer & mask, m));
+        if (temp_bin_key < min_bin_key)
+            min_bin_key = temp_bin_key;
+        kmer >>= 2;
+    }
+    return min_bin_key;
+}
 
 #ifdef __cplusplus
 }

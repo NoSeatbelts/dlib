@@ -3,22 +3,29 @@
 namespace dlib {
 //Set a return kmer (overlap_kmer) for the matched sequence, and len_pos, which contains the length of the kmer
 //and the index of the kmer match in ka as the first 16 and last 16 bits of a uint32_t, respectively.
+
+inline uint32_t get_runlen(uint64_t ka, uint64_t kb, int i, int j, const int k) {
+    uint32_t ret(0);
+    while(encoded_base(ka, k, i++) == encoded_base(kb, k, j++) && i < k && j < k) ++ret;
+    return ret;
+}
+
 void kmer_overlap(uint64_t ka, uint64_t kb, const uint32_t k,
                   uint64_t *overlap_kmer, uint32_t *len_pos) {
     uint16_t runlen(0), max_runlen(0), max_runindex(0);
     for(uint_fast8_t i(0); i < k; ++i) {
         for(uint_fast8_t j(0); j < k; ++j) {
-            if(encoded_base(ka, k, i) == encoded_base(kb, k, j)) ++runlen;
-            else {
-                if(runlen > max_runlen) {
-                    max_runlen = runlen;
-                    max_runindex = i;
-                    if(k - j < max_runlen) break;
-                    // Should we be short-circuing?
-                }
-                runlen = 0;
+            if((runlen = get_runlen(ka, kb, i, j, k)) > max_runlen) {
+                LOG_DEBUG("New runlen: %i. Old: %i.\n", runlen, max_runlen);
+                max_runlen = runlen;
+                max_runindex = i;
+            }
+            if(k - j < max_runlen) {
+                LOG_DEBUG("Short circuiting.\n");
+                break;
             }
         }
+        LOG_DEBUG("i: %i.\n", i);
         // Should we be short-circuing?
         if(k - i < max_runlen) break;
     }

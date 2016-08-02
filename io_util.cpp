@@ -47,10 +47,8 @@ namespace dlib {
         std::ifstream file(fname);
         std::string line;
         int ret = 0;
-        while(std::getline(file, line)) {
-            if(line[0] == '#') continue;
-            ++ret;
-        }
+        while(std::getline(file, line))
+            ret += (line[0] != '#');
         return ret;
     }
 
@@ -74,19 +72,24 @@ namespace dlib {
 
     int my_system (const char *command, const char *executable)
     {
-        int status;
+        int status = 1337;
         pid_t pid = fork ();
         if (pid == 0) {
             /* This is the child process.  Execute the shell command. */
             execl(executable, executable, "-c", command, NULL);
+            LOG_DEBUG("child  process failed.\n");
             _exit(EXIT_FAILURE);
-        } else if(pid < 0) status = -1;
+        } else if(pid < 0) {
+            LOG_DEBUG("pid < 0.\n");
+            status = -1;
+        }
         /* The fork failed.  Report failure.  */
         else if (waitpid (pid, &status, 0) != pid) {
         /* This is the parent process.  Wait for the child to complete.  */
             status = -1;
             LOG_WARNING("Called process '%s' failed. Check return status (%i).\n", command, status);
         }
+        LOG_DEBUG("returning status: %i.\n", status);
         return status;
     }
 
