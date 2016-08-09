@@ -23,6 +23,7 @@
 #ifndef XOR_MASK
 #    define XOR_MASK 0xe37e28c4271b5a2dULL
 #endif
+#define __kmask_init(kmer_mask, k) (~0 >> (sizeof(kmer_mask) * 8 - (k * 2)))
 
 #ifdef __cplusplus
 namespace dlib {
@@ -78,10 +79,14 @@ static const uint64_t lut_rev_2[] {
 //Gets the 2 bits for an encoded base at an index in an unsigned 64-bit integer encoded kmer.
 #define encoded_base(kmer, k, index) ((kmer >> (2 * (k - 1 - index))) & 0x3)
 static inline char decoded_base(uint64_t kmer, const int k, const int index) {
-   return NUM2NUC_STR[encoded_base(kmer, k, index)];
+#if !NDEBUG
+   uint8_t iatpos = encoded_base(kmer, k, index);
+   fprintf(stderr, "int: %i.\n", iatpos);
+#endif
+   return num2nuc(encoded_base(kmer, k, index));
 }
 
-#define MIN_RUNLEN 4
+#define MIN_RUNLEN 3
 
 inline void kmer2cstr(uint64_t kmer, int k, char *buf)
 {
