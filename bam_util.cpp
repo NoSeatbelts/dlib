@@ -262,25 +262,6 @@ void add_pg_line(bam_hdr_t *hdr, int argc, char **argv,
         }
         return 0;
     }
-    int BamHandle::for_each_pair(std::function<int (bam1_t *, bam1_t *, void *)> fn, BamHandle& ofp, void *data) {
-        LOG_EXIT("Broken function.\n");
-        int ret;
-        bam1_t *r1 = bam_init1();
-        while(next() >= 0) {
-            if(rec->core.flag & BAM_FREAD1) {
-                bam_copy1(r1, rec);
-                continue;
-            }
-            if((rec->core.flag & BAM_FREAD2) == 0) continue;
-            assert(strcmp(bam_get_qname(r1), bam_get_qname(rec)) == 0);
-            if((ret = fn(r1, rec, data)) != 0) continue;
-            if(strcmp(bam_get_qname(r1), bam_get_qname(rec)))
-                LOG_EXIT("WTF\n");
-            ofp.write(r1), ofp.write(rec);
-        }
-        bam_destroy1(r1);
-        return 0;
-    }
     int BamHandle::write() {return write(rec);}
     int bam_apply_function(char *infname, char *outfname,
                            std::function<int (bam1_t *, void *)> func, void *data, const char *mode) {

@@ -47,45 +47,49 @@ namespace dlib {
         std::ifstream file(fname);
         std::string line;
         int ret = 0;
-        while(std::getline(file, line)) {
-            if(line[0] == '#') continue;
-            ++ret;
-        }
+        while(std::getline(file, line))
+            ret += (line[0] != '#');
         return ret;
     }
 
 
     int count_lines(const char *fname) {
-        int ret = 0;
-        FILE *fp = fopen(fname, "r");
-        if(!fp) {
-            fprintf(stderr, "[E:%s] Could not open file %s. Abort mission!\n", __func__, fname);
-            exit(EXIT_FAILURE);
+        int ret;
+        FILE *fp;
+        if(!(fp = fopen(fname, "r"))) {
+            LOG_WARNING("Could not open file %s. Returning error code -1.\n", fname);
+            return -1;
         }
-        start:
-        switch(getc_unlocked(fp)) {
-            case EOF: fclose(fp); return ret;
-            case '\n': ++ret;
-            default: goto start;
+        ret = 0;
+        for(;;) {
+            switch(getc_unlocked(fp)) {
+                case EOF: fclose(fp); return ret;
+                case '\n': ++ret;
+            }
         }
     }
 
 
     int my_system (const char *command, const char *executable)
     {
-        int status;
+        int status = 1337;
         pid_t pid = fork ();
         if (pid == 0) {
             /* This is the child process.  Execute the shell command. */
             execl(executable, executable, "-c", command, NULL);
+            LOG_DEBUG("child  process failed.\n");
             _exit(EXIT_FAILURE);
-        } else if(pid < 0) status = -1;
+        } else if(pid < 0) {
+            LOG_DEBUG("pid < 0.\n");
+            status = -1;
+        }
         /* The fork failed.  Report failure.  */
         else if (waitpid (pid, &status, 0) != pid) {
         /* This is the parent process.  Wait for the child to complete.  */
             status = -1;
             LOG_WARNING("Called process '%s' failed. Check return status (%i).\n", command, status);
         }
+        LOG_DEBUG("returning status: %i.\n", status);
         return status;
     }
 
