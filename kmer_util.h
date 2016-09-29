@@ -14,7 +14,7 @@
 #endif
 
 #ifndef BINFINITY
-#define BINFINITY 18446744073709551615uL
+#define BINFINITY -1ull
 #endif
 
 #ifdef __cplusplus
