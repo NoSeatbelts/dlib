@@ -3,6 +3,8 @@
 #ifndef __CSTD_LIMIT_MACROS
 #    define __CSTD_LIMIT_MACROS
 #endif
+#define __STDC_FORMAT_MACROS
+#include <inttypes.h>
 
 #ifdef __GNUC__
 #    define LIKELY(x) __builtin_expect((x),1)
