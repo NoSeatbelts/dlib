@@ -198,13 +198,10 @@ static inline int bam_readrec(BedPlpAuxBase *data, bam1_t *b) {
     return data->handle->iter ? bam_itr_next(data->handle->fp, data->handle->iter, data->handle->rec)
                               : sam_read1(data->handle->fp, data->handle->header, data->handle->rec);
 }
-static int read_bam(BedPlpAuxBase *data, bam1_t *b) {
+static int read_bam(BedPlpAuxBase *data, bam1_t *b, int flag=(BAM_FSECONDARY | BAM_FUNMAP | BAM_FQCFAIL | BAM_FDUP)) {
+    // Breaks from loop on error reading file or when a read without bits set in flag is found.
     int ret;
-    for(;;) {
-        if((ret = bam_readrec(data, b)) >= 0) break;
-        if(b->core.flag & (BAM_FSECONDARY | BAM_FUNMAP | BAM_FQCFAIL | BAM_FDUP))
-            continue;
-    }
+    while((ret = bam_readrec(data, b)) >= 0 && (b->core.flag & flag));
     return ret;
 }
 
@@ -289,12 +286,12 @@ void bam_aux_array_append(bam1_t *b, const char tag[2], char type, int elemsize,
 
 static inline void seq_nt16_cpy(char *read_str, uint8_t *seq, int len, int is_rev) {
     if(is_rev) {
-        for(--len;len != -1; --len) *read_str++ = seq_nt16_str[bam_seqi_cmpl(seq, len)];
+        for(--len;len >= 0; --len) *read_str++ = seq_nt16_str[bam_seqi_cmpl(seq, len)];
         *read_str++ = '\0';
     } else {
         read_str += len;
         *read_str-- = '\0';
-        for(--len;len != -1; --len) *read_str-- = seq_nt16_str[bam_seqi(seq, len)];
+        for(--len;len >= 0; --len) *read_str-- = seq_nt16_str[bam_seqi(seq, len)];
     }
 }
 
@@ -467,8 +464,7 @@ static inline int filter_n_frac_se(bam1_t *b1, double frac)
     uint8_t *d1 = bam_get_seq(b1);
     int threshold = frac * b1->core.l_qseq;
     int count = 0;
-    for(int i = 0; i < b1->core.l_qseq; ++i)
-        if(bam_seqi(d1,i) == HTS_N) ++count;
+    for(int i = 0; i < b1->core.l_qseq; ++i) counts += (bam_seqi(d1,i) == HTS_N);
     return count >= threshold;
 }
 
